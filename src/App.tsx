@@ -569,6 +569,18 @@ function App() {
           } 
         />
 
+        {/* ✅ MOBILE ROUTE ALIASES - Redirect /mobile/* to /portal/* */}
+        {/* This allows mobile navigation to use /mobile/* URLs while keeping smart routing */}
+        <Route path="/mobile/dashboard" element={<Navigate to="/portal" replace />} />
+        <Route path="/mobile/products" element={<Navigate to="/portal/products" replace />} />
+        <Route path="/mobile/products/:id" element={<Navigate to="/portal/products/:id" replace />} />
+        <Route path="/mobile/marketing-assets" element={<Navigate to="/portal/marketing" replace />} />
+        <Route path="/mobile/documentation" element={<Navigate to="/portal/docs" replace />} />
+        <Route path="/mobile/training" element={<Navigate to="/portal/training" replace />} />
+        <Route path="/mobile/account" element={<Navigate to="/portal/account" replace />} />
+        <Route path="/mobile/login" element={<Navigate to="/login" replace />} />
+
+
         {/* Shortcut Routes */}
         <Route 
           path="/products/:id" 
