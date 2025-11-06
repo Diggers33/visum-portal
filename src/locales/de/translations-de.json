@@ -1,0 +1,30 @@
+{
+  "marketingAssets": {
+    "title": "Marketing-Materialien-Bibliothek",
+    "subtitle": "Vertriebs- und Marketingmaterialien herunterladen",
+    "filters": "Filter",
+    "assetType": "Asset-Typ",
+    "product": "Produkt",
+    "language": "Sprache",
+    "searchPlaceholder": "Assets durchsuchen...",
+    "bulkDownload": "Massen-Download",
+    "download": "Herunterladen",
+    "downloads": "Downloads",
+    "showing": "Zeige",
+    "assets": "Assets",
+    "noAssetsFound": "Keine Assets gefunden",
+    
+    "assetTypes": {
+      "Brochure": "Broschüre",
+      "Product Photos": "Produktfotos",
+      "Video": "Video",
+      "Logo": "Logo",
+      "Case Study": "Fallstudie",
+      "White Paper": "Whitepaper",
+      "Presentation": "Präsentation",
+      "Datasheet": "Datenblatt",
+      "Manual": "Handbuch",
+      "Press Release": "Pressemitteilung"
+    }
+  }
+}

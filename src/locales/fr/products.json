@@ -1,0 +1,37 @@
+{
+  "catalog": {
+    "title": "Product Catalog",
+    "subtitle": "Browse our complete range of spectroscopy solutions",
+    "searchPlaceholder": "Search products...",
+    "allProducts": "All Products",
+    "filterByCategory": "Filter by Category",
+    "filterByLine": "Filter by Product Line"
+  },
+  "detail": {
+    "startingAt": "Starting at",
+    "contactForPricing": "Contact for pricing",
+    "overview": "Overview",
+    "technicalSpecs": "Technical Specs",
+    "documentation": "Documentation",
+    "marketing": "Marketing Assets",
+    "productLine": "Product Line",
+    "technology": "Technology",
+    "views": "views",
+    "downloads": "downloads",
+    "downloadFullSpecs": "Download Full Specifications",
+    "productDatasheet": "Product Datasheet",
+    "userManual": "User Manual",
+    "productBrochure": "Product Brochure",
+    "salesPresentation": "Sales Presentation",
+    "caseStudy": "Case Study",
+    "productDemo": "Product Demo Video",
+    "trainingVideo": "Training Video",
+    "watch": "Watch",
+    "noDocumentation": "No documentation available for this product.",
+    "noMarketing": "No marketing assets available for this product.",
+    "trainingMaterials": "Training Materials",
+    "learnHowToUse": "Learn how to use this product",
+    "productNotFound": "Product Not Found",
+    "notAvailable": "This product does not exist or is no longer available."
+  }
+}

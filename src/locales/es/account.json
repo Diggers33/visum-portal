@@ -1,0 +1,62 @@
+{
+  "title": "My Account",
+  "subtitle": "Manage your profile and preferences",
+  "tabs": {
+    "profile": "Profile",
+    "notifications": "Notifications",
+    "regional": "Regional Settings",
+    "security": "Security"
+  },
+  "profile": {
+    "companyInfo": "Company Information",
+    "companyName": "Company Name",
+    "territory": "Territory",
+    "contactInfo": "Contact Information",
+    "fullName": "Full Name",
+    "email": "Email Address",
+    "phone": "Phone Number"
+  },
+  "notifications": {
+    "emailPreferences": "Email Notification Preferences",
+    "chooseNotifications": "Choose which notifications you'd like to receive",
+    "productUpdates": "Product Updates",
+    "productUpdatesDesc": "New products and product announcements",
+    "newsAnnouncements": "News & Announcements",
+    "newsAnnouncementsDesc": "Company news and important updates",
+    "trainingReminders": "Training Reminders",
+    "trainingRemindersDesc": "New training materials and webinars",
+    "marketingMaterials": "Marketing Materials",
+    "marketingMaterialsDesc": "New brochures, case studies, and sales tools",
+    "emailFrequency": "Email Frequency",
+    "instant": "Instant",
+    "instantDesc": "Receive emails immediately",
+    "daily": "Daily Digest",
+    "dailyDesc": "Once per day summary",
+    "weekly": "Weekly Summary",
+    "weeklyDesc": "Weekly roundup"
+  },
+  "regional": {
+    "settings": "Regional Settings",
+    "language": "Preferred Language",
+    "timezone": "Timezone",
+    "dateFormat": "Date Format",
+    "timeFormat": "Time Format"
+  },
+  "security": {
+    "title": "Security",
+    "changePassword": "Change Password",
+    "changePasswordDesc": "Update your account password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "updatePassword": "Update Password"
+  },
+  "messages": {
+    "saveSuccess": "Settings saved successfully",
+    "saveError": "Failed to save settings",
+    "passwordSuccess": "Password updated successfully",
+    "passwordError": "Failed to update password",
+    "passwordMismatch": "Passwords do not match",
+    "passwordMinLength": "Password must be at least 8 characters"
+  }
+}

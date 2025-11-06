@@ -1,0 +1,492 @@
+import React, { useState, useEffect, useTransition } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../ui/dialog';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Textarea } from '../ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../ui/alert-dialog';
+import { FileText, Upload, ImageIcon, Video } from 'lucide-react';
+import { toast } from 'sonner@2.0.3';
+
+interface Asset {
+  id: number;
+  name: string;
+  type: string;
+  product: string;
+  language: string;
+  format: string;
+  size: string;
+  downloads: number;
+  uploaded?: string;
+  status?: string;
+  description?: string;
+  internalNotes?: string;
+  lastDownloaded?: string;
+  lastDownloadedBy?: string;
+  created?: string;
+}
+
+interface EditAssetModalProps {
+  asset: Asset | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (updatedAsset: Asset) => void;
+}
+
+const assetTypes = [
+  'Brochure',
+  'Product Photos',
+  'Video',
+  'Logo',
+  'Case Study',
+  'White Paper',
+  'Presentation',
+  'Social Media',
+  'Email Template',
+  'Trade Show Materials',
+];
+
+const products = [
+  'Visum Palm',
+  'Raman RXN5',
+  'HyperSpec HS-2000',
+  'Visum Pro',
+  'Vision Series',
+  'General/Company',
+];
+
+const languages = [
+  'English',
+  'German',
+  'French',
+  'Spanish',
+  'Italian',
+  'Portuguese',
+  'Dutch',
+  'Polish',
+  'Chinese',
+  'Japanese',
+  'All Languages',
+];
+
+export default function EditAssetModal({ asset, open, onOpenChange, onSave }: EditAssetModalProps) {
+  const [isPending, startTransition] = useTransition();
+  const [formData, setFormData] = useState<Partial<Asset>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [hasChanges, setHasChanges] = useState(false);
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false);
+  const [isReplacingFile, setIsReplacingFile] = useState(false);
+
+  // Initialize form data when asset changes
+  useEffect(() => {
+    if (asset) {
+      setFormData({
+        ...asset,
+        status: asset.status || 'published',
+      });
+      setHasChanges(false);
+      setErrors({});
+    }
+  }, [asset]);
+
+  if (!asset) return null;
+
+  const handleFieldChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    setHasChanges(true);
+    // Clear error for this field
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.name?.trim()) {
+      newErrors.name = 'Asset title is required';
+    } else if (formData.name.length > 100) {
+      newErrors.name = 'Title must be 100 characters or less';
+    }
+
+    if (!formData.type) {
+      newErrors.type = 'Asset type is required';
+    }
+
+    if (!formData.status) {
+      newErrors.status = 'Status is required';
+    }
+
+    if (formData.description && formData.description.length > 500) {
+      newErrors.description = 'Description must be 500 characters or less';
+    }
+
+    if (formData.internalNotes && formData.internalNotes.length > 500) {
+      newErrors.internalNotes = 'Internal notes must be 500 characters or less';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSave = () => {
+    if (!validateForm()) return;
+
+    // Use startTransition for optimistic update
+    startTransition(() => {
+      // Simulate API call
+      setTimeout(() => {
+        onSave(formData as Asset);
+        toast.success('Asset updated successfully');
+        onOpenChange(false);
+        setHasChanges(false);
+      }, 800);
+    });
+  };
+
+  const handleCancel = () => {
+    if (hasChanges) {
+      setShowDiscardDialog(true);
+    } else {
+      onOpenChange(false);
+    }
+  };
+
+  const handleDiscardChanges = () => {
+    setShowDiscardDialog(false);
+    onOpenChange(false);
+    setHasChanges(false);
+    setFormData(asset);
+  };
+
+  const handleReplaceFile = () => {
+    setIsReplacingFile(true);
+    // Simulate file picker
+    setTimeout(() => {
+      setIsReplacingFile(false);
+      toast.success('File replaced successfully');
+      setHasChanges(true);
+    }, 1000);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      handleCancel();
+    }
+  };
+
+  // Get appropriate icon for file type
+  const getFileIcon = () => {
+    switch (asset.format.toUpperCase()) {
+      case 'PDF':
+        return FileText;
+      case 'MP4':
+      case 'MOV':
+      case 'AVI':
+        return Video;
+      default:
+        return ImageIcon;
+    }
+  };
+
+  const FileIcon = getFileIcon();
+  const isFormValid = formData.name?.trim() && formData.type && formData.status;
+
+  return (
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent 
+          className="max-w-[600px] max-h-[80vh] overflow-y-auto"
+          onKeyDown={handleKeyDown}
+        >
+          <DialogHeader>
+            <DialogTitle>Edit Asset</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            {/* Asset File Section */}
+            <div className="space-y-3">
+              <Label className="text-[14px] font-semibold">Current Asset</Label>
+              <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
+                <div className="flex items-start gap-3">
+                  <FileIcon className="h-10 w-10 text-slate-400 mt-1" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-slate-900 truncate">{asset.name}.{asset.format.toLowerCase()}</p>
+                    <div className="flex flex-wrap gap-2 mt-1 text-[13px] text-[#6b7280]">
+                      <span>{asset.size}</span>
+                      <span>•</span>
+                      <span>Uploaded {asset.uploaded || 'Oct 15, 2025'}</span>
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3 w-full border-slate-300"
+                  onClick={handleReplaceFile}
+                  disabled={isReplacingFile}
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  {isReplacingFile ? 'Replacing...' : 'Replace File'}
+                </Button>
+              </div>
+            </div>
+
+            {/* Asset Title */}
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-[14px]">
+                Asset Title <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="name"
+                value={formData.name || ''}
+                onChange={(e) => handleFieldChange('name', e.target.value)}
+                placeholder="e.g., Visum Palm Brochure"
+                maxLength={100}
+                className={errors.name ? 'border-red-500' : ''}
+              />
+              {errors.name && (
+                <p className="text-[13px] text-red-500">{errors.name}</p>
+              )}
+              <p className="text-[12px] text-[#9ca3af]">
+                {formData.name?.length || 0}/100 characters
+              </p>
+            </div>
+
+            {/* Asset Type and Product */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="type" className="text-[14px]">
+                  Asset Type <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={formData.type}
+                  onValueChange={(value) => handleFieldChange('type', value)}
+                >
+                  <SelectTrigger className={errors.type ? 'border-red-500' : ''}>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {assetTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.type && (
+                  <p className="text-[13px] text-red-500">{errors.type}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="product" className="text-[14px]">Product</Label>
+                <Select
+                  value={formData.product}
+                  onValueChange={(value) => handleFieldChange('product', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select product" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map((product) => (
+                      <SelectItem key={product} value={product}>
+                        {product}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Language */}
+            <div className="space-y-2">
+              <Label htmlFor="language" className="text-[14px]">Language</Label>
+              <Select
+                value={formData.language}
+                onValueChange={(value) => handleFieldChange('language', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {languages.map((language) => (
+                    <SelectItem key={language} value={language}>
+                      {language}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-[14px]">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description || ''}
+                onChange={(e) => handleFieldChange('description', e.target.value)}
+                placeholder="Brief description of the asset..."
+                maxLength={500}
+                className={`min-h-[80px] ${errors.description ? 'border-red-500' : ''}`}
+              />
+              {errors.description && (
+                <p className="text-[13px] text-red-500">{errors.description}</p>
+              )}
+              <p className="text-[12px] text-[#9ca3af]">
+                {formData.description?.length || 0}/500 characters
+              </p>
+            </div>
+
+            {/* Status */}
+            <div className="space-y-2">
+              <Label className="text-[14px]">
+                Status <span className="text-red-500">*</span>
+              </Label>
+              <div className="flex gap-6">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="status-published"
+                    name="status"
+                    value="published"
+                    checked={formData.status === 'published'}
+                    onChange={(e) => handleFieldChange('status', e.target.value)}
+                    className="w-4 h-4 text-[#00a8b5] border-slate-300 focus:ring-[#00a8b5]"
+                  />
+                  <Label htmlFor="status-published" className="font-normal cursor-pointer text-[14px]">
+                    Published <span className="text-[#6b7280]">(visible to all distributors)</span>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="status-draft"
+                    name="status"
+                    value="draft"
+                    checked={formData.status === 'draft'}
+                    onChange={(e) => handleFieldChange('status', e.target.value)}
+                    className="w-4 h-4 text-[#00a8b5] border-slate-300 focus:ring-[#00a8b5]"
+                  />
+                  <Label htmlFor="status-draft" className="font-normal cursor-pointer text-[14px]">
+                    Draft <span className="text-[#6b7280]">(only visible to admins)</span>
+                  </Label>
+                </div>
+              </div>
+              {errors.status && (
+                <p className="text-[13px] text-red-500">{errors.status}</p>
+              )}
+            </div>
+
+            {/* Internal Notes */}
+            <div className="space-y-2">
+              <Label htmlFor="internalNotes" className="text-[14px]">Internal Notes</Label>
+              <Textarea
+                id="internalNotes"
+                value={formData.internalNotes || ''}
+                onChange={(e) => handleFieldChange('internalNotes', e.target.value)}
+                placeholder="Add any internal notes about this asset..."
+                maxLength={500}
+                className={`min-h-[80px] ${errors.internalNotes ? 'border-red-500' : ''}`}
+              />
+              {errors.internalNotes && (
+                <p className="text-[13px] text-red-500">{errors.internalNotes}</p>
+              )}
+              <p className="text-[12px] text-[#9ca3af]">
+                {formData.internalNotes?.length || 0}/500 characters • Only visible to IRIS staff
+              </p>
+            </div>
+
+            {/* Analytics Section */}
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+              <h4 className="text-[13px] font-semibold text-slate-900 mb-3">Asset Analytics</h4>
+              <div className="space-y-2 text-[13px] text-[#6b7280]">
+                <div className="flex justify-between">
+                  <span>Total Downloads:</span>
+                  <span className="font-medium text-slate-900">{asset.downloads}</span>
+                </div>
+                {asset.lastDownloaded && (
+                  <div className="flex justify-between">
+                    <span>Last Downloaded:</span>
+                    <span className="font-medium text-slate-900">
+                      {asset.lastDownloaded}
+                      {asset.lastDownloadedBy && ` by ${asset.lastDownloadedBy}`}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span>Created:</span>
+                  <span className="font-medium text-slate-900">
+                    {asset.created || 'Aug 20, 2024'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={handleCancel} disabled={isPending}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-[#00a8b5] hover:bg-[#008a95]"
+              onClick={handleSave}
+              disabled={!isFormValid || isPending}
+            >
+              {isPending ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Discard Changes Dialog */}
+      <AlertDialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Discard changes?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes. Are you sure you want to discard them?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowDiscardDialog(false)}>
+              Keep Editing
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDiscardChanges}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Discard
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}

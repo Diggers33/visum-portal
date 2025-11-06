@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Visum Distributor Portal Design</string>
+    <string name="title_activity_main">Visum Distributor Portal Design</string>
+    <string name="package_name">com.eng.iris</string>
+    <string name="custom_url_scheme">com.eng.iris</string>
+</resources>

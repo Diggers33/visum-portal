@@ -1,0 +1,30 @@
+{
+  "marketingAssets": {
+    "title": "Libreria Materiali Marketing",
+    "subtitle": "Scarica materiali di vendita e marketing",
+    "filters": "Filtri",
+    "assetType": "Tipo di Materiale",
+    "product": "Prodotto",
+    "language": "Lingua",
+    "searchPlaceholder": "Cerca materiali...",
+    "bulkDownload": "Download Multiplo",
+    "download": "Scarica",
+    "downloads": "download",
+    "showing": "Mostrando",
+    "assets": "materiali",
+    "noAssetsFound": "Nessun materiale trovato",
+    
+    "assetTypes": {
+      "Brochure": "Brochure",
+      "Product Photos": "Foto di Prodotto",
+      "Video": "Video",
+      "Logo": "Logo",
+      "Case Study": "Caso Studio",
+      "White Paper": "White Paper",
+      "Presentation": "Presentazione",
+      "Datasheet": "Scheda Tecnica",
+      "Manual": "Manuale",
+      "Press Release": "Comunicato Stampa"
+    }
+  }
+}

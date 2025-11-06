@@ -1,0 +1,30 @@
+{
+  "marketingAssets": {
+    "title": "Bibliothèque de Supports Marketing",
+    "subtitle": "Télécharger les supports de vente et de marketing",
+    "filters": "Filtres",
+    "assetType": "Type de Support",
+    "product": "Produit",
+    "language": "Langue",
+    "searchPlaceholder": "Rechercher des supports...",
+    "bulkDownload": "Téléchargement Groupé",
+    "download": "Télécharger",
+    "downloads": "téléchargements",
+    "showing": "Affichage",
+    "assets": "supports",
+    "noAssetsFound": "Aucun support trouvé",
+    
+    "assetTypes": {
+      "Brochure": "Brochure",
+      "Product Photos": "Photos de Produit",
+      "Video": "Vidéo",
+      "Logo": "Logo",
+      "Case Study": "Étude de Cas",
+      "White Paper": "Livre Blanc",
+      "Presentation": "Présentation",
+      "Datasheet": "Fiche Technique",
+      "Manual": "Manuel",
+      "Press Release": "Communiqué de Presse"
+    }
+  }
+}

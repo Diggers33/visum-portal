@@ -1,0 +1,30 @@
+{
+  "marketingAssets": {
+    "title": "Biblioteca de Recursos de Marketing",
+    "subtitle": "Descargar materiales de ventas y marketing",
+    "filters": "Filtros",
+    "assetType": "Tipo de Recurso",
+    "product": "Producto",
+    "language": "Idioma",
+    "searchPlaceholder": "Buscar recursos...",
+    "bulkDownload": "Descarga Masiva",
+    "download": "Descargar",
+    "downloads": "descargas",
+    "showing": "Mostrando",
+    "assets": "recursos",
+    "noAssetsFound": "No se encontraron recursos",
+    
+    "assetTypes": {
+      "Brochure": "Folleto",
+      "Product Photos": "Fotos de Producto",
+      "Video": "Video",
+      "Logo": "Logo",
+      "Case Study": "Caso de Estudio",
+      "White Paper": "Documento Técnico",
+      "Presentation": "Presentación",
+      "Datasheet": "Hoja de Datos",
+      "Manual": "Manual",
+      "Press Release": "Comunicado de Prensa"
+    }
+  }
+}
