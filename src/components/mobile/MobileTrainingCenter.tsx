@@ -13,7 +13,8 @@ import {
   Download,
   Filter,
   X,
-  Loader2
+  Loader2,
+  Presentation
 } from 'lucide-react';
 import {
   Sheet,
@@ -46,7 +47,17 @@ const getFormatIcon = (format: string) => {
   const lowerFormat = format?.toLowerCase() || '';
   if (lowerFormat.includes('video') || lowerFormat === 'mp4') return Video;
   if (lowerFormat.includes('pdf')) return FileText;
+  if (lowerFormat.includes('ppt') || lowerFormat.includes('powerpoint')) return Presentation;
   return FileType;
+};
+
+const getFormatBadgeColor = (format: string) => {
+  const lowerFormat = format?.toLowerCase() || '';
+  if (lowerFormat.includes('video') || lowerFormat === 'mp4') return 'bg-purple-500';
+  if (lowerFormat.includes('pdf')) return 'bg-red-500';
+  if (lowerFormat.includes('ppt')) return 'bg-orange-500';
+  if (lowerFormat.includes('xls') || lowerFormat.includes('excel')) return 'bg-green-500';
+  return 'bg-slate-500';
 };
 
 export default function MobileTrainingCenter() {
@@ -61,35 +72,38 @@ export default function MobileTrainingCenter() {
   // Safely handle materials array
   const safeMaterials = materials || [];
 
+  // Filter only published materials
+  const publishedMaterials = safeMaterials.filter(m => m.status === 'published');
+
   // Extract unique values for filters
-  const categories = Array.from(new Set(safeMaterials.map(m => m.category).filter(Boolean)));
-  const products = Array.from(new Set(safeMaterials.map(m => m.product_name).filter(Boolean)));
-  const levels = Array.from(new Set(safeMaterials.map(m => m.difficulty_level).filter(Boolean)));
-  const formats = Array.from(new Set(safeMaterials.map(m => m.content_format).filter(Boolean)));
+  const categories = Array.from(new Set(publishedMaterials.map(m => m.type).filter(Boolean)));
+  const products = Array.from(new Set(publishedMaterials.map(m => m.product).filter(Boolean)));
+  const levels = Array.from(new Set(publishedMaterials.map(m => m.level).filter(Boolean)));
+  const formats = Array.from(new Set(publishedMaterials.map(m => m.format).filter(Boolean)));
 
   // Filter materials
-  const filteredMaterials = safeMaterials.filter(material => {
+  const filteredMaterials = publishedMaterials.filter(material => {
     const matchesSearch = 
       searchQuery === '' ||
       material.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       material.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      material.product_name?.toLowerCase().includes(searchQuery.toLowerCase());
+      material.product?.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesCategory = 
       selectedCategories.length === 0 || 
-      selectedCategories.includes(material.category || '');
+      selectedCategories.includes(material.type || '');
 
     const matchesProduct = 
       selectedProducts.length === 0 || 
-      selectedProducts.includes(material.product_name || '');
+      selectedProducts.includes(material.product || '');
 
     const matchesLevel = 
       selectedLevels.length === 0 || 
-      selectedLevels.includes(material.difficulty_level || '');
+      selectedLevels.includes(material.level || '');
 
     const matchesFormat = 
       selectedFormats.length === 0 || 
-      selectedFormats.includes(material.content_format || '');
+      selectedFormats.includes(material.format || '');
 
     return matchesSearch && matchesCategory && matchesProduct && matchesLevel && matchesFormat;
   });
@@ -132,8 +146,8 @@ export default function MobileTrainingCenter() {
     selectedFormats.length;
 
   const handleAccess = (material: any) => {
-    if (material.content_url) {
-      window.open(material.content_url, '_blank');
+    if (material.file_url) {
+      window.open(material.file_url, '_blank');
       toast.success(`Opening ${material.title}`);
     } else {
       toast.error('Content not available');
@@ -214,7 +228,7 @@ export default function MobileTrainingCenter() {
                 {/* Category Filter */}
                 {categories.length > 0 && (
                   <div>
-                    <h3 className="mb-3 text-sm font-medium text-slate-900">Category</h3>
+                    <h3 className="mb-3 text-sm font-medium text-slate-900">Type</h3>
                     <div className="space-y-3">
                       {categories.map((category) => (
                         <div key={category} className="flex items-center gap-2">
@@ -319,34 +333,60 @@ export default function MobileTrainingCenter() {
           </Card>
         ) : (
           filteredMaterials.map((material) => {
-            const FormatIcon = getFormatIcon(material.content_format || '');
+            const FormatIcon = getFormatIcon(material.format || '');
+            const formatBadgeColor = getFormatBadgeColor(material.format || '');
             
             return (
               <Card key={material.id} className="overflow-hidden border-slate-200 shadow-sm">
                 <CardContent className="p-0">
-                  {/* Thumbnail */}
-                  {material.thumbnail_url && (
-                    <div className="relative h-48 bg-slate-100">
+                  {/* Thumbnail with colored overlay */}
+                  <div className="relative h-48 bg-gradient-to-br from-slate-700 to-slate-900">
+                    {material.thumbnail && (
                       <img 
-                        src={material.thumbnail_url} 
+                        src={material.thumbnail} 
                         alt={material.title}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-cover opacity-60"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
                         }}
                       />
+                    )}
+                    
+                    {/* Format Badge - Top Left */}
+                    <div className="absolute top-3 left-3">
+                      <Badge className={`${formatBadgeColor} text-white border-0 text-xs font-medium uppercase`}>
+                        {material.format}
+                      </Badge>
+                    </div>
+
+                    {/* Level Badge - Top Right */}
+                    {material.level && (
                       <div className="absolute top-3 right-3">
-                        <div className="bg-black/60 backdrop-blur-sm rounded-full p-2">
-                          <FormatIcon className="h-5 w-5 text-white" />
-                        </div>
+                        <Badge className={`${getLevelColor(material.level)} text-xs font-medium`}>
+                          {material.level}
+                        </Badge>
+                      </div>
+                    )}
+                    
+                    {/* Center Icon */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className={`${formatBadgeColor} rounded-2xl p-6`}>
+                        <FormatIcon className="h-12 w-12 text-white" />
                       </div>
                     </div>
-                  )}
+                  </div>
                   
                   {/* Material Info */}
                   <div className="p-4 space-y-3">
+                    {/* Category Badge */}
+                    {material.type && (
+                      <Badge variant="outline" className="text-xs">
+                        {material.type}
+                      </Badge>
+                    )}
+
                     <div>
-                      <h3 className="font-medium text-slate-900 leading-tight mb-2">
+                      <h3 className="font-semibold text-slate-900 leading-tight mb-2">
                         {material.title}
                       </h3>
                       {material.description && (
@@ -356,24 +396,7 @@ export default function MobileTrainingCenter() {
                       )}
                     </div>
 
-                    <div className="flex flex-wrap gap-2">
-                      {material.category && (
-                        <Badge variant="secondary" className="text-xs">
-                          {material.category}
-                        </Badge>
-                      )}
-                      {material.difficulty_level && (
-                        <Badge variant="outline" className={`text-xs ${getLevelColor(material.difficulty_level)}`}>
-                          {material.difficulty_level}
-                        </Badge>
-                      )}
-                      {material.product_name && (
-                        <Badge variant="outline" className="text-xs">
-                          {material.product_name}
-                        </Badge>
-                      )}
-                    </div>
-
+                    {/* Metadata */}
                     <div className="flex items-center gap-4 text-xs text-slate-500">
                       {material.duration && (
                         <div className="flex items-center gap-1">
@@ -381,21 +404,22 @@ export default function MobileTrainingCenter() {
                           <span>{material.duration}</span>
                         </div>
                       )}
-                      {material.content_format && (
+                      {material.modules && (
                         <div className="flex items-center gap-1">
-                          <FormatIcon className="h-3 w-3" />
-                          <span>{material.content_format}</span>
+                          <FileText className="h-3 w-3" />
+                          <span>{material.modules} modules</span>
                         </div>
                       )}
                     </div>
 
+                    {/* Action Button */}
                     <Button 
                       className="w-full bg-[#00a8b5] hover:bg-[#008a95]"
                       onClick={() => handleAccess(material)}
                       size="sm"
                     >
                       <PlayCircle className="h-4 w-4 mr-2" />
-                      Access Training
+                      {material.format?.toLowerCase().includes('video') ? 'Watch' : 'Open'}
                     </Button>
                   </div>
                 </CardContent>
