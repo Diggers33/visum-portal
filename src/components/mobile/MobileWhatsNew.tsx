@@ -45,9 +45,14 @@ export default function MobileWhatsNew() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const categories = ['all', ...new Set(announcements.map(u => u.category).filter(Boolean))];
+  // Sort announcements by date (most recent first)
+  const sortedAnnouncements = [...announcements].sort((a, b) => {
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
 
-  const filteredUpdates = announcements.filter(update => {
+  const categories = ['all', ...new Set(sortedAnnouncements.map(u => u.category).filter(Boolean))];
+
+  const filteredUpdates = sortedAnnouncements.filter(update => {
     const matchesSearch = update.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          (update.content || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || update.category === selectedCategory;
@@ -79,7 +84,7 @@ export default function MobileWhatsNew() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
-      {/* Single Clean Header */}
+      {/* SINGLE Header - Only ONE, not two! */}
       <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
@@ -196,7 +201,7 @@ export default function MobileWhatsNew() {
           return (
             <Card 
               key={update.id} 
-              className="overflow-hidden transition-all hover:shadow-md"
+              className="overflow-hidden transition-all hover:shadow-md bg-white"
             >
               <CardContent className="p-4">
                 <div className="flex gap-3">
