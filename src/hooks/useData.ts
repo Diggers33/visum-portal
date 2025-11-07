@@ -164,15 +164,15 @@ export function useMarketingAssets() {
  * Fetch training materials
  */
 export function useTrainingMaterials() {
-  const [courses, setCourses] = useState<any[]>([]);
+  const [materials, setMaterials] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchCourses();
+    fetchMaterials();
   }, []);
 
-  const fetchCourses = async () => {
+  const fetchMaterials = async () => {
     try {
       const { data, error } = await supabase
         .from('training_materials')
@@ -180,7 +180,7 @@ export function useTrainingMaterials() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setCourses(data || []);
+      setMaterials(data || []);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -188,7 +188,7 @@ export function useTrainingMaterials() {
     }
   };
 
-  return { courses, loading, error, refetch: fetchCourses };
+  return { materials, loading, error, refetch: fetchMaterials };
 }
 
 /**
