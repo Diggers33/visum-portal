@@ -25,12 +25,12 @@ import {
 import { useAnnouncements } from '../../hooks/useData';
 
 const categoryColors: Record<string, string> = {
-  'New Product': 'bg-[#10b981] text-white',
-  'Marketing': 'bg-[#8b5cf6] text-white',
-  'Documentation': 'bg-[#3b82f6] text-white',
-  'Training': 'bg-[#9333ea] text-white',
-  'Policy': 'bg-[#f59e0b] text-white',
-  'default': 'bg-slate-500 text-white',
+  'New Product': 'bg-[#10b981]',
+  'Marketing': 'bg-[#8b5cf6]',
+  'Documentation': 'bg-[#3b82f6]',
+  'Training': 'bg-[#9333ea]',
+  'Policy': 'bg-[#f59e0b]',
+  'default': 'bg-slate-500',
 };
 
 const categoryIcons: Record<string, any> = {
@@ -45,11 +45,32 @@ export default function MobileWhatsNew() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
+  // Debug: Log announcements to see what we're working with
+  console.log('Announcements:', announcements);
+
   const categories = ['all', ...new Set(announcements.map(u => u.category).filter(Boolean))];
 
-  // Get featured announcement (most recent "New Product" or first announcement)
-  const featuredAnnouncement = announcements.find(a => a.category === 'New Product') || announcements[0];
-  const otherAnnouncements = announcements.filter(a => a.id !== featuredAnnouncement?.id);
+  // Better featured announcement logic with fallbacks
+  let featuredAnnouncement = null;
+  if (announcements.length > 0) {
+    // First try to find "New Product"
+    featuredAnnouncement = announcements.find(a => a.category === 'New Product');
+    
+    // If no "New Product", try other priority categories
+    if (!featuredAnnouncement) {
+      featuredAnnouncement = announcements.find(a => ['Marketing', 'Training', 'Documentation'].includes(a.category));
+    }
+    
+    // If still nothing, just use the first announcement
+    if (!featuredAnnouncement) {
+      featuredAnnouncement = announcements[0];
+    }
+  }
+
+  // Other announcements (exclude featured one)
+  const otherAnnouncements = featuredAnnouncement ? 
+    announcements.filter(a => a.id !== featuredAnnouncement.id) : 
+    announcements;
 
   const filteredUpdates = otherAnnouncements.filter(update => {
     const matchesSearch = update.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -91,7 +112,7 @@ export default function MobileWhatsNew() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Page Title Only - No Header */}
+      {/* Page Title Only */}
       <div className="bg-white border-b border-slate-200 px-4 py-4">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900 mb-1">What's New</h1>
@@ -100,15 +121,17 @@ export default function MobileWhatsNew() {
       </div>
 
       <div className="p-4 space-y-4">
-        {/* Featured Announcement */}
+        {/* Featured Announcement - Always Show If We Have Announcements */}
         {featuredAnnouncement && (
           <Card className="overflow-hidden border-0 shadow-lg">
             <div className="bg-gradient-to-br from-[#00a8b5] to-[#008a95] text-white p-6">
               <div className="flex items-center justify-between mb-4">
                 <Badge className="bg-white/20 text-white border-0 text-xs px-3 py-1">
-                  {featuredAnnouncement.category}
+                  {featuredAnnouncement.category || 'Announcement'}
                 </Badge>
-                <span className="text-white/90 text-sm">{formatDate(featuredAnnouncement.created_at)}</span>
+                <span className="text-white/90 text-sm">
+                  {formatDate(featuredAnnouncement.created_at)}
+                </span>
               </div>
               
               <h3 className="text-xl font-semibold mb-3 text-white">
@@ -131,7 +154,7 @@ export default function MobileWhatsNew() {
           </Card>
         )}
 
-        {/* Search and Filter */}
+        {/* Search and Filter - Only show if we have other announcements */}
         {otherAnnouncements.length > 0 && (
           <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-3">
             <div className="relative">
@@ -176,14 +199,15 @@ export default function MobileWhatsNew() {
         {/* Other Announcements */}
         {filteredUpdates.map((update) => {
           const IconComponent = categoryIcons[update.category] || categoryIcons.default;
+          const colorClass = categoryColors[update.category] || categoryColors.default;
           
           return (
             <Card key={update.id} className="border-slate-200 shadow-sm">
               <CardContent className="p-4">
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 mt-1">
-                    <div className={`p-2.5 rounded-lg ${categoryColors[update.category]?.replace('text-white', '') || 'bg-slate-100'}`}>
-                      <IconComponent className="h-4 w-4 text-white" />
+                    <div className={`p-2.5 rounded-lg ${colorClass} text-white`}>
+                      <IconComponent className="h-4 w-4" />
                     </div>
                   </div>
                   
@@ -192,7 +216,9 @@ export default function MobileWhatsNew() {
                       <Badge variant="secondary" className="text-xs">
                         {update.category}
                       </Badge>
-                      <span className="text-xs text-slate-500">{formatDate(update.created_at)}</span>
+                      <span className="text-xs text-slate-500">
+                        {formatDate(update.created_at)}
+                      </span>
                     </div>
                     
                     <h3 className="font-semibold text-slate-900 mb-2">{update.title}</h3>
@@ -219,11 +245,20 @@ export default function MobileWhatsNew() {
           );
         })}
 
+        {/* No announcements state */}
         {announcements.length === 0 && (
           <div className="text-center py-12">
             <Bell className="h-12 w-12 text-slate-300 mx-auto mb-4" />
             <div className="text-slate-400 mb-2">No updates available</div>
             <p className="text-sm text-slate-500">Check back later for new announcements</p>
+          </div>
+        )}
+
+        {/* Debug info (remove this in production) */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-xs">
+            <strong>Debug:</strong> Found {announcements.length} announcements. 
+            Featured: {featuredAnnouncement ? featuredAnnouncement.title : 'None'}
           </div>
         )}
       </div>
