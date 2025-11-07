@@ -2,9 +2,7 @@ import { useState } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Separator } from '../ui/separator';
 import { Eye, EyeOff } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
 interface MobileLoginPageProps {
@@ -18,17 +16,12 @@ export default function MobileLoginPage({ onLogin }: MobileLoginPageProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // TODO: Replace with actual Supabase authentication
     onLogin();
   };
 
-  const handleMicrosoftLogin = () => {
-    toast.success('Microsoft login initiated');
-    setTimeout(() => {
-      onLogin();
-    }, 1000);
-  };
-
   const handleGoogleLogin = () => {
+    // TODO: Replace with actual Google OAuth
     toast.success('Google login initiated');
     setTimeout(() => {
       onLogin();
@@ -36,44 +29,77 @@ export default function MobileLoginPage({ onLogin }: MobileLoginPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-[#1e3a5f] to-[#335573] flex flex-col">
-      {/* Header */}
-      <div className="p-6 text-center">
-        <div className="mb-4">
-          <span className="text-3xl text-[#00a8b5] tracking-tight block">Visum®</span>
-          <span className="text-sm text-white/80 block mt-1">Distributor Portal</span>
-          <span className="text-xs text-white/60 block">By IRIS Technology</span>
+    <div className="min-h-screen bg-gradient-to-br from-[#00a8b5] to-[#00d4aa] flex flex-col">
+      {/* Header - Centered Logo */}
+      <div className="flex-1 flex items-center justify-center px-6">
+        <div className="text-center">
+          <h1 className="text-4xl font-light text-white mb-2">Visum®</h1>
+          <p className="text-white/90 text-lg mb-1">Product Distribution Portal</p>
+          <p className="text-white/70 text-sm">By IRIS Technology</p>
         </div>
       </div>
 
       {/* Login Card */}
-      <div className="flex-1 bg-white rounded-t-[2rem] p-6 shadow-2xl">
-        <div className="max-w-md mx-auto">
+      <div className="bg-white rounded-t-3xl px-6 pt-8 pb-8 shadow-2xl">
+        <div className="max-w-sm mx-auto">
+          {/* Welcome Section */}
           <div className="mb-8 text-center">
-            <h1 className="text-slate-900 mb-2">Welcome back</h1>
-            <p className="text-slate-600">Sign in to your distributor account</p>
+            <h2 className="text-2xl font-semibold text-slate-900 mb-2">Welcome Back</h2>
+            <p className="text-slate-600">Sign in to access your distributor portal</p>
           </div>
 
-          {/* SSO Buttons */}
-          <div className="space-y-3 mb-6">
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full h-12 rounded-xl border-slate-300 hover:bg-slate-50"
-              onClick={handleMicrosoftLogin}
+          {/* Login Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-slate-700 font-medium">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="your.email@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-14 rounded-2xl border-slate-200 focus:border-[#00a8b5] focus:ring-[#00a8b5]/20 text-base"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-slate-700 font-medium">Password</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="h-14 rounded-2xl border-slate-200 focus:border-[#00a8b5] focus:ring-[#00a8b5]/20 text-base pr-14"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+            </div>
+
+            <Button 
+              type="submit" 
+              className="w-full h-14 bg-[#00a8b5] hover:bg-[#00969d] rounded-2xl text-white font-medium text-base"
+              style={{ boxShadow: '0 6px 20px rgba(0,168,181,0.3)' }}
             >
-              <svg className="w-5 h-5 mr-3" viewBox="0 0 21 21">
-                <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
-                <rect x="11" y="1" width="9" height="9" fill="#00a4ef"/>
-                <rect x="1" y="11" width="9" height="9" fill="#7fba00"/>
-                <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
-              </svg>
-              Continue with Microsoft
+              Sign In
             </Button>
+          </form>
+
+          {/* Google Login */}
+          <div className="mt-8">
             <Button
               type="button"
               variant="outline"
-              className="w-full h-12 rounded-xl border-slate-300 hover:bg-slate-50"
+              className="w-full h-14 rounded-2xl border-slate-200 hover:bg-slate-50 text-slate-700 font-medium"
               onClick={handleGoogleLogin}
             >
               <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
@@ -84,95 +110,6 @@ export default function MobileLoginPage({ onLogin }: MobileLoginPageProps) {
               </svg>
               Continue with Google
             </Button>
-          </div>
-
-          <div className="relative mb-6">
-            <div className="absolute inset-0 flex items-center">
-              <Separator />
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-white px-2 text-slate-500">or sign in with email</span>
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email address</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="distributor@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-12 rounded-xl border-slate-300 focus:border-[#00a8b5]"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <a href="#" className="text-sm text-[#00a8b5]">
-                  Forgot?
-                </a>
-              </div>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-12 rounded-xl border-slate-300 focus:border-[#00a8b5] pr-12"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500"
-                >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
-            </div>
-
-            <Button 
-              type="submit" 
-              className="w-full h-12 bg-[#00a8b5] hover:bg-[#008a95] rounded-xl"
-              style={{ boxShadow: '0 4px 12px rgba(0,168,181,0.3)' }}
-            >
-              Sign in
-            </Button>
-          </form>
-
-          <div className="mt-6">
-            <p className="text-center text-sm text-slate-600 mb-3">
-              Don't have access?
-            </p>
-            <Button
-              variant="outline"
-              className="w-full h-12 border-[#00a8b5] text-[#00a8b5] hover:bg-[#00a8b5]/5 rounded-xl"
-            >
-              Request distributor access
-            </Button>
-          </div>
-
-          <div className="mt-6 text-center">
-            <p className="text-xs text-slate-500">
-              Need help? Contact{' '}
-              <a href="#" className="text-[#00a8b5]">
-                support@iris-eng.com
-              </a>
-            </p>
-          </div>
-
-          <div className="mt-4 pt-4 border-t border-slate-200 text-center">
-            <Link 
-              to="/admin/login" 
-              className="text-xs text-slate-400"
-            >
-              IRIS Staff? Access Admin Portal →
-            </Link>
           </div>
         </div>
       </div>
