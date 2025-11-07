@@ -47,20 +47,6 @@ export default function MobileWhatsNew() {
         return;
       }
 
-      console.log('🔍 DEBUG: Raw announcements data:', data);
-      console.log('🔍 DEBUG: Number of announcements:', data?.length || 0);
-      
-      if (data && data.length > 0) {
-        data.forEach((ann, index) => {
-          console.log(`🔍 DEBUG: Announcement ${index}:`, {
-            id: ann.id,
-            category: ann.category,
-            title: ann.title,
-            created_at: ann.created_at
-          });
-        });
-      }
-
       setAnnouncements(data || []);
     } catch (error) {
       console.error('Error in loadAnnouncements:', error);
@@ -84,16 +70,6 @@ export default function MobileWhatsNew() {
     );
   }
 
-  // Debug info
-  console.log('🔍 DEBUG: Total announcements:', announcements.length);
-  
-  // Simple logic - first announcement is featured, rest are regular
-  const featuredAnnouncement = announcements.length > 0 ? announcements[0] : null;
-  const otherAnnouncements = announcements.slice(1);
-  
-  console.log('🔍 DEBUG: Featured announcement:', featuredAnnouncement?.title);
-  console.log('🔍 DEBUG: Other announcements count:', otherAnnouncements.length);
-
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Page Title */}
@@ -105,38 +81,32 @@ export default function MobileWhatsNew() {
       </div>
 
       <div className="p-4 space-y-4">
-        {/* Debug Info */}
-        <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-xs">
-          <strong>🔍 DEBUG:</strong> Found {announcements.length} announcements. 
-          Featured: {featuredAnnouncement ? featuredAnnouncement.title : 'None'}
-        </div>
-
-        {/* Featured Announcement - Force Show */}
-        {featuredAnnouncement && (
+        {/* Featured Announcement - First announcement always featured */}
+        {announcements.length > 0 && (
           <Card className="overflow-hidden border-0 shadow-lg">
             <div className="bg-gradient-to-br from-[#00a8b5] to-[#008a95] text-white p-6">
               <div className="flex items-center justify-between mb-4">
                 <Badge className="bg-white/20 text-white border-0 text-xs px-3 py-1">
-                  {featuredAnnouncement.category}
+                  {announcements[0].category}
                 </Badge>
                 <span className="text-white/90 text-sm">
-                  {formatDate(featuredAnnouncement.created_at)}
+                  {formatDate(announcements[0].created_at)}
                 </span>
               </div>
               
               <h3 className="text-xl font-semibold mb-3 text-white">
-                {featuredAnnouncement.title}
+                {announcements[0].title}
               </h3>
               <p className="text-white/90 mb-6 leading-relaxed">
-                {featuredAnnouncement.content}
+                {announcements[0].content}
               </p>
 
-              {featuredAnnouncement.link_url && (
-                <Link to={featuredAnnouncement.link_url}>
+              {announcements[0].link_url && (
+                <Link to={announcements[0].link_url}>
                   <Button 
                     className="bg-white text-[#00a8b5] hover:bg-white/90 font-medium"
                   >
-                    {featuredAnnouncement.link_text || 'Learn More'}
+                    {announcements[0].link_text || 'Learn More'}
                   </Button>
                 </Link>
               )}
@@ -144,8 +114,8 @@ export default function MobileWhatsNew() {
           </Card>
         )}
 
-        {/* Other Announcements */}
-        {otherAnnouncements.map((update) => (
+        {/* Other Announcements - Show remaining announcements */}
+        {announcements.slice(1).map((update) => (
           <Card key={update.id} className="border-slate-200 shadow-sm">
             <CardContent className="p-4">
               <div className="flex items-start gap-4">
@@ -186,16 +156,6 @@ export default function MobileWhatsNew() {
             </CardContent>
           </Card>
         ))}
-
-        {/* All Announcements for debugging */}
-        <div className="bg-blue-50 border border-blue-200 rounded p-3">
-          <h4 className="font-medium mb-2">🔍 All Raw Announcements:</h4>
-          {announcements.map((ann, i) => (
-            <div key={ann.id} className="text-xs mb-1">
-              {i + 1}. {ann.category} - {ann.title} ({formatDate(ann.created_at)})
-            </div>
-          ))}
-        </div>
 
         {/* No announcements state */}
         {announcements.length === 0 && (
