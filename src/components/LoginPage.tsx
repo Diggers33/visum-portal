@@ -6,35 +6,80 @@ import { Separator } from './ui/separator';
 import { Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { supabase } from '../lib/supabase';
 
 interface LoginPageProps {
-  onLogin: () => void;
+  onLogin?: () => void;
 }
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin();
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) throw error;
+      
+      toast.success('Welcome back!');
+      if (onLogin) onLogin();
+    } catch (error: any) {
+      setError(error.message);
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleMicrosoftLogin = () => {
-    // In production, this would redirect to Microsoft OAuth
-    toast.success('Microsoft login initiated');
-    setTimeout(() => {
-      onLogin();
-    }, 1000);
+  const handleMicrosoftLogin = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'azure',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+      
+      if (error) throw error;
+    } catch (error: any) {
+      setError(error.message);
+      toast.error(error.message);
+      setLoading(false);
+    }
   };
 
-  const handleGoogleLogin = () => {
-    // In production, this would redirect to Google OAuth
-    toast.success('Google login initiated');
-    setTimeout(() => {
-      onLogin();
-    }, 1000);
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+      
+      if (error) throw error;
+    } catch (error: any) {
+      setError(error.message);
+      toast.error(error.message);
+      setLoading(false);
+    }
   };
 
   return (
@@ -47,6 +92,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             <p className="text-slate-600">Sign in to access your distributor account</p>
           </div>
 
+          {/* Error Display */}
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm mb-6">
+              {error}
+            </div>
+          )}
+
           {/* SSO Buttons */}
           <div className="space-y-3 mb-6">
             <Button
@@ -54,6 +106,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               variant="outline"
               className="w-full h-11 rounded-lg border-slate-300 hover:bg-slate-50 transition-all duration-200"
               onClick={handleMicrosoftLogin}
+              disabled={loading}
             >
               <svg className="w-5 h-5 mr-3" viewBox="0 0 21 21">
                 <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
@@ -68,6 +121,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               variant="outline"
               className="w-full h-11 rounded-lg border-slate-300 hover:bg-slate-50 transition-all duration-200"
               onClick={handleGoogleLogin}
+              disabled={loading}
             >
               <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -99,6 +153,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-11 rounded-lg border-slate-300 focus:border-[#00a8b5] focus:ring-2 focus:ring-[#00a8b5]/20 transition-all duration-200"
                 required
+                disabled={loading}
               />
             </div>
 
@@ -118,11 +173,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                   onChange={(e) => setPassword(e.target.value)}
                   className="h-11 rounded-lg border-slate-300 focus:border-[#00a8b5] focus:ring-2 focus:ring-[#00a8b5]/20 transition-all duration-200 pr-10"
                   required
+                  disabled={loading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors duration-200"
+                  disabled={loading}
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5" />
@@ -137,8 +194,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               type="submit" 
               className="w-full h-11 bg-[#00a8b5] hover:bg-[#008a95] rounded-lg transition-all duration-200"
               style={{ boxShadow: '0 2px 8px rgba(0,168,181,0.2)' }}
+              disabled={loading}
             >
-              Sign in
+              {loading ? 'Signing in...' : 'Sign in'}
             </Button>
           </form>
 
@@ -149,6 +207,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             <Button
               variant="outline"
               className="w-full h-11 border-[#00a8b5] text-[#00a8b5] hover:bg-[#00a8b5]/5 rounded-lg transition-all duration-200"
+              disabled={loading}
             >
               Request distributor access
             </Button>
