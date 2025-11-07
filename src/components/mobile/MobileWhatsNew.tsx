@@ -11,7 +11,8 @@ import {
   AlertCircle,
   Bell,
   FileText,
-  GraduationCap
+  GraduationCap,
+  Package
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
@@ -25,18 +26,17 @@ import { useAnnouncements } from '../../hooks/useData';
 
 const categoryColors: Record<string, string> = {
   'New Product': 'bg-[#10b981] text-white',
-  'Marketing': 'bg-[#8b5cf6] text-white', 
+  'Marketing': 'bg-[#8b5cf6] text-white',
   'Documentation': 'bg-[#3b82f6] text-white',
   'Training': 'bg-[#9333ea] text-white',
   'Policy': 'bg-[#f59e0b] text-white',
-  'Update': 'bg-[#06b6d4] text-white',
   'default': 'bg-slate-500 text-white',
 };
 
 const categoryIcons: Record<string, any> = {
   'Documentation': FileText,
   'Training': GraduationCap,
-  'New Product': ArrowRight,
+  'New Product': Package,
   'default': Bell,
 };
 
@@ -47,16 +47,16 @@ export default function MobileWhatsNew() {
 
   const categories = ['all', ...new Set(announcements.map(u => u.category).filter(Boolean))];
 
-  const filteredUpdates = announcements.filter(update => {
+  // Get featured announcement (most recent "New Product" or first announcement)
+  const featuredAnnouncement = announcements.find(a => a.category === 'New Product') || announcements[0];
+  const otherAnnouncements = announcements.filter(a => a.id !== featuredAnnouncement?.id);
+
+  const filteredUpdates = otherAnnouncements.filter(update => {
     const matchesSearch = update.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          (update.content || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || update.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
-
-  // Get featured announcement (most recent "New Product" or first announcement)
-  const featuredAnnouncement = announcements.find(a => a.category === 'New Product') || announcements[0];
-  const otherAnnouncements = announcements.filter(a => a.id !== featuredAnnouncement?.id);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -92,7 +92,7 @@ export default function MobileWhatsNew() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-6 py-4">
+      <div className="bg-white border-b border-slate-200 px-4 py-4">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-lg font-medium text-[#00a8b5]">Visum®</h1>
@@ -147,13 +147,50 @@ export default function MobileWhatsNew() {
           </Card>
         )}
 
+        {/* Search and Filter */}
+        {otherAnnouncements.length > 0 && (
+          <div className="sticky top-14 z-30 bg-white border border-slate-200 rounded-lg p-4 space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                type="search"
+                placeholder="Search updates..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-slate-50 border-slate-200 h-10 rounded-xl"
+              />
+            </div>
+
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="w-full justify-start gap-2 h-10 rounded-xl">
+                  <Filter className="h-4 w-4" />
+                  Filter: {selectedCategory === 'all' ? 'All Categories' : selectedCategory}
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="h-auto">
+                <SheetHeader>
+                  <SheetTitle>Filter by Category</SheetTitle>
+                </SheetHeader>
+                <div className="py-4 space-y-2">
+                  {categories.map(cat => (
+                    <Button
+                      key={cat}
+                      variant={selectedCategory === cat ? "default" : "outline"}
+                      className={`w-full justify-start ${selectedCategory === cat ? 'bg-[#00a8b5] hover:bg-[#008a95]' : ''}`}
+                      onClick={() => setSelectedCategory(cat)}
+                    >
+                      {cat === 'all' ? 'All Categories' : cat}
+                    </Button>
+                  ))}
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        )}
+
         {/* Other Announcements */}
-        {otherAnnouncements.filter(update => {
-          const matchesSearch = update.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                               (update.content || '').toLowerCase().includes(searchQuery.toLowerCase());
-          const matchesCategory = selectedCategory === 'all' || update.category === selectedCategory;
-          return matchesSearch && matchesCategory;
-        }).map((update) => {
+        {filteredUpdates.map((update) => {
           const IconComponent = categoryIcons[update.category] || categoryIcons.default;
           
           return (
@@ -161,8 +198,8 @@ export default function MobileWhatsNew() {
               <CardContent className="p-4">
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 mt-1">
-                    <div className={`p-2 rounded-lg ${categoryColors[update.category] || categoryColors.default}`}>
-                      <IconComponent className="h-4 w-4" />
+                    <div className={`p-2.5 rounded-lg ${categoryColors[update.category]?.replace('text-white', '') || 'bg-slate-100'}`}>
+                      <IconComponent className="h-4 w-4 text-white" />
                     </div>
                   </div>
                   
@@ -178,6 +215,19 @@ export default function MobileWhatsNew() {
                     <p className="text-slate-600 text-sm leading-relaxed">
                       {update.content}
                     </p>
+
+                    {update.link && (
+                      <Link to={update.link} className="inline-block mt-3">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="text-[#00a8b5] hover:text-[#008a95] hover:bg-[#00a8b5]/5 -ml-2 gap-1 h-8"
+                        >
+                          {update.link_text || 'Learn More'}
+                          <ArrowRight className="h-3 w-3" />
+                        </Button>
+                      </Link>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -185,10 +235,18 @@ export default function MobileWhatsNew() {
           );
         })}
 
-        {filteredUpdates.length === 0 && (
+        {filteredUpdates.length === 0 && otherAnnouncements.length > 0 && (
           <div className="text-center py-12">
             <div className="text-slate-400 mb-2">No updates found</div>
             <p className="text-sm text-slate-500">Try adjusting your search or filter</p>
+          </div>
+        )}
+
+        {announcements.length === 0 && (
+          <div className="text-center py-12">
+            <Bell className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+            <div className="text-slate-400 mb-2">No updates available</div>
+            <p className="text-sm text-slate-500">Check back later for new announcements</p>
           </div>
         )}
       </div>
