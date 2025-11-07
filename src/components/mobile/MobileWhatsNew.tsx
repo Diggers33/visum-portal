@@ -50,22 +50,9 @@ export default function MobileWhatsNew() {
 
   const categories = ['all', ...new Set(announcements.map(u => u.category).filter(Boolean))];
 
-  // Better featured announcement logic with fallbacks
-  let featuredAnnouncement = null;
-  if (announcements.length > 0) {
-    // First try to find "New Product"
-    featuredAnnouncement = announcements.find(a => a.category === 'New Product');
-    
-    // If no "New Product", try other priority categories
-    if (!featuredAnnouncement) {
-      featuredAnnouncement = announcements.find(a => ['Marketing', 'Training', 'Documentation'].includes(a.category));
-    }
-    
-    // If still nothing, just use the first announcement
-    if (!featuredAnnouncement) {
-      featuredAnnouncement = announcements[0];
-    }
-  }
+// Simple featured logic - just use first announcement
+const featuredAnnouncement = announcements.length > 0 ? announcements[0] : null;
+const otherAnnouncements = announcements.slice(1);
 
   // Other announcements (exclude featured one)
   const otherAnnouncements = featuredAnnouncement ? 
