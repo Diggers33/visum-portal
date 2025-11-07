@@ -119,8 +119,9 @@ export default function MobileTrainingCenter() {
   });
 
   const handleAccess = (material: any) => {
-    if (material.file_url) {
-      window.open(material.file_url, '_blank');
+    const url = material.video_url || material.file_url;
+    if (url) {
+      window.open(url, '_blank');
       toast.success(`Opening ${material.title}`);
     } else {
       toast.error('Content not available');
