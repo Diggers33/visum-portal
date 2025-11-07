@@ -56,14 +56,6 @@ export default function MobileWhatsNew() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
@@ -158,48 +150,73 @@ export default function MobileWhatsNew() {
         </Sheet>
       </div>
 
-      {/* Announcements List - MINIMAL CHANGE: Just add conditional styling */}
+      {/* Announcements List */}
       <div className="px-4 space-y-4">
         {filteredUpdates.map((update, index) => {
           const IconComponent = categoryIcons[update.category] || categoryIcons.default;
           
-          // ONLY CHANGE: Add teal styling to first card
-          const isFeatured = index === 0;
-          
+          // First announcement gets featured hero card
+          if (index === 0) {
+            return (
+              <Card 
+                key={update.id} 
+                className="overflow-hidden bg-gradient-to-br from-[#00a8b5] to-[#008a95] border-0 shadow-lg"
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/20">
+                      {update.category}
+                    </Badge>
+                    <span className="text-white/90 text-sm">{formatDate(update.created_at)}</span>
+                  </div>
+                  
+                  <h2 className="text-2xl font-bold text-white mb-3">
+                    {update.title}
+                  </h2>
+                  
+                  <p className="text-white/90 text-base leading-relaxed mb-6">
+                    {update.content}
+                  </p>
+
+                  {update.link && (
+                    <Link to={update.link}>
+                      <Button 
+                        className="bg-white text-[#00a8b5] hover:bg-white/90 font-semibold"
+                      >
+                        {update.link_text || 'Learn More'}
+                      </Button>
+                    </Link>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          }
+
+          // All other announcements get regular cards
           return (
             <Card 
               key={update.id} 
-              className={`overflow-hidden transition-all hover:shadow-md ${
-                isFeatured ? 'border-[#00a8b5] border-2 bg-gradient-to-br from-[#00a8b5]/5 to-transparent' : ''
-              }`}
+              className="overflow-hidden transition-all hover:shadow-md"
             >
               <CardContent className="p-4">
                 <div className="flex gap-3">
                   <div className="flex-shrink-0 pt-1">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      isFeatured 
-                        ? 'bg-[#00a8b5]' 
-                        : categoryColors[update.category]?.replace('text-white', '') || 'bg-slate-100'
+                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                      categoryColors[update.category]?.replace('text-white', '') || 'bg-slate-100'
                     }`}>
-                      <IconComponent className="h-4 w-4 text-white" />
+                      <IconComponent className="h-5 w-5 text-white" />
                     </div>
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-2">
-                      <Badge 
-                        variant="secondary" 
-                        className={`text-xs ${
-                          isFeatured ? 'bg-[#00a8b5]/10 text-[#00a8b5] border-[#00a8b5]/20' : ''
-                        }`}
-                      >
-                        {isFeatured && '⭐ '}
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="secondary" className="text-xs">
                         {update.category}
                       </Badge>
                       <span className="text-xs text-slate-500">{formatDate(update.created_at)}</span>
                     </div>
                     
-                    <h3 className="font-semibold text-slate-900 mb-2">{update.title}</h3>
+                    <h3 className="font-semibold text-slate-900 mb-2 text-lg">{update.title}</h3>
                     <p className="text-slate-600 text-sm leading-relaxed">
                       {update.content}
                     </p>
