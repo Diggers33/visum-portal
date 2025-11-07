@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -9,10 +9,7 @@ import {
   Filter,
   Loader2,
   AlertCircle,
-  Bell,
-  FileText,
-  GraduationCap,
-  Package
+  Bell
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
@@ -22,47 +19,70 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '../ui/sheet';
-import { useAnnouncements } from '../../hooks/useData';
+import { supabase } from '../../lib/supabase';
 
 const categoryColors: Record<string, string> = {
-  'New Product': 'bg-[#10b981]',
-  'Marketing': 'bg-[#8b5cf6]',
-  'Documentation': 'bg-[#3b82f6]',
-  'Training': 'bg-[#9333ea]',
-  'Policy': 'bg-[#f59e0b]',
-  'default': 'bg-slate-500',
+  'New Product': 'bg-[#10b981] text-white',
+  'Marketing': 'bg-[#8b5cf6] text-white',
+  'Documentation': 'bg-[#3b82f6] text-white',
+  'Training': 'bg-[#06b6d4] text-white',
+  'Policy': 'bg-[#f59e0b] text-white',
+  'General': 'bg-[#6b7280] text-white',
 };
 
-const categoryIcons: Record<string, any> = {
-  'Documentation': FileText,
-  'Training': GraduationCap,
-  'New Product': Package,
-  'default': Bell,
-};
+interface Announcement {
+  id: string;
+  category: string;
+  title: string;
+  content: string;
+  link_text: string | null;
+  link_url: string | null;
+  created_at: string;
+}
 
 export default function MobileWhatsNew() {
-  const { announcements, loading, error } = useAnnouncements();
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [loading, setLoading] = useState(true);
 
-  // Debug: Log announcements to see what we're working with
-  console.log('Announcements:', announcements);
+  // Use the EXACT same data fetching logic as desktop
+  useEffect(() => {
+    loadAnnouncements();
+  }, []);
+
+  const loadAnnouncements = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('announcements')
+        .select('*')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading announcements:', error);
+        return;
+      }
+
+      setAnnouncements(data || []);
+    } catch (error) {
+      console.error('Error in loadAnnouncements:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const categories = ['all', ...new Set(announcements.map(u => u.category).filter(Boolean))];
 
-// Simple featured logic - just use first announcement
-const featuredAnnouncement = announcements.length > 0 ? announcements[0] : null;
-const otherAnnouncements = announcements.slice(1);
-
-  // Other announcements (exclude featured one)
-  const otherAnnouncements = featuredAnnouncement ? 
-    announcements.filter(a => a.id !== featuredAnnouncement.id) : 
-    announcements;
+  // Simple featured logic - first announcement becomes featured
+  const featuredAnnouncement = announcements.length > 0 ? announcements[0] : null;
+  const otherAnnouncements = announcements.slice(1);
 
   const filteredUpdates = otherAnnouncements.filter(update => {
     const matchesSearch = update.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (update.content || '').toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || update.category === selectedCategory;
+                         update.content.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || update.category.toLowerCase() === selectedCategory.toLowerCase();
     return matchesSearch && matchesCategory;
   });
 
@@ -82,24 +102,9 @@ const otherAnnouncements = announcements.slice(1);
     );
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2 text-slate-900">Unable to Load Updates</h2>
-          <p className="text-slate-600 mb-4">{error}</p>
-          <Button onClick={() => window.location.reload()} className="bg-[#00a8b5] hover:bg-[#008a95]">
-            Try Again
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Page Title Only */}
+      {/* Page Title */}
       <div className="bg-white border-b border-slate-200 px-4 py-4">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900 mb-1">What's New</h1>
@@ -108,13 +113,13 @@ const otherAnnouncements = announcements.slice(1);
       </div>
 
       <div className="p-4 space-y-4">
-        {/* Featured Announcement - Always Show If We Have Announcements */}
+        {/* Featured Announcement */}
         {featuredAnnouncement && (
           <Card className="overflow-hidden border-0 shadow-lg">
             <div className="bg-gradient-to-br from-[#00a8b5] to-[#008a95] text-white p-6">
               <div className="flex items-center justify-between mb-4">
                 <Badge className="bg-white/20 text-white border-0 text-xs px-3 py-1">
-                  {featuredAnnouncement.category || 'Announcement'}
+                  {featuredAnnouncement.category}
                 </Badge>
                 <span className="text-white/90 text-sm">
                   {formatDate(featuredAnnouncement.created_at)}
@@ -128,8 +133,8 @@ const otherAnnouncements = announcements.slice(1);
                 {featuredAnnouncement.content}
               </p>
 
-              {featuredAnnouncement.link && (
-                <Link to={featuredAnnouncement.link}>
+              {featuredAnnouncement.link_url && (
+                <Link to={featuredAnnouncement.link_url}>
                   <Button 
                     className="bg-white text-[#00a8b5] hover:bg-white/90 font-medium"
                   >
@@ -141,7 +146,7 @@ const otherAnnouncements = announcements.slice(1);
           </Card>
         )}
 
-        {/* Search and Filter - Only show if we have other announcements */}
+        {/* Search and Filter */}
         {otherAnnouncements.length > 0 && (
           <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-3">
             <div className="relative">
@@ -184,53 +189,48 @@ const otherAnnouncements = announcements.slice(1);
         )}
 
         {/* Other Announcements */}
-        {filteredUpdates.map((update) => {
-          const IconComponent = categoryIcons[update.category] || categoryIcons.default;
-          const colorClass = categoryColors[update.category] || categoryColors.default;
-          
-          return (
-            <Card key={update.id} className="border-slate-200 shadow-sm">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 mt-1">
-                    <div className={`p-2.5 rounded-lg ${colorClass} text-white`}>
-                      <IconComponent className="h-4 w-4" />
-                    </div>
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-2">
-                      <Badge variant="secondary" className="text-xs">
-                        {update.category}
-                      </Badge>
-                      <span className="text-xs text-slate-500">
-                        {formatDate(update.created_at)}
-                      </span>
-                    </div>
-                    
-                    <h3 className="font-semibold text-slate-900 mb-2">{update.title}</h3>
-                    <p className="text-slate-600 text-sm leading-relaxed">
-                      {update.content}
-                    </p>
-
-                    {update.link && (
-                      <Link to={update.link} className="inline-block mt-3">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          className="text-[#00a8b5] hover:text-[#008a95] hover:bg-[#00a8b5]/5 -ml-2 gap-1 h-8"
-                        >
-                          {update.link_text || 'Learn More'}
-                          <ArrowRight className="h-3 w-3" />
-                        </Button>
-                      </Link>
-                    )}
+        {filteredUpdates.map((update) => (
+          <Card key={update.id} className="border-slate-200 shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 mt-1">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${categoryColors[update.category] || 'bg-[#6b7280] text-white'}`}>
+                    <Bell className="h-4 w-4 text-white" />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge className={`${categoryColors[update.category] || 'bg-[#6b7280] text-white'} text-xs px-2 py-0.5`}>
+                      {update.category}
+                    </Badge>
+                    <span className="text-xs text-slate-500">
+                      {formatDate(update.created_at)}
+                    </span>
+                  </div>
+                  
+                  <h3 className="font-semibold text-slate-900 mb-2">{update.title}</h3>
+                  <p className="text-slate-600 text-sm leading-relaxed">
+                    {update.content}
+                  </p>
+
+                  {update.link_url && (
+                    <Link to={update.link_url} className="inline-block mt-3">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="text-[#00a8b5] hover:text-[#008a95] hover:bg-[#00a8b5]/5 -ml-2 gap-1 h-8"
+                      >
+                        {update.link_text || 'Learn More'}
+                        <ArrowRight className="h-3 w-3" />
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
 
         {/* No announcements state */}
         {announcements.length === 0 && (
@@ -238,14 +238,6 @@ const otherAnnouncements = announcements.slice(1);
             <Bell className="h-12 w-12 text-slate-300 mx-auto mb-4" />
             <div className="text-slate-400 mb-2">No updates available</div>
             <p className="text-sm text-slate-500">Check back later for new announcements</p>
-          </div>
-        )}
-
-        {/* Debug info (remove this in production) */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-xs">
-            <strong>Debug:</strong> Found {announcements.length} announcements. 
-            Featured: {featuredAnnouncement ? featuredAnnouncement.title : 'None'}
           </div>
         )}
       </div>
