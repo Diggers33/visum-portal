@@ -573,7 +573,23 @@ function App() {
         {/* This allows mobile navigation to use /mobile/* URLs while keeping smart routing */}
         <Route path="/mobile/dashboard" element={<Navigate to="/portal" replace />} />
         <Route path="/mobile/products" element={<Navigate to="/portal/products" replace />} />
-        <Route path="/mobile/products/:id" element={<Navigate to="/portal/products/:id" replace />} />
+        <Route 
+          path="/mobile/products/:id" 
+          element={
+            <ProtectedRoute 
+              routeName="mobile-product-detail"
+              requireRole="distributor"
+              element={
+                <DistributorPortalLayout onLogout={handleLogout}>
+                  <SmartComponent 
+                    desktopComponent={ProductDetail}
+                    mobileComponent={MobileProductDetail}
+                  />
+                </DistributorPortalLayout>
+              }
+            />
+          } 
+        />
         <Route path="/mobile/marketing-assets" element={<Navigate to="/portal/marketing" replace />} />
         <Route path="/mobile/documentation" element={<Navigate to="/portal/docs" replace />} />
         <Route path="/mobile/training" element={<Navigate to="/portal/training" replace />} />
