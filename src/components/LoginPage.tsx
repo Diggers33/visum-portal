@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
 import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 
