@@ -24,6 +24,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '../ui/sheet';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '../ui/dialog';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
 import { Separator } from '../ui/separator';
@@ -64,6 +70,32 @@ export default function MobileTrainingCenter() {
   const [selectedFormats, setSelectedFormats] = useState<string[]>([]);
   const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [videoDialogOpen, setVideoDialogOpen] = useState(false);
+  const [currentVideo, setCurrentVideo] = useState<any>(null);
+
+  // Helper to convert YouTube URL to embed URL
+  const getYouTubeEmbedUrl = (url: string) => {
+    if (!url) return null;
+    
+    // Handle youtu.be links
+    if (url.includes('youtu.be/')) {
+      const videoId = url.split('youtu.be/')[1]?.split('?')[0];
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    
+    // Handle youtube.com/watch links
+    if (url.includes('youtube.com/watch')) {
+      const videoId = url.split('v=')[1]?.split('&')[0];
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    
+    // Handle youtube.com/embed links (already in correct format)
+    if (url.includes('youtube.com/embed')) {
+      return url;
+    }
+    
+    return null;
+  };
 
   // Safely handle materials array and filter published only
   const safeMaterials = materials || [];
@@ -119,11 +151,28 @@ export default function MobileTrainingCenter() {
   });
 
   const handleAccess = (material: any) => {
-    const url = material.video_url || material.file_url;
-    if (url) {
-      window.open(url, '_blank');
+    const videoUrl = material.video_url;
+    const fileUrl = material.file_url;
+    
+    // If it's a video (has video_url), open in modal
+    if (videoUrl) {
+      const embedUrl = getYouTubeEmbedUrl(videoUrl);
+      if (embedUrl) {
+        setCurrentVideo({ ...material, embedUrl });
+        setVideoDialogOpen(true);
+      } else {
+        // Not a YouTube video, open in new tab
+        window.open(videoUrl, '_blank');
+        toast.success(`Opening ${material.title}`);
+      }
+    } 
+    // If it's a file (has file_url), open in new tab
+    else if (fileUrl) {
+      window.open(fileUrl, '_blank');
       toast.success(`Opening ${material.title}`);
-    } else {
+    } 
+    // No content available
+    else {
       toast.error('Content not available');
     }
   };
@@ -511,6 +560,52 @@ export default function MobileTrainingCenter() {
           </div>
         )}
       </div>
+
+      {/* Video Player Dialog */}
+      <Dialog open={videoDialogOpen} onOpenChange={setVideoDialogOpen}>
+        <DialogContent className="max-w-4xl w-[95vw] p-0">
+          <DialogHeader className="p-4 pb-2">
+            <DialogTitle className="text-lg">{currentVideo?.title}</DialogTitle>
+            {currentVideo?.description && (
+              <p className="text-sm text-slate-600">{currentVideo.description}</p>
+            )}
+          </DialogHeader>
+          <div className="relative w-full pb-[56.25%] bg-black">
+            {currentVideo?.embedUrl && (
+              <iframe
+                src={currentVideo.embedUrl}
+                className="absolute inset-0 w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            )}
+          </div>
+          {currentVideo && (
+            <div className="p-4 space-y-2 border-t">
+              <div className="flex items-center gap-4 text-sm text-slate-600">
+                {currentVideo.type && (
+                  <Badge variant="secondary">{currentVideo.type}</Badge>
+                )}
+                {currentVideo.level && (
+                  <Badge variant="outline" className={
+                    currentVideo.level === 'Beginner' ? 'border-green-500 text-green-700' :
+                    currentVideo.level === 'Intermediate' ? 'border-cyan-500 text-cyan-700' :
+                    'border-purple-500 text-purple-700'
+                  }>
+                    {currentVideo.level}
+                  </Badge>
+                )}
+                {currentVideo.duration && (
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    <span>{currentVideo.duration}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
