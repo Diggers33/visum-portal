@@ -175,7 +175,7 @@ export function useTrainingMaterials() {
   const fetchMaterials = async () => {
     try {
       const { data, error } = await supabase
-        .from('training_materials')
+        .from('training_resources')
         .select('*')
         .order('created_at', { ascending: false });
 
