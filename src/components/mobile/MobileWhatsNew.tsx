@@ -84,30 +84,7 @@ export default function MobileWhatsNew() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
-      {/* SINGLE Header - Only ONE, not two! */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-[#00a8b5] to-[#008a95] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">V</span>
-            </div>
-            <div>
-              <div className="text-sm font-semibold text-slate-900">Visum® By IRIS Technology</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="h-9 w-9">
-              <Search className="h-5 w-5 text-slate-600" />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-9 w-9 relative">
-              <Bell className="h-5 w-5 text-slate-600" />
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-[#00a8b5] rounded-full"></span>
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Page Title */}
+      {/* Page Title - NO HEADER! Parent layout provides it */}
       <div className="px-4 pt-6 pb-4">
         <h1 className="text-2xl font-bold text-slate-900 mb-1">What's New</h1>
         <p className="text-slate-600 text-sm">Latest updates and announcements</p>
