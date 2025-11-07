@@ -58,14 +58,17 @@ export default function MobileTrainingCenter() {
   const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
   const [selectedFormats, setSelectedFormats] = useState<string[]>([]);
 
+  // Safely handle materials array
+  const safeMaterials = materials || [];
+
   // Extract unique values for filters
-  const categories = Array.from(new Set(materials.map(m => m.category).filter(Boolean)));
-  const products = Array.from(new Set(materials.map(m => m.product_name).filter(Boolean)));
-  const levels = Array.from(new Set(materials.map(m => m.difficulty_level).filter(Boolean)));
-  const formats = Array.from(new Set(materials.map(m => m.content_format).filter(Boolean)));
+  const categories = Array.from(new Set(safeMaterials.map(m => m.category).filter(Boolean)));
+  const products = Array.from(new Set(safeMaterials.map(m => m.product_name).filter(Boolean)));
+  const levels = Array.from(new Set(safeMaterials.map(m => m.difficulty_level).filter(Boolean)));
+  const formats = Array.from(new Set(safeMaterials.map(m => m.content_format).filter(Boolean)));
 
   // Filter materials
-  const filteredMaterials = materials.filter(material => {
+  const filteredMaterials = safeMaterials.filter(material => {
     const matchesSearch = 
       searchQuery === '' ||
       material.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||

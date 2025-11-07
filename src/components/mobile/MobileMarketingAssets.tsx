@@ -74,14 +74,17 @@ export default function MobileMarketingAssets() {
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [selectedFormats, setSelectedFormats] = useState<string[]>([]);
 
+  // Safely handle assets array
+  const safeAssets = assets || [];
+
   // Extract unique values for filters
-  const assetTypes = Array.from(new Set(assets.map(a => a.asset_type || a.category).filter(Boolean)));
-  const products = Array.from(new Set(assets.map(a => a.product_name).filter(Boolean)));
-  const languages = Array.from(new Set(assets.map(a => a.language).filter(Boolean)));
-  const formats = Array.from(new Set(assets.map(a => a.file_format).filter(Boolean)));
+  const assetTypes = Array.from(new Set(safeAssets.map(a => a.asset_type || a.category).filter(Boolean)));
+  const products = Array.from(new Set(safeAssets.map(a => a.product_name).filter(Boolean)));
+  const languages = Array.from(new Set(safeAssets.map(a => a.language).filter(Boolean)));
+  const formats = Array.from(new Set(safeAssets.map(a => a.file_format).filter(Boolean)));
 
   // Filter assets
-  const filteredAssets = assets.filter(asset => {
+  const filteredAssets = safeAssets.filter(asset => {
     const matchesSearch = 
       searchQuery === '' ||
       asset.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
