@@ -91,7 +91,7 @@ export default function MobileWhatsNew() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Header */}
+      {/* Single Header - No Duplicates */}
       <div className="bg-white border-b border-slate-200 px-4 py-4">
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -147,48 +147,6 @@ export default function MobileWhatsNew() {
           </Card>
         )}
 
-        {/* Search and Filter */}
-        {otherAnnouncements.length > 0 && (
-          <div className="sticky top-14 z-30 bg-white border border-slate-200 rounded-lg p-4 space-y-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <Input
-                type="search"
-                placeholder="Search updates..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-slate-50 border-slate-200 h-10 rounded-xl"
-              />
-            </div>
-
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" className="w-full justify-start gap-2 h-10 rounded-xl">
-                  <Filter className="h-4 w-4" />
-                  Filter: {selectedCategory === 'all' ? 'All Categories' : selectedCategory}
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="bottom" className="h-auto">
-                <SheetHeader>
-                  <SheetTitle>Filter by Category</SheetTitle>
-                </SheetHeader>
-                <div className="py-4 space-y-2">
-                  {categories.map(cat => (
-                    <Button
-                      key={cat}
-                      variant={selectedCategory === cat ? "default" : "outline"}
-                      className={`w-full justify-start ${selectedCategory === cat ? 'bg-[#00a8b5] hover:bg-[#008a95]' : ''}`}
-                      onClick={() => setSelectedCategory(cat)}
-                    >
-                      {cat === 'all' ? 'All Categories' : cat}
-                    </Button>
-                  ))}
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
-        )}
-
         {/* Other Announcements */}
         {filteredUpdates.map((update) => {
           const IconComponent = categoryIcons[update.category] || categoryIcons.default;
@@ -234,13 +192,6 @@ export default function MobileWhatsNew() {
             </Card>
           );
         })}
-
-        {filteredUpdates.length === 0 && otherAnnouncements.length > 0 && (
-          <div className="text-center py-12">
-            <div className="text-slate-400 mb-2">No updates found</div>
-            <p className="text-sm text-slate-500">Try adjusting your search or filter</p>
-          </div>
-        )}
 
         {announcements.length === 0 && (
           <div className="text-center py-12">
