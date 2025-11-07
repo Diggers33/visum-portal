@@ -91,26 +91,10 @@ export default function MobileWhatsNew() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Single Header - No Duplicates */}
+      {/* Page Title Only - No Header */}
       <div className="bg-white border-b border-slate-200 px-4 py-4">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-lg font-medium text-[#00a8b5]">Visum®</h1>
-            <p className="text-sm text-slate-600">By IRIS Technology</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Search className="h-5 w-5 text-slate-400" />
-            <div className="relative">
-              <Bell className="h-5 w-5 text-slate-400" />
-              <div className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full flex items-center justify-center">
-                <span className="text-[10px] text-white font-medium">3</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
         <div>
-          <h2 className="text-2xl font-semibold text-slate-900 mb-1">What's New</h2>
+          <h1 className="text-2xl font-semibold text-slate-900 mb-1">What's New</h1>
           <p className="text-slate-600">Latest updates and announcements</p>
         </div>
       </div>
@@ -145,6 +129,48 @@ export default function MobileWhatsNew() {
               )}
             </div>
           </Card>
+        )}
+
+        {/* Search and Filter */}
+        {otherAnnouncements.length > 0 && (
+          <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                type="search"
+                placeholder="Search updates..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-slate-50 border-slate-200 h-10 rounded-xl"
+              />
+            </div>
+
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="w-full justify-start gap-2 h-10 rounded-xl">
+                  <Filter className="h-4 w-4" />
+                  Filter: {selectedCategory === 'all' ? 'All Categories' : selectedCategory}
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="h-auto">
+                <SheetHeader>
+                  <SheetTitle>Filter by Category</SheetTitle>
+                </SheetHeader>
+                <div className="py-4 space-y-2">
+                  {categories.map(cat => (
+                    <Button
+                      key={cat}
+                      variant={selectedCategory === cat ? "default" : "outline"}
+                      className={`w-full justify-start ${selectedCategory === cat ? 'bg-[#00a8b5] hover:bg-[#008a95]' : ''}`}
+                      onClick={() => setSelectedCategory(cat)}
+                    >
+                      {cat === 'all' ? 'All Categories' : cat}
+                    </Button>
+                  ))}
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         )}
 
         {/* Other Announcements */}
