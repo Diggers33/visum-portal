@@ -1,12 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  LayoutDashboard, 
   Package, 
   FolderOpen, 
   FileText, 
   GraduationCap, 
-  Settings, 
   Bell,
   LogOut,
   HelpCircle,
@@ -14,23 +12,15 @@ import {
   Menu,
   Search,
   X,
-  ChevronDown,
-  User
+  User,
+  Loader2
 } from 'lucide-react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Avatar, AvatarFallback } from '../ui/avatar';
-import { Badge } from '../ui/badge';
 import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
 import MobileNotificationsPanel from './MobileNotificationsPanel';
+import { useUserProfile } from '../../hooks/useData';
 
 interface MobileDashboardLayoutProps {
   children: React.ReactNode;
@@ -51,9 +41,25 @@ export default function MobileDashboardLayout({ children, onLogout }: MobileDash
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  
+  // Load user profile
+  const { profile, loading: profileLoading } = useUserProfile();
 
   const bottomNavItems = navigation.filter(item => item.showInBottomNav);
   const menuItems = navigation.filter(item => !item.showInBottomNav);
+
+  // Get initials for avatar
+  const getInitials = () => {
+    if (profile?.company_name) {
+      return profile.company_name
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+    }
+    return 'U';
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 pb-16">
@@ -108,19 +114,35 @@ export default function MobileDashboardLayout({ children, onLogout }: MobileDash
                 <div className="flex flex-col h-full">
                   {/* User Info */}
                   <div className="p-6 bg-gradient-to-br from-[#00a8b5] to-[#008a95]">
-                    <div className="flex items-center gap-3 mb-4">
-                      <Avatar className="h-12 w-12 border-2 border-white/30">
-                        <AvatarFallback className="bg-white/20 text-white">TD</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="text-white">TechDist Global</div>
-                        <div className="text-xs text-white/80">EMEA Region</div>
+                    {profileLoading ? (
+                      <div className="flex items-center justify-center py-4">
+                        <Loader2 className="h-8 w-8 animate-spin text-white/80" />
                       </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 bg-white/10 rounded-lg px-3 py-2">
-                      <Globe className="h-3.5 w-3.5 text-white/90" />
-                      <span className="text-xs text-white/90">Territory: 6 countries</span>
-                    </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-3 mb-4">
+                          <Avatar className="h-12 w-12 border-2 border-white/30">
+                            <AvatarFallback className="bg-white/20 text-white">
+                              {getInitials()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="text-white font-medium">
+                              {profile?.company_name || 'Distributor'}
+                            </div>
+                            <div className="text-xs text-white/80">
+                              {profile?.region || 'Region'}
+                            </div>
+                          </div>
+                        </div>
+                        {profile?.territory && (
+                          <div className="flex items-center gap-1.5 bg-white/10 rounded-lg px-3 py-2">
+                            <Globe className="h-3.5 w-3.5 text-white/90" />
+                            <span className="text-xs text-white/90">{profile.territory}</span>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
 
                   {/* Menu Items */}
@@ -201,22 +223,26 @@ export default function MobileDashboardLayout({ children, onLogout }: MobileDash
               <Link
                 key={item.name}
                 to={item.href}
-                className="flex flex-col items-center justify-center gap-1 px-3 py-2 min-w-[60px] flex-1"
+                className="flex flex-col items-center justify-center gap-1 px-3 py-2 min-w-[60px] flex-1 relative touch-manipulation"
+                style={{ 
+                  WebkitTapHighlightColor: 'rgba(0,168,181,0.1)',
+                  cursor: 'pointer'
+                }}
               >
                 <item.icon 
-                  className={`h-5 w-5 ${
+                  className={`h-5 w-5 pointer-events-none ${
                     isActive ? 'text-[#00a8b5]' : 'text-slate-500'
                   }`} 
                 />
                 <span 
-                  className={`text-[10px] ${
+                  className={`text-[10px] pointer-events-none ${
                     isActive ? 'text-[#00a8b5]' : 'text-slate-600'
                   }`}
                 >
                   {item.name}
                 </span>
                 {isActive && (
-                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-[#00a8b5] rounded-t-full" />
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-[#00a8b5] rounded-t-full pointer-events-none" />
                 )}
               </Link>
             );
