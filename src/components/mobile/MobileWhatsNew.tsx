@@ -37,6 +37,7 @@ const categoryIcons: Record<string, any> = {
   'Documentation': FileText,
   'Training': GraduationCap,
   'New Product': Package,
+  'Marketing': Bell,
   'default': Bell,
 };
 
@@ -45,9 +46,17 @@ export default function MobileWhatsNew() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  // Sort announcements by date (most recent first)
-  const sortedAnnouncements = [...announcements].sort((a, b) => {
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  // Sort announcements by date (most recent first) and filter out any with missing data
+  const sortedAnnouncements = [...announcements]
+    .filter(a => a.title && a.title.trim() !== '') // Only show announcements with titles
+    .sort((a, b) => {
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+
+  // Debug logging
+  console.log('📢 Total announcements:', sortedAnnouncements.length);
+  sortedAnnouncements.forEach((a, i) => {
+    console.log(`${i + 1}. ${a.title} (${a.category}) - ${a.created_at}`);
   });
 
   const categories = ['all', ...new Set(sortedAnnouncements.map(u => u.category).filter(Boolean))];
@@ -147,18 +156,20 @@ export default function MobileWhatsNew() {
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/20">
-                      {update.category}
+                      {update.category || 'Announcement'}
                     </Badge>
                     <span className="text-white/90 text-sm">{formatDate(update.created_at)}</span>
                   </div>
                   
                   <h2 className="text-2xl font-bold text-white mb-3">
-                    {update.title}
+                    {update.title || 'Untitled Announcement'}
                   </h2>
                   
-                  <p className="text-white/90 text-base leading-relaxed mb-6">
-                    {update.content}
-                  </p>
+                  {update.content && (
+                    <p className="text-white/90 text-base leading-relaxed mb-6">
+                      {update.content}
+                    </p>
+                  )}
 
                   {update.link && (
                     <Link to={update.link}>
@@ -193,15 +204,19 @@ export default function MobileWhatsNew() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
                       <Badge variant="secondary" className="text-xs">
-                        {update.category}
+                        {update.category || 'General'}
                       </Badge>
                       <span className="text-xs text-slate-500">{formatDate(update.created_at)}</span>
                     </div>
                     
-                    <h3 className="font-semibold text-slate-900 mb-2 text-lg">{update.title}</h3>
-                    <p className="text-slate-600 text-sm leading-relaxed">
-                      {update.content}
-                    </p>
+                    <h3 className="font-semibold text-slate-900 mb-2 text-lg">
+                      {update.title || 'Untitled'}
+                    </h3>
+                    {update.content && (
+                      <p className="text-slate-600 text-sm leading-relaxed">
+                        {update.content}
+                      </p>
+                    )}
 
                     {update.link && (
                       <Link to={update.link} className="inline-block mt-3">
