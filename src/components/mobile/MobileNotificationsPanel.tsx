@@ -207,28 +207,23 @@ export default function MobileNotificationsPanel({ isOpen, onClose }: MobileNoti
             className="fixed inset-0 bg-black/50 z-50"
           />
 
-          {/* Bottom Sheet */}
+          {/* Full Screen Panel */}
           <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-3xl shadow-2xl max-h-[85vh] flex flex-col"
+            className="fixed inset-0 z-50 bg-white flex flex-col"
           >
-            {/* Pull Handle */}
-            <div className="flex justify-center pt-3 pb-2">
-              <div className="w-12 h-1.5 bg-slate-300 rounded-full" />
-            </div>
-
             {/* Header */}
-            <div className="px-5 py-4 border-b border-slate-200">
+            <div className="px-5 py-4 border-b border-slate-200 bg-white">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-[#00a8b5]/10 rounded-xl">
                     <Bell className="h-6 w-6 text-[#00a8b5]" />
                   </div>
                   <div>
-                    <h2 className="text-slate-900">Notifications</h2>
+                    <h2 className="text-lg font-semibold text-slate-900">Notifications</h2>
                     {unreadCount > 0 && (
                       <p className="text-sm text-slate-500">{unreadCount} unread</p>
                     )}
@@ -277,7 +272,7 @@ export default function MobileNotificationsPanel({ isOpen, onClose }: MobileNoti
                   <div className="rounded-full bg-slate-100 p-6 mb-4">
                     <Bell className="h-12 w-12 text-slate-400" />
                   </div>
-                  <h3 className="text-slate-900 mb-2">All caught up!</h3>
+                  <h3 className="font-semibold text-slate-900 mb-2">All caught up!</h3>
                   <p className="text-sm text-slate-500 text-center max-w-xs">
                     You have no notifications right now. We'll notify you when there's something new.
                   </p>

@@ -156,41 +156,44 @@ export default function MobileWhatsNew() {
             return (
               <div 
                 key={update.id} 
-                className="rounded-xl overflow-hidden shadow-lg p-4 flex flex-col"
+                className="rounded-xl overflow-hidden shadow-lg flex flex-col"
                 style={{ 
                   background: 'linear-gradient(135deg, #00a8b5 0%, #008a95 100%)', 
-                  minHeight: '240px',
-                  maxHeight: '320px' 
+                  height: '280px'
                 }}
               >
-                <div className="flex items-center gap-2 mb-2 flex-wrap flex-shrink-0">
-                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-white/20 text-white border border-white/30">
-                    {update.category || 'Announcement'}
-                  </span>
-                  <span className="text-white/90 text-xs">{formatDate(update.created_at)}</span>
-                </div>
-                
-                <h2 className="text-lg font-bold text-white mb-2 flex-shrink-0">
-                  {update.title}
-                </h2>
-                
-                {update.content && (
-                  <p className="text-white/90 text-sm leading-snug mb-3 flex-grow overflow-hidden">
-                    {truncateText(update.content, 80)}
-                  </p>
-                )}
-
-                {update.link && (
-                  <div className="mt-auto flex-shrink-0">
-                    <Link to={update.link}>
-                      <button 
-                        className="px-4 py-2 bg-white text-[#00a8b5] rounded-lg font-semibold hover:bg-white/95 transition-colors shadow-md text-sm"
-                      >
-                        {update.link_text || 'Learn More'}
-                      </button>
-                    </Link>
+                <div className="p-4 flex flex-col h-full">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap flex-shrink-0">
+                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-white/20 text-white border border-white/30">
+                      {update.category || 'Announcement'}
+                    </span>
+                    <span className="text-white/90 text-xs">{formatDate(update.created_at)}</span>
                   </div>
-                )}
+                  
+                  <h2 className="text-lg font-bold text-white mb-2 flex-shrink-0">
+                    {update.title}
+                  </h2>
+                  
+                  {update.content && (
+                    <div className="flex-grow overflow-hidden mb-3">
+                      <p className="text-white/90 text-sm leading-snug line-clamp-3">
+                        {truncateText(update.content, 120)}
+                      </p>
+                    </div>
+                  )}
+
+                  {update.link && (
+                    <div className="flex-shrink-0 mt-auto">
+                      <Link to={update.link}>
+                        <button 
+                          className="px-4 py-2.5 bg-white text-[#00a8b5] rounded-lg font-semibold hover:bg-white/95 transition-colors shadow-md text-sm w-full"
+                        >
+                          {update.link_text || 'Learn More'}
+                        </button>
+                      </Link>
+                    </div>
+                  )}
+                </div>
               </div>
             );
           }
@@ -219,12 +222,12 @@ export default function MobileWhatsNew() {
                       <span className="text-xs text-slate-500">{formatDate(update.created_at)}</span>
                     </div>
                     
-                    <h3 className="font-semibold text-slate-900 mb-2 text-lg">
+                    <h3 className="font-semibold text-slate-900 mb-2 text-base">
                       {update.title}
                     </h3>
                     {update.content && (
-                      <p className="text-slate-600 text-sm leading-relaxed mb-3">
-                        {truncateText(update.content, 150)}
+                      <p className="text-slate-600 text-sm leading-relaxed mb-3 line-clamp-2">
+                        {truncateText(update.content, 120)}
                       </p>
                     )}
 

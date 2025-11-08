@@ -1,0 +1,48 @@
+[33m10d7a55[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Fix all mobile issues: notifications panel, category filter, link buttons
+[33m7b172d4[m Fix all mobile issues: notifications panel, category filter, link buttons
+[33m94fbcac[m Update MobileWhatsNew design while preserving backend integration
+[33m2243239[m Update MobileWhatsNew design while preserving backend integration
+[33mefe1f03[m Update MobileWhatsNew design while preserving backend integration
+[33m9806115[m Update MobileWhatsNew design while preserving backend integration
+[33m71f61da[m Update MobileWhatsNew design while preserving backend integration
+[33mf4957bf[m Update MobileWhatsNew design while preserving backend integration
+[33mc796364[m Update MobileWhatsNew design while preserving backend integration
+[33m77c2ee9[m Update MobileWhatsNew design while preserving backend integration
+[33m55b7647[m Update MobileWhatsNew design while preserving backend integration
+[33m946f8d7[m Update MobileWhatsNew design while preserving backend integration
+[33m466fec7[m Update MobileWhatsNew design while preserving backend integration
+[33m5100fef[m Update MobileWhatsNew design while preserving backend integration
+[33m5521c42[m Update MobileWhatsNew design while preserving backend integration
+[33m15c4e6d[m Update MobileWhatsNew design while preserving backend integration
+[33mfea1868[m Update MobileWhatsNew design while preserving backend integration
+[33m6af2a71[m Update MobileWhatsNew design while preserving backend integration
+[33m3a47868[m Update MobileWhatsNew design while preserving backend integration
+[33mb0114ed[m Update MobileWhatsNew design while preserving backend integration
+[33m0f3ccf6[m Update MobileWhatsNew design while preserving backend integration
+[33mae8e1ef[m Update MobileWhatsNew design while preserving backend integration
+[33m2fbe09d[m Update MobileWhatsNew design while preserving backend integration
+[33m043c7b6[m Update MobileWhatsNew design while preserving backend integration
+[33m877f7c2[m Update MobileWhatsNew to match target design exactly
+[33m3b643d0[m Fix LoginPage technical issues while preserving original design
+[33m63fbed4[m Fix LoginPage technical issues while preserving original design
+[33md00833d[m Fix LoginPage design to match Figma - simplified clean UI
+[33mf4f23c7[m Fix LoginPage design to match Figma - simplified clean UI
+[33m24f20b6[m Fix LoginPage design to match Figma - simplified clean UI
+[33m17b5293[m Fix MobileLoginPage to match Figma design
+[33md1ae29f[m UI: Update MobileLoginPage to match new Figma design
+[33mbf3be73[m Fix training hook to use training_resources table
+[33md22e102[m Fix training hook to use training_resources table
+[33mbbe6e2f[m Fix training hook to use training_resources table
+[33m21e8f45[m Update mobile Training Center with desktop-style cards and styling
+[33m603a98b[m Fix training hook to use training_resources table
+[33mc1aa3fa[m Fix useTrainingMaterials to return materials instead of courses
+[33mc01c8cd[m Fix mobile product detail route parameter handling
+[33m58a93df[m Connect Marketing and Training mobile pages to Supabase backend
+[33mf5ff840[m Add working placeholders for Training and Marketing mobile pages
+[33m486823c[m Fix mobile product detail route parameter handling
+[33m58a58cb[m Fix user profile loading in mobile menu
+[33mbae3bd0[m Fix mobile product image sizing
+[33md5722c8[m Add mobile route aliases for bottom navigation
+[33m57c7ab0[m Fix Vercel output directory
+[33m602a660[m Fix date-fns version conflict for Vercel build
+[33m93efd63[m Initial commit with vercel.json
