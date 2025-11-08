@@ -158,32 +158,31 @@ export default function MobileWhatsNew() {
             return (
               <div 
                 key={update.id} 
-                className="rounded-xl overflow-hidden shadow-lg p-6"
-                style={{ background: 'linear-gradient(135deg, #00a8b5 0%, #008a95 100%)' }}
+                className="rounded-xl overflow-hidden shadow-lg p-6 flex flex-col"
+                style={{ background: 'linear-gradient(135deg, #00a8b5 0%, #008a95 100%)', minHeight: '280px', maxHeight: '400px' }}
               >
-                <div className="flex items-center gap-3 mb-4 flex-wrap">
+                <div className="flex items-center gap-3 mb-3 flex-wrap flex-shrink-0">
                   <span className="px-3 py-1 rounded-full text-xs font-medium bg-white/20 text-white border border-white/30">
                     {update.category || 'Announcement'}
                   </span>
                   <span className="text-white/90 text-sm">{formatDate(update.created_at)}</span>
                 </div>
                 
-                <h2 className="text-2xl font-bold text-white mb-3">
+                <h2 className="text-xl font-bold text-white mb-2 flex-shrink-0">
                   {update.title}
                 </h2>
                 
                 {update.content && (
-                  <p className="text-white/90 text-base leading-relaxed mb-4">
-                    {truncateText(update.content, 250)}
+                  <p className="text-white/90 text-sm leading-relaxed mb-4 flex-shrink-1">
+                    {truncateText(update.content, 120)}
                   </p>
                 )}
 
                 {update.link && (
-                  <div className="mt-4 pt-2">
+                  <div className="mt-auto pt-2 flex-shrink-0">
                     <Link to={update.link}>
                       <button 
-                        className="px-6 py-3 bg-white text-[#00a8b5] rounded-lg font-semibold hover:bg-white/95 transition-colors shadow-md"
-                        style={{ display: 'inline-block' }}
+                        className="px-5 py-2.5 bg-white text-[#00a8b5] rounded-lg font-semibold hover:bg-white/95 transition-colors shadow-md text-sm"
                       >
                         {update.link_text || 'Learn More'}
                       </button>
