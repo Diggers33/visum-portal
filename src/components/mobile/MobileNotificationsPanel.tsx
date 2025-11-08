@@ -1,6 +1,5 @@
 import { useState, useRef, TouchEvent } from 'react';
 import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
 import { 
   Bell, 
   Package, 
@@ -13,21 +12,13 @@ import {
   X,
   Check,
   Trash2,
-  ChevronDown,
-  RefreshCw
+  RefreshCw,
+  Loader2
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
-
-interface Notification {
-  id: string;
-  type: 'product' | 'documentation' | 'training' | 'marketing' | 'alert' | 'success' | 'info';
-  title: string;
-  message: string;
-  timestamp: Date;
-  read: boolean;
-  link?: string;
-}
+import { useNotifications } from '../../hooks/useNotifications';
+import { useNavigate } from 'react-router-dom';
 
 interface MobileNotificationsPanelProps {
   isOpen: boolean;
@@ -35,62 +26,17 @@ interface MobileNotificationsPanelProps {
 }
 
 export default function MobileNotificationsPanel({ isOpen, onClose }: MobileNotificationsPanelProps) {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      type: 'alert',
-      title: 'Action Required: Complete Profile',
-      message: 'Please update your shipping address and banking details to process orders',
-      timestamp: new Date(Date.now() - 1000 * 60 * 30),
-      read: false,
-      link: '/account',
-    },
-    {
-      id: '2',
-      type: 'success',
-      title: 'Order #ORD-2584 Shipped',
-      message: '15x NIR-500 analyzers shipped via DHL Express. Tracking: DHL8492573829',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
-      read: false,
-      link: '/account',
-    },
-    {
-      id: '3',
-      type: 'info',
-      title: 'Message from IRIS Team',
-      message: 'Anna Schmidt: "Your pricing tier has been upgraded to Platinum. New rates active Nov 15"',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5),
-      read: false,
-      link: '/account',
-    },
-    {
-      id: '4',
-      type: 'training',
-      title: 'Certification Expiring Soon',
-      message: 'Your NIR Specialist certification expires in 14 days. Renew now to maintain status',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
-      read: true,
-      link: '/training',
-    },
-    {
-      id: '5',
-      type: 'success',
-      title: 'Territory Assignment Confirmed',
-      message: 'Austria and Switzerland added to your exclusive coverage area',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2),
-      read: true,
-      link: '/account',
-    },
-    {
-      id: '6',
-      type: 'alert',
-      title: 'Payment Reminder',
-      message: 'Invoice #INV-2025-1847 (€24,580) is due in 3 days',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3),
-      read: true,
-      link: '/account',
-    },
-  ]);
+  const navigate = useNavigate();
+  const { 
+    notifications, 
+    loading, 
+    error,
+    markAsRead, 
+    markAllAsRead, 
+    deleteNotification, 
+    clearAll,
+    refresh 
+  } = useNotifications();
 
   const [refreshing, setRefreshing] = useState(false);
   const [swipedId, setSwipedId] = useState<string | null>(null);
@@ -99,7 +45,7 @@ export default function MobileNotificationsPanel({ isOpen, onClose }: MobileNoti
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const getNotificationIcon = (type: Notification['type']) => {
+  const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'product':
         return <Package className="h-6 w-6" />;
@@ -109,6 +55,8 @@ export default function MobileNotificationsPanel({ isOpen, onClose }: MobileNoti
         return <GraduationCap className="h-6 w-6" />;
       case 'marketing':
         return <FolderOpen className="h-6 w-6" />;
+      case 'announcement':
+        return <Bell className="h-6 w-6" />;
       case 'alert':
         return <AlertCircle className="h-6 w-6" />;
       case 'success':
@@ -120,7 +68,7 @@ export default function MobileNotificationsPanel({ isOpen, onClose }: MobileNoti
     }
   };
 
-  const getNotificationColor = (type: Notification['type']) => {
+  const getNotificationColor = (type: string) => {
     switch (type) {
       case 'product':
         return 'bg-[#00a8b5]';
@@ -130,6 +78,8 @@ export default function MobileNotificationsPanel({ isOpen, onClose }: MobileNoti
         return 'bg-purple-500';
       case 'marketing':
         return 'bg-pink-500';
+      case 'announcement':
+        return 'bg-[#00a8b5]';
       case 'alert':
         return 'bg-orange-500';
       case 'success':
@@ -141,43 +91,20 @@ export default function MobileNotificationsPanel({ isOpen, onClose }: MobileNoti
     }
   };
 
-  const handleMarkAsRead = (id: string) => {
-    setNotifications(notifications.map(n => 
-      n.id === id ? { ...n, read: true } : n
-    ));
-  };
+  const handleNotificationClick = async (notification: typeof notifications[0]) => {
+    await markAsRead(notification.id);
 
-  const handleMarkAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
-  };
-
-  const handleDeleteNotification = (id: string) => {
-    setNotifications(notifications.filter(n => n.id !== id));
-    setSwipedId(null);
-  };
-
-  const handleClearAll = () => {
-    setNotifications([]);
-  };
-
-  const handleNotificationClick = (notification: Notification) => {
-    // Mark as read
-    handleMarkAsRead(notification.id);
-
-    // Navigate if link exists
     if (notification.link) {
-      window.location.href = notification.link;
+      navigate(notification.link);
     }
 
-    // Close panel
     onClose();
   };
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    // Simulate refresh
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setRefreshing(false);
+    await refresh();
+    setTimeout(() => setRefreshing(false), 1000);
   };
 
   const handleTouchStart = (e: TouchEvent) => {
@@ -188,7 +115,6 @@ export default function MobileNotificationsPanel({ isOpen, onClose }: MobileNoti
     const currentY = e.touches[0].clientY;
     const diff = currentY - startY.current;
     
-    // If pulling down at the top, trigger refresh
     if (diff > 80 && !refreshing) {
       handleRefresh();
     }
@@ -244,7 +170,7 @@ export default function MobileNotificationsPanel({ isOpen, onClose }: MobileNoti
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleMarkAllAsRead}
+                  onClick={markAllAsRead}
                   className="w-full h-10 text-[#00a8b5] border-[#00a8b5] hover:bg-[#00a8b5]/5"
                 >
                   <Check className="h-4 w-4 mr-2" />
@@ -267,7 +193,23 @@ export default function MobileNotificationsPanel({ isOpen, onClose }: MobileNoti
                 </div>
               )}
 
-              {notifications.length === 0 ? (
+              {/* Loading State */}
+              {loading && (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="h-8 w-8 text-[#00a8b5] animate-spin" />
+                </div>
+              )}
+
+              {/* Error State */}
+              {error && (
+                <div className="flex flex-col items-center justify-center py-16 px-6">
+                  <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
+                  <p className="text-sm text-red-600 text-center">{error}</p>
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!loading && !error && notifications.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-16 px-6">
                   <div className="rounded-full bg-slate-100 p-6 mb-4">
                     <Bell className="h-12 w-12 text-slate-400" />
@@ -277,14 +219,17 @@ export default function MobileNotificationsPanel({ isOpen, onClose }: MobileNoti
                     You have no notifications right now. We'll notify you when there's something new.
                   </p>
                 </div>
-              ) : (
+              )}
+
+              {/* Notifications */}
+              {!loading && !error && notifications.length > 0 && (
                 <div className="px-4 py-2 space-y-3">
                   {notifications.map((notification) => (
                     <SwipeableNotificationCard
                       key={notification.id}
                       notification={notification}
-                      onRead={handleMarkAsRead}
-                      onDelete={handleDeleteNotification}
+                      onRead={markAsRead}
+                      onDelete={deleteNotification}
                       onClick={handleNotificationClick}
                       getIcon={getNotificationIcon}
                       getColor={getNotificationColor}
@@ -297,12 +242,12 @@ export default function MobileNotificationsPanel({ isOpen, onClose }: MobileNoti
             </div>
 
             {/* Footer */}
-            {notifications.length > 0 && (
+            {!loading && notifications.length > 0 && (
               <div className="px-5 py-4 border-t border-slate-200 bg-slate-50">
                 <Button
                   variant="ghost"
                   size="lg"
-                  onClick={handleClearAll}
+                  onClick={clearAll}
                   className="w-full h-12 text-red-600 hover:bg-red-50 hover:text-red-700"
                 >
                   <Trash2 className="h-5 w-5 mr-2" />
@@ -319,12 +264,20 @@ export default function MobileNotificationsPanel({ isOpen, onClose }: MobileNoti
 
 // Swipeable Notification Card Component
 interface SwipeableNotificationCardProps {
-  notification: Notification;
+  notification: {
+    id: string;
+    type: string;
+    title: string;
+    message: string;
+    created_at: string;
+    read: boolean;
+    link: string | null;
+  };
   onRead: (id: string) => void;
   onDelete: (id: string) => void;
-  onClick: (notification: Notification) => void;
-  getIcon: (type: Notification['type']) => JSX.Element;
-  getColor: (type: Notification['type']) => string;
+  onClick: (notification: any) => void;
+  getIcon: (type: string) => JSX.Element;
+  getColor: (type: string) => string;
   isActive: boolean;
   swipeDirection: 'left' | 'right' | null;
 }
@@ -351,7 +304,6 @@ function SwipeableNotificationCard({
     const currentX = e.touches[0].clientX;
     const diff = currentX - startX.current;
     
-    // Limit swipe distance
     if (diff > -120 && diff < 120) {
       setSwipeX(diff);
     }
@@ -360,16 +312,12 @@ function SwipeableNotificationCard({
   const handleTouchEnd = () => {
     setIsDragging(false);
     
-    // Swipe left to delete (threshold: -60px)
     if (swipeX < -60) {
       onDelete(notification.id);
-    }
-    // Swipe right to mark as read (threshold: 60px)
-    else if (swipeX > 60 && !notification.read) {
+    } else if (swipeX > 60 && !notification.read) {
       onRead(notification.id);
     }
     
-    // Reset position
     setSwipeX(0);
   };
 
@@ -421,7 +369,7 @@ function SwipeableNotificationCard({
               {notification.message}
             </p>
             <span className="text-xs text-slate-500">
-              {formatDistanceToNow(notification.timestamp, { addSuffix: true })}
+              {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
             </span>
           </div>
         </div>
