@@ -115,20 +115,21 @@ export default function MobileWhatsNew() {
               <ArrowRight className="h-4 w-4" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-[300px]">
+          <SheetContent side="bottom" className="h-auto max-h-[400px]">
             <SheetHeader>
               <SheetTitle>Filter by Category</SheetTitle>
             </SheetHeader>
-            <div className="grid gap-2 mt-4">
+            <div className="grid gap-3 mt-6 pb-6">
               {categories.map((category) => (
-                <Button
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  className="justify-start"
-                  onClick={() => setSelectedCategory(category)}
-                >
-                  {category === 'all' ? 'All Categories' : category}
-                </Button>
+                <SheetTrigger asChild key={category}>
+                  <Button
+                    variant={selectedCategory === category ? "default" : "outline"}
+                    className="justify-start h-12 text-base"
+                    onClick={() => setSelectedCategory(category)}
+                  >
+                    {category === 'all' ? 'All Categories' : category}
+                  </Button>
+                </SheetTrigger>
               ))}
             </div>
           </SheetContent>
