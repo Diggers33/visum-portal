@@ -21,7 +21,6 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  SheetClose,
   SheetDescription,
 } from '../ui/sheet';
 import { useAnnouncements } from '../../hooks/useData';
@@ -130,18 +129,17 @@ export default function MobileWhatsNew() {
             </SheetHeader>
             <div className="grid gap-3 mt-6 pb-6 overflow-y-auto max-h-[60vh]">
               {categories.map((category) => (
-                <SheetClose asChild key={category}>
-                  <Button
-                    variant={selectedCategory === category ? "default" : "outline"}
-                    className="justify-start h-12 text-base"
-                    onClick={() => {
-                      setSelectedCategory(category);
-                      setFilterOpen(false);
-                    }}
-                  >
-                    {category === 'all' ? 'All Categories' : category}
-                  </Button>
-                </SheetClose>
+                <Button
+                  key={category}
+                  variant={selectedCategory === category ? "default" : "outline"}
+                  className="justify-start h-12 text-base"
+                  onClick={() => {
+                    setSelectedCategory(category);
+                    setFilterOpen(false);
+                  }}
+                >
+                  {category === 'all' ? 'All Categories' : category}
+                </Button>
               ))}
             </div>
           </SheetContent>
@@ -158,31 +156,35 @@ export default function MobileWhatsNew() {
             return (
               <div 
                 key={update.id} 
-                className="rounded-xl overflow-hidden shadow-lg p-6 flex flex-col"
-                style={{ background: 'linear-gradient(135deg, #00a8b5 0%, #008a95 100%)', minHeight: '280px', maxHeight: '400px' }}
+                className="rounded-xl overflow-hidden shadow-lg p-4 flex flex-col"
+                style={{ 
+                  background: 'linear-gradient(135deg, #00a8b5 0%, #008a95 100%)', 
+                  minHeight: '240px',
+                  maxHeight: '320px' 
+                }}
               >
-                <div className="flex items-center gap-3 mb-3 flex-wrap flex-shrink-0">
-                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-white/20 text-white border border-white/30">
+                <div className="flex items-center gap-2 mb-2 flex-wrap flex-shrink-0">
+                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-white/20 text-white border border-white/30">
                     {update.category || 'Announcement'}
                   </span>
-                  <span className="text-white/90 text-sm">{formatDate(update.created_at)}</span>
+                  <span className="text-white/90 text-xs">{formatDate(update.created_at)}</span>
                 </div>
                 
-                <h2 className="text-xl font-bold text-white mb-2 flex-shrink-0">
+                <h2 className="text-lg font-bold text-white mb-2 flex-shrink-0">
                   {update.title}
                 </h2>
                 
                 {update.content && (
-                  <p className="text-white/90 text-sm leading-relaxed mb-4 flex-shrink-1">
-                    {truncateText(update.content, 120)}
+                  <p className="text-white/90 text-sm leading-snug mb-3 flex-grow overflow-hidden">
+                    {truncateText(update.content, 80)}
                   </p>
                 )}
 
                 {update.link && (
-                  <div className="mt-auto pt-2 flex-shrink-0">
+                  <div className="mt-auto flex-shrink-0">
                     <Link to={update.link}>
                       <button 
-                        className="px-5 py-2.5 bg-white text-[#00a8b5] rounded-lg font-semibold hover:bg-white/95 transition-colors shadow-md text-sm"
+                        className="px-4 py-2 bg-white text-[#00a8b5] rounded-lg font-semibold hover:bg-white/95 transition-colors shadow-md text-sm"
                       >
                         {update.link_text || 'Learn More'}
                       </button>
