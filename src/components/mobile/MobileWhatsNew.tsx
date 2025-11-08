@@ -21,6 +21,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  SheetClose,
 } from '../ui/sheet';
 import { useAnnouncements } from '../../hooks/useData';
 
@@ -45,13 +46,12 @@ export default function MobileWhatsNew() {
   const { announcements, loading, error } = useAnnouncements();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [filterOpen, setFilterOpen] = useState(false);
 
-  // Sort announcements by date (most recent first) and filter out any with missing data
+  // Sort announcements by date (most recent first)
   const sortedAnnouncements = [...announcements]
     .filter(a => a.title && a.title.trim() !== '')
-    .sort((a, b) => {
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    });
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   const categories = ['all', ...new Set(sortedAnnouncements.map(u => u.category).filter(Boolean))];
 
@@ -65,6 +65,11 @@ export default function MobileWhatsNew() {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const truncateText = (text: string, maxLength: number) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
   };
 
   if (loading) {
@@ -105,7 +110,7 @@ export default function MobileWhatsNew() {
           />
         </div>
 
-        <Sheet>
+        <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
           <SheetTrigger asChild>
             <Button variant="outline" className="w-full justify-between bg-white">
               <span className="flex items-center gap-2">
@@ -115,21 +120,24 @@ export default function MobileWhatsNew() {
               <ArrowRight className="h-4 w-4" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-auto max-h-[400px]">
+          <SheetContent side="bottom" className="h-auto max-h-[80vh]">
             <SheetHeader>
               <SheetTitle>Filter by Category</SheetTitle>
             </SheetHeader>
-            <div className="grid gap-3 mt-6 pb-6">
+            <div className="grid gap-3 mt-6 pb-6 overflow-y-auto max-h-[60vh]">
               {categories.map((category) => (
-                <SheetTrigger asChild key={category}>
+                <SheetClose asChild key={category}>
                   <Button
                     variant={selectedCategory === category ? "default" : "outline"}
                     className="justify-start h-12 text-base"
-                    onClick={() => setSelectedCategory(category)}
+                    onClick={() => {
+                      setSelectedCategory(category);
+                      setFilterOpen(false);
+                    }}
                   >
                     {category === 'all' ? 'All Categories' : category}
                   </Button>
-                </SheetTrigger>
+                </SheetClose>
               ))}
             </div>
           </SheetContent>
@@ -141,15 +149,15 @@ export default function MobileWhatsNew() {
         {filteredUpdates.map((update, index) => {
           const IconComponent = categoryIcons[update.category] || categoryIcons.default;
           
-          // First announcement gets featured hero card - using plain div for reliable rendering
+          // First announcement gets featured hero card
           if (index === 0) {
             return (
               <div 
                 key={update.id} 
-                className="rounded-xl overflow-hidden bg-gradient-to-br from-[#00a8b5] to-[#008a95] shadow-lg p-6"
-                style={{ background: 'linear-gradient(to bottom right, #00a8b5, #008a95)' }}
+                className="rounded-xl overflow-hidden shadow-lg p-6"
+                style={{ background: 'linear-gradient(135deg, #00a8b5 0%, #008a95 100%)' }}
               >
-                <div className="flex items-center gap-3 mb-4">
+                <div className="flex items-center gap-3 mb-4 flex-wrap">
                   <span className="px-3 py-1 rounded-full text-xs font-medium bg-white/20 text-white border border-white/30">
                     {update.category || 'Announcement'}
                   </span>
@@ -157,19 +165,22 @@ export default function MobileWhatsNew() {
                 </div>
                 
                 <h2 className="text-2xl font-bold text-white mb-3">
-                  {update.title || 'Untitled Announcement'}
+                  {update.title}
                 </h2>
                 
                 {update.content && (
-                  <p className="text-white/90 text-base leading-relaxed mb-6 line-clamp-6">
-                    {update.content}
+                  <p className="text-white/90 text-base leading-relaxed mb-4">
+                    {truncateText(update.content, 250)}
                   </p>
                 )}
 
                 {update.link && (
-                  <div className="mt-4">
+                  <div className="mt-4 pt-2">
                     <Link to={update.link}>
-                      <button className="px-4 py-2 bg-white text-[#00a8b5] rounded-lg font-semibold hover:bg-white/90 transition-colors inline-block">
+                      <button 
+                        className="px-6 py-3 bg-white text-[#00a8b5] rounded-lg font-semibold hover:bg-white/95 transition-colors shadow-md"
+                        style={{ display: 'inline-block' }}
+                      >
                         {update.link_text || 'Learn More'}
                       </button>
                     </Link>
@@ -196,7 +207,7 @@ export default function MobileWhatsNew() {
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
                       <Badge variant="secondary" className="text-xs">
                         {update.category || 'General'}
                       </Badge>
@@ -204,16 +215,16 @@ export default function MobileWhatsNew() {
                     </div>
                     
                     <h3 className="font-semibold text-slate-900 mb-2 text-lg">
-                      {update.title || 'Untitled'}
+                      {update.title}
                     </h3>
                     {update.content && (
-                      <p className="text-slate-600 text-sm leading-relaxed">
-                        {update.content}
+                      <p className="text-slate-600 text-sm leading-relaxed mb-3">
+                        {truncateText(update.content, 150)}
                       </p>
                     )}
 
                     {update.link && (
-                      <Link to={update.link} className="inline-block mt-3">
+                      <Link to={update.link} className="inline-block">
                         <Button 
                           variant="ghost" 
                           size="sm"
