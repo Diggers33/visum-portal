@@ -160,17 +160,19 @@ export default function MobileWhatsNew() {
                 </h2>
                 
                 {update.content && (
-                  <p className="text-white/90 text-base leading-relaxed mb-6">
+                  <p className="text-white/90 text-base leading-relaxed mb-6 line-clamp-6">
                     {update.content}
                   </p>
                 )}
 
                 {update.link && (
-                  <Link to={update.link}>
-                    <button className="px-4 py-2 bg-white text-[#00a8b5] rounded-lg font-semibold hover:bg-white/90 transition-colors">
-                      {update.link_text || 'Learn More'}
-                    </button>
-                  </Link>
+                  <div className="mt-4">
+                    <Link to={update.link}>
+                      <button className="px-4 py-2 bg-white text-[#00a8b5] rounded-lg font-semibold hover:bg-white/90 transition-colors inline-block">
+                        {update.link_text || 'Learn More'}
+                      </button>
+                    </Link>
+                  </div>
                 )}
               </div>
             );
