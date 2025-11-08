@@ -174,16 +174,16 @@ export default function MobileWhatsNew() {
                     {update.title}
                   </h2>
                   
-                  {update.content && (
-                    <div className="flex-grow overflow-hidden mb-3">
+                  <div className="flex-grow overflow-hidden mb-3">
+                    {update.content && (
                       <p className="text-white/90 text-sm leading-snug line-clamp-3">
                         {truncateText(update.content, 120)}
                       </p>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
-                  {update.link && (
-                    <div className="flex-shrink-0 mt-auto">
+                  <div className="flex-shrink-0 mt-auto">
+                    {update.link ? (
                       <Link to={update.link}>
                         <button 
                           className="px-4 py-2.5 bg-white text-[#00a8b5] rounded-lg font-semibold hover:bg-white/95 transition-colors shadow-md text-sm w-full"
@@ -191,8 +191,14 @@ export default function MobileWhatsNew() {
                           {update.link_text || 'Learn More'}
                         </button>
                       </Link>
-                    </div>
-                  )}
+                    ) : (
+                      <button 
+                        className="px-4 py-2.5 bg-white/90 text-[#00a8b5] rounded-lg font-semibold cursor-default shadow-md text-sm w-full"
+                      >
+                        Read More
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );
