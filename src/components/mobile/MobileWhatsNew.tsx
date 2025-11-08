@@ -48,16 +48,10 @@ export default function MobileWhatsNew() {
 
   // Sort announcements by date (most recent first) and filter out any with missing data
   const sortedAnnouncements = [...announcements]
-    .filter(a => a.title && a.title.trim() !== '') // Only show announcements with titles
+    .filter(a => a.title && a.title.trim() !== '')
     .sort((a, b) => {
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
-
-  // Debug logging
-  console.log('📢 Total announcements:', sortedAnnouncements.length);
-  sortedAnnouncements.forEach((a, i) => {
-    console.log(`${i + 1}. ${a.title} (${a.category}) - ${a.created_at}`);
-  });
 
   const categories = ['all', ...new Set(sortedAnnouncements.map(u => u.category).filter(Boolean))];
 
@@ -93,7 +87,7 @@ export default function MobileWhatsNew() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
-      {/* Page Title - NO HEADER! Parent layout provides it */}
+      {/* Page Title */}
       <div className="px-4 pt-6 pb-4">
         <h1 className="text-2xl font-bold text-slate-900 mb-1">What's New</h1>
         <p className="text-slate-600 text-sm">Latest updates and announcements</p>
@@ -146,42 +140,39 @@ export default function MobileWhatsNew() {
         {filteredUpdates.map((update, index) => {
           const IconComponent = categoryIcons[update.category] || categoryIcons.default;
           
-          // First announcement gets featured hero card
+          // First announcement gets featured hero card - using plain div for reliable rendering
           if (index === 0) {
             return (
-              <Card 
+              <div 
                 key={update.id} 
-                className="overflow-hidden bg-gradient-to-br from-[#00a8b5] to-[#008a95] border-0 shadow-lg"
+                className="rounded-xl overflow-hidden bg-gradient-to-br from-[#00a8b5] to-[#008a95] shadow-lg p-6"
+                style={{ background: 'linear-gradient(to bottom right, #00a8b5, #008a95)' }}
               >
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/20">
-                      {update.category || 'Announcement'}
-                    </Badge>
-                    <span className="text-white/90 text-sm">{formatDate(update.created_at)}</span>
-                  </div>
-                  
-                  <h2 className="text-2xl font-bold text-white mb-3">
-                    {update.title || 'Untitled Announcement'}
-                  </h2>
-                  
-                  {update.content && (
-                    <p className="text-white/90 text-base leading-relaxed mb-6">
-                      {update.content}
-                    </p>
-                  )}
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-white/20 text-white border border-white/30">
+                    {update.category || 'Announcement'}
+                  </span>
+                  <span className="text-white/90 text-sm">{formatDate(update.created_at)}</span>
+                </div>
+                
+                <h2 className="text-2xl font-bold text-white mb-3">
+                  {update.title || 'Untitled Announcement'}
+                </h2>
+                
+                {update.content && (
+                  <p className="text-white/90 text-base leading-relaxed mb-6">
+                    {update.content}
+                  </p>
+                )}
 
-                  {update.link && (
-                    <Link to={update.link}>
-                      <Button 
-                        className="bg-white text-[#00a8b5] hover:bg-white/90 font-semibold"
-                      >
-                        {update.link_text || 'Learn More'}
-                      </Button>
-                    </Link>
-                  )}
-                </CardContent>
-              </Card>
+                {update.link && (
+                  <Link to={update.link}>
+                    <button className="px-4 py-2 bg-white text-[#00a8b5] rounded-lg font-semibold hover:bg-white/90 transition-colors">
+                      {update.link_text || 'Learn More'}
+                    </button>
+                  </Link>
+                )}
+              </div>
             );
           }
 
