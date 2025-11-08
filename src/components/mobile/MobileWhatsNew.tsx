@@ -22,6 +22,7 @@ import {
   SheetTitle,
   SheetTrigger,
   SheetClose,
+  SheetDescription,
 } from '../ui/sheet';
 import { useAnnouncements } from '../../hooks/useData';
 
@@ -123,6 +124,9 @@ export default function MobileWhatsNew() {
           <SheetContent side="bottom" className="h-auto max-h-[80vh]">
             <SheetHeader>
               <SheetTitle>Filter by Category</SheetTitle>
+              <SheetDescription>
+                Select a category to filter announcements
+              </SheetDescription>
             </SheetHeader>
             <div className="grid gap-3 mt-6 pb-6 overflow-y-auto max-h-[60vh]">
               {categories.map((category) => (
