@@ -21,6 +21,7 @@ import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
 import MobileNotificationsPanel from './MobileNotificationsPanel';
 import { useUserProfile } from '../../hooks/useData';
+import { useNotifications } from '../../hooks/useNotifications';
 
 interface MobileDashboardLayoutProps {
   children: React.ReactNode;
@@ -44,6 +45,10 @@ export default function MobileDashboardLayout({ children, onLogout }: MobileDash
   
   // Load user profile
   const { profile, loading: profileLoading } = useUserProfile();
+  
+  // Load notifications for badge count
+  const { notifications } = useNotifications();
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   const bottomNavItems = navigation.filter(item => item.showInBottomNav);
   const menuItems = navigation.filter(item => !item.showInBottomNav);
@@ -92,9 +97,11 @@ export default function MobileDashboardLayout({ children, onLogout }: MobileDash
               onClick={() => setNotificationsOpen(true)}
             >
               <Bell className="h-5 w-5 text-slate-600" />
-              <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] text-white font-medium">
-                3
-              </span>
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] text-white font-medium">
+                  {unreadCount}
+                </span>
+              )}
             </Button>
 
             {/* Mobile Notifications Panel */}
