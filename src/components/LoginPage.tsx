@@ -222,13 +222,19 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             </p>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-slate-200 text-center">
-            <Link 
-              to="/admin/login" 
-              className="text-[12px] text-slate-400 hover:text-slate-600"
-            >
-              IRIS Staff? Access Admin Portal →
-            </Link>
+          <div className="mt-8 pt-6 border-t border-slate-100">
+            <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
+              <span>IRIS Staff?</span>
+              <Link 
+                to="/admin/login" 
+                className="inline-flex items-center gap-1 text-[#00a8b5] hover:text-[#008a95] font-medium transition-colors"
+              >
+                Admin Portal
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
