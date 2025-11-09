@@ -1,18 +1,19 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        // Check if this is an invitation callback
+        const type = searchParams.get('type');
+        
         // Check if this is an OAuth callback with code
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const searchParams = new URLSearchParams(window.location.search);
-        
-        // Try to get code from either hash or search params
         const code = hashParams.get('code') || searchParams.get('code');
         
         if (code) {
@@ -26,19 +27,32 @@ export default function AuthCallback() {
           }
 
           if (data.session) {
+            // Check if this is an invitation (user hasn't set password yet)
+            if (type === 'invite') {
+              console.log('Invitation detected, redirecting to set password');
+              navigate('/set-password');
+              return;
+            }
+
             await handleUserProfile(data.session.user);
             
             // Check user role and redirect accordingly
             const { data: profile } = await supabase
               .from('user_profiles')
-              .select('role')
+              .select('role, status')
               .eq('id', data.session.user.id)
               .single();
+
+            // If user is pending and just invited, send to password setup
+            if (profile?.status === 'pending') {
+              navigate('/set-password');
+              return;
+            }
 
             if (profile?.role === 'admin') {
               navigate('/admin/dashboard');
             } else {
-              navigate('/');
+              navigate('/portal');
             }
             return;
           }
@@ -59,14 +73,20 @@ export default function AuthCallback() {
           // Check user role and redirect accordingly
           const { data: profile } = await supabase
             .from('user_profiles')
-            .select('role')
+            .select('role, status')
             .eq('id', sessionData.session.user.id)
             .single();
+
+          // If user is pending, send to password setup
+          if (profile?.status === 'pending') {
+            navigate('/set-password');
+            return;
+          }
 
           if (profile?.role === 'admin') {
             navigate('/admin/dashboard');
           } else {
-            navigate('/');
+            navigate('/portal');
           }
         } else {
           console.error('No session found');
@@ -114,7 +134,7 @@ export default function AuthCallback() {
             console.log('Profile created successfully');
           }
         } else if (profile) {
-          console.log('User profile found:', profile.role);
+          console.log('User profile found:', profile.role, profile.status);
         }
       } catch (error) {
         console.error('Error handling user profile:', error);
@@ -122,7 +142,7 @@ export default function AuthCallback() {
     };
 
     handleCallback();
-  }, [navigate]);
+  }, [navigate, searchParams]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
