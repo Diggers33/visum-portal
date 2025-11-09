@@ -69,6 +69,12 @@
       },
       "scripts": {
             "dev": "vite",
-            "build": "vite build"
+            "build": "vite build",
+            "ios:icons": "node scripts/generate-ios-icons.js",
+            "ios:splash": "node scripts/generate-ios-splash.js",
+            "ios:assets": "npm run ios:icons && npm run ios:splash",
+            "ios:sync": "npm run build && npx cap sync ios",
+            "ios:open": "npx cap open ios",
+            "ios:run": "npx cap run ios"
       }
 }

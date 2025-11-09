@@ -27,6 +27,18 @@ const config: CapacitorConfig = {
   },
   ios: {
     contentInset: 'automatic',
+    // Minimum iOS version supported
+    minVersion: '13.0',
+    // Use WKWebView configuration
+    scheme: 'capacitor',
+    // Limit file access
+    limitsNavigationsToAppBoundDomains: false,
+    // Allow inline media playback
+    allowsInlineMediaPlayback: true,
+    // Suppress incremental rendering
+    suppressesIncrementalRendering: false,
+    // Scroll bounce
+    scrollEnabled: true,
   },
 };
 
