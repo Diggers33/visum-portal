@@ -214,8 +214,8 @@ export default function MobileProductCatalog() {
       {/* Products Grid */}
       <div className="p-4 space-y-4">
         {filteredProducts.map((product) => (
-          <Link key={product.id} to={`/mobile/products/${product.id}`}>
-            <Card className="overflow-hidden border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <Link key={product.id} to={`/portal/products/${product.id}`} className="touch-manipulation">
+            <Card className="overflow-hidden border-slate-200 shadow-sm active:opacity-90">
               <div className="flex gap-4 p-4">
                 {/* Product Image */}
                 <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-lg border border-slate-200 overflow-hidden">

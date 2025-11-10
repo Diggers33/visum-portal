@@ -206,9 +206,9 @@ export default function MobileWhatsNew() {
 
           // All other announcements get regular cards
           return (
-            <Card 
-              key={update.id} 
-              className="overflow-hidden transition-all hover:shadow-md bg-white"
+            <Card
+              key={update.id}
+              className="overflow-hidden active:opacity-90 bg-white"
             >
               <CardContent className="p-4">
                 <div className="flex gap-3">

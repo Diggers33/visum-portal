@@ -29,12 +29,12 @@ interface MobileDashboardLayoutProps {
 }
 
 const navigation = [
-  { name: 'What\'s New', href: '/mobile/dashboard', icon: Bell, showInBottomNav: true },
-  { name: 'Products', href: '/mobile/products', icon: Package, showInBottomNav: true },
-  { name: 'Marketing', href: '/mobile/marketing-assets', icon: FolderOpen, showInBottomNav: false },
-  { name: 'Docs', href: '/mobile/documentation', icon: FileText, showInBottomNav: true },
-  { name: 'Training', href: '/mobile/training', icon: GraduationCap, showInBottomNav: false },
-  { name: 'Account', href: '/mobile/account', icon: User, showInBottomNav: true },
+  { name: 'What\'s New', href: '/portal', icon: Bell, showInBottomNav: true },
+  { name: 'Products', href: '/portal/products', icon: Package, showInBottomNav: true },
+  { name: 'Marketing', href: '/portal/marketing', icon: FolderOpen, showInBottomNav: false },
+  { name: 'Docs', href: '/portal/docs', icon: FileText, showInBottomNav: true },
+  { name: 'Training', href: '/portal/training', icon: GraduationCap, showInBottomNav: false },
+  { name: 'Account', href: '/portal/account', icon: User, showInBottomNav: true },
 ];
 
 export default function MobileDashboardLayout({ children, onLogout }: MobileDashboardLayoutProps) {
