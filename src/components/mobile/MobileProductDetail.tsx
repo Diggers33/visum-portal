@@ -4,25 +4,27 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { 
-  Download, 
-  FileText, 
-  Video, 
+import {
+  Download,
+  FileText,
+  Video,
   ChevronLeft,
   FileCheck,
   BookOpen,
   PlayCircle,
   Share2,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  File
 } from 'lucide-react';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
-import { useProduct } from '../../hooks/useData';
+import { useProduct, useProductResources } from '../../hooks/useData';
 
 export default function MobileProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { product, loading, error } = useProduct(id);
+  const { resources, loading: resourcesLoading } = useProductResources(id);
 
   if (loading) {
     return (
@@ -51,13 +53,32 @@ export default function MobileProductDetail() {
   }
 
   // Parse JSON fields
-  const specifications = typeof product.specifications === 'string' 
-    ? JSON.parse(product.specifications) 
+  const specifications = typeof product.specifications === 'string'
+    ? JSON.parse(product.specifications)
     : (product.specifications || {});
-  
+
   const features = typeof product.features === 'string'
     ? JSON.parse(product.features)
     : (product.features || []);
+
+  // Helper function to get icon and color for resource type
+  const getResourceConfig = (resourceType: string) => {
+    const configs: Record<string, { icon: any; bgColor: string; textColor: string }> = {
+      'datasheet': { icon: FileText, bgColor: 'bg-blue-50', textColor: 'text-blue-600' },
+      'manual': { icon: FileCheck, bgColor: 'bg-green-50', textColor: 'text-green-600' },
+      'video': { icon: PlayCircle, bgColor: 'bg-purple-50', textColor: 'text-purple-600' },
+      'application_note': { icon: BookOpen, bgColor: 'bg-orange-50', textColor: 'text-orange-600' },
+    };
+    return configs[resourceType] || { icon: File, bgColor: 'bg-slate-50', textColor: 'text-slate-600' };
+  };
+
+  // Helper function to format file size
+  const formatFileSize = (bytes: number | null | undefined) => {
+    if (!bytes) return 'N/A';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -142,65 +163,57 @@ export default function MobileProductDetail() {
         </TabsContent>
 
         <TabsContent value="resources" className="p-4 space-y-3 mt-0">
-          <Card className="border-slate-200">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                <FileText className="h-5 w-5 text-blue-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm text-slate-900">Product Datasheet</div>
-                <div className="text-xs text-slate-500">PDF • 2.4 MB</div>
-              </div>
-              <Button variant="ghost" size="icon" className="flex-shrink-0">
-                <Download className="h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
+          {resourcesLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-[#00a8b5]" />
+            </div>
+          ) : resources.length > 0 ? (
+            resources.map((resource) => {
+              const config = getResourceConfig(resource.resource_type);
+              const Icon = config.icon;
 
-          <Card className="border-slate-200">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
-                <FileCheck className="h-5 w-5 text-green-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm text-slate-900">User Manual</div>
-                <div className="text-xs text-slate-500">PDF • 5.1 MB</div>
-              </div>
-              <Button variant="ghost" size="icon" className="flex-shrink-0">
-                <Download className="h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="border-slate-200">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-purple-50 flex items-center justify-center flex-shrink-0">
-                <PlayCircle className="h-5 w-5 text-purple-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm text-slate-900">Product Demo Video</div>
-                <div className="text-xs text-slate-500">Video • 12:30</div>
-              </div>
-              <Button variant="ghost" size="icon" className="flex-shrink-0">
-                <PlayCircle className="h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="border-slate-200">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-orange-50 flex items-center justify-center flex-shrink-0">
-                <BookOpen className="h-5 w-5 text-orange-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm text-slate-900">Application Notes</div>
-                <div className="text-xs text-slate-500">PDF • 3.2 MB</div>
-              </div>
-              <Button variant="ghost" size="icon" className="flex-shrink-0">
-                <Download className="h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
+              return (
+                <Card key={resource.id} className="border-slate-200">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className={`h-10 w-10 rounded-lg ${config.bgColor} flex items-center justify-center flex-shrink-0`}>
+                      <Icon className={`h-5 w-5 ${config.textColor}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-slate-900">{resource.title}</div>
+                      <div className="text-xs text-slate-500">
+                        {resource.file_type || 'File'} • {formatFileSize(resource.file_size)}
+                      </div>
+                      {resource.description && (
+                        <div className="text-xs text-slate-500 mt-1 line-clamp-1">
+                          {resource.description}
+                        </div>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="flex-shrink-0"
+                      onClick={() => window.open(resource.file_url, '_blank')}
+                    >
+                      {resource.resource_type === 'video' ? (
+                        <PlayCircle className="h-4 w-4" />
+                      ) : (
+                        <Download className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })
+          ) : (
+            <div className="text-center py-8">
+              <FileText className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500 text-sm mb-1">No resources available</p>
+              <p className="text-slate-400 text-xs">
+                Resources will be added soon
+              </p>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 

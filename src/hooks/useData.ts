@@ -206,7 +206,7 @@ export function useUserProfile() {
   const fetchProfile = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) throw new Error('Not authenticated');
 
       const { data, error } = await supabase
@@ -225,4 +225,40 @@ export function useUserProfile() {
   };
 
   return { profile, loading, error, refetch: fetchProfile };
+}
+
+/**
+ * Fetch product resources (datasheets, manuals, videos, etc.)
+ */
+export function useProductResources(productId: string | undefined) {
+  const [resources, setResources] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (productId) {
+      fetchResources(productId);
+    } else {
+      setLoading(false);
+    }
+  }, [productId]);
+
+  const fetchResources = async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('product_resources')
+        .select('*')
+        .eq('product_id', id)
+        .order('resource_type', { ascending: true });
+
+      if (error) throw error;
+      setResources(data || []);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { resources, loading, error, refetch: productId ? () => fetchResources(productId) : undefined };
 }

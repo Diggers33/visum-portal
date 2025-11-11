@@ -7,6 +7,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
+import { Capacitor } from '@capacitor/core';
 
 interface LoginPageProps {
   onLogin?: () => void;
@@ -45,15 +46,19 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const handleMicrosoftLogin = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
+      const redirectUrl = Capacitor.isNativePlatform()
+        ? 'com.iristechnology.visumportal://auth/callback'
+        : `${window.location.origin}/auth/callback`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'azure',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: redirectUrl
         }
       });
-      
+
       if (error) throw error;
     } catch (error: any) {
       setError(error.message);
@@ -65,15 +70,19 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const handleGoogleLogin = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
+      const redirectUrl = Capacitor.isNativePlatform()
+        ? 'com.iristechnology.visumportal://auth/callback'
+        : `${window.location.origin}/auth/callback`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: redirectUrl
         }
       });
-      
+
       if (error) throw error;
     } catch (error: any) {
       setError(error.message);

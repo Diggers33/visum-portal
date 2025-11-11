@@ -8,6 +8,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import adminBgImage from 'figma:asset/0b02a937a9098c1ca039716988bd7fcb3be6951d.png';
+import { Capacitor } from '@capacitor/core';
 
 interface AdminLoginPageProps {
   onLogin: () => void;
@@ -64,12 +65,13 @@ export default function AdminLoginPage({ onLogin }: AdminLoginPageProps) {
     console.log('🔵 Google login button clicked');
     setLoading(true);
     setError(null);
-    
+
     try {
-      // FIXED: Match the Supabase redirect URL exactly
-      const redirectUrl = `${window.location.origin}/auth/callback`;
+      const redirectUrl = Capacitor.isNativePlatform()
+        ? 'com.iristechnology.visumportal://auth/callback'
+        : `${window.location.origin}/auth/callback`;
       console.log('🔵 Redirect URL:', redirectUrl);
-      
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -80,14 +82,14 @@ export default function AdminLoginPage({ onLogin }: AdminLoginPageProps) {
           }
         }
       });
-      
+
       console.log('🔵 OAuth response:', { data, error });
-      
+
       if (error) {
         console.error('❌ OAuth error:', error);
         throw error;
       }
-      
+
       console.log('✅ OAuth initiated successfully');
       // Don't set loading to false here - page will redirect
     } catch (error: any) {
