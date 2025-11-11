@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabase';
+import { Capacitor } from '@capacitor/core';
+import { App as CapacitorApp } from '@capacitor/app';
 
 // Auth Components
 import LoginPage from './components/LoginPage';
@@ -131,6 +133,33 @@ function SmartComponent({
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Handle deep link OAuth callbacks on mobile
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      const handleDeepLink = (data: any) => {
+        console.log('🔗 Deep link opened:', data.url);
+        
+        if (data.url.includes('auth/callback')) {
+          console.log('✅ OAuth callback detected');
+          
+          // Extract hash from deep link
+          const hashIndex = data.url.indexOf('#');
+          if (hashIndex !== -1) {
+            const hash = data.url.substring(hashIndex);
+            window.location.hash = hash;
+            console.log('🔑 Hash set:', hash);
+          }
+          
+          // Navigate to callback route
+          window.location.href = '/auth/callback' + window.location.hash;
+        }
+      };
+
+      CapacitorApp.addListener('appUrlOpen', handleDeepLink);
+      return () => CapacitorApp.removeAllListeners();
+    }
+  }, []);
 
   useEffect(() => {
     console.log('🚀 App mounted - checking session...');
