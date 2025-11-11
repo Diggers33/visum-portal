@@ -1,14 +1,14 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
-import { 
-  Search, 
-  SlidersHorizontal, 
+import {
+  Search,
+  SlidersHorizontal,
   ChevronRight,
   Loader2
 } from 'lucide-react';
@@ -30,6 +30,7 @@ import {
 } from '../ui/select';
 
 export default function MobileProductCatalog() {
+  const navigate = useNavigate();
   const { products, loading, error } = useProducts();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -214,52 +215,56 @@ export default function MobileProductCatalog() {
       {/* Products Grid */}
       <div className="p-4 space-y-4">
         {filteredProducts.map((product) => (
-          <Link key={product.id} to={`/portal/products/${product.id}`} className="touch-manipulation">
-            <Card className="overflow-hidden border-slate-200 shadow-sm active:opacity-90">
-              <div className="flex gap-4 p-4">
-                {/* Product Image */}
-                <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-lg border border-slate-200 overflow-hidden">
-                  {product.image_url ? (
-                    <img
-                      src={product.image_url}
-                      alt={product.name}
-                      className="w-full h-full object-contain p-1.5"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-300 text-xs">
-                      No image
-                    </div>
-                  )}
+          <Card 
+            key={product.id} 
+            className="border-slate-200 bg-white cursor-pointer active:bg-slate-50 transition-colors"
+            onClick={() => navigate(`/portal/products/${product.id}`)}
+          >
+            <div className="flex gap-4 p-4">
+              {/* Product Image */}
+              <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-lg border border-slate-200 overflow-hidden">
+                {product.image_url ? (
+                  <img
+                    src={product.image_url}
+                    alt={product.name}
+                    className="w-full h-full object-contain p-1.5"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-slate-300 text-xs">
+                    No image
+                  </div>
+                )}
+              </div>
+
+              {/* Product Info */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <div>
+                    {(product.category || product.product_line) && (
+                      <Badge variant="outline" className="text-[10px] mb-1.5">
+                        {product.category || product.product_line}
+                      </Badge>
+                    )}
+                    <h3 className="text-slate-900 leading-tight mb-1 font-medium">
+                      {product.name}
+                    </h3>
+                  </div>
                 </div>
 
-                {/* Product Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <div>
-                      {(product.category || product.product_line) && (
-                        <Badge variant="outline" className="text-[10px] mb-1.5">
-                          {product.category || product.product_line}
-                        </Badge>
-                      )}
-                      <h3 className="text-slate-900 leading-tight mb-1">{product.name}</h3>
-                    </div>
-                  </div>
-                  
-                  <p className="text-sm text-slate-600 mb-2 line-clamp-2">
-                    {product.description || 'No description available'}
-                  </p>
+                <p className="text-sm text-slate-600 mb-2 line-clamp-2">
+                  {product.description || 'No description available'}
+                </p>
 
-                  <div className="flex items-center justify-between">
-                    {product.price && (
-                      <div className="text-[#00a8b5] font-medium">{product.price}</div>
-                    )}
-                    <ChevronRight className="h-5 w-5 text-slate-400" />
-                  </div>
+                <div className="flex items-center justify-between">
+                  {product.price && (
+                    <div className="text-[#00a8b5] font-medium">{product.price}</div>
+                  )}
+                  <ChevronRight className="h-5 w-5 text-slate-400" />
                 </div>
               </div>
-            </Card>
-          </Link>
+            </div>
+          </Card>
         ))}
 
         {filteredProducts.length === 0 && (

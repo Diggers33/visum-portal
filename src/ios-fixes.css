@@ -1,0 +1,51 @@
+/* iOS WebKit fixes - add this to the END of src/index.css */
+
+/* Force iOS to recognize and apply text colors */
+@supports (-webkit-touch-callout: none) {
+  .text-slate-900,
+  h1, h2, h3, h4, h5, h6 {
+    color: rgb(15, 23, 42) !important;
+  }
+
+  .text-slate-600 {
+    color: rgb(71, 85, 105) !important;
+  }
+
+  .text-slate-700 {
+    color: rgb(51, 65, 85) !important;
+  }
+
+  .text-\[\#00a8b5\] {
+    color: #00a8b5 !important;
+  }
+
+  /* Force font rendering */
+  .font-medium {
+    font-weight: 500 !important;
+  }
+
+  .font-semibold {
+    font-weight: 600 !important;
+  }
+
+  /* Force display properties */
+  .flex {
+    display: flex !important;
+  }
+
+  .block {
+    display: block !important;
+  }
+
+  /* Force images to render */
+  img {
+    display: block !important;
+    max-width: 100%;
+  }
+
+  /* Force text to be visible */
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}

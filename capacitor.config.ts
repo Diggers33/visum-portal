@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.iris.distributor',
+  appId: 'com.iristechnology.visumportal',
   appName: 'IRIS Portal',
   webDir: 'build',
   server: {
