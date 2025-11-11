@@ -53,35 +53,32 @@ interface User {
 
 // ✅ Device detection hook
 function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(true); // Start as mobile
+  const [isMobile, setIsMobile] = useState(() => {
+    // Initialize based on Capacitor or window width
+    if (Capacitor.isNativePlatform()) {
+      return true;
+    }
+    return window.innerWidth < 768;
+  });
 
   useEffect(() => {
     const checkMobile = () => {
-      // ⚠️ Check for Capacitor first (native app)
-      const isCapacitor = !!(window as any).Capacitor;
-      if (isCapacitor) {
-        console.log('📱 Capacitor detected - forcing mobile mode');
+      // If Capacitor native platform, always mobile
+      if (Capacitor.isNativePlatform()) {
+        console.log('📱 Capacitor native platform detected - mobile mode');
         setIsMobile(true);
         return;
       }
-      
-      // Check screen width (increased threshold for tablets)
-      const isSmallScreen = window.innerWidth < 1024; // Changed from 768
-      
-      // Check user agent
-      const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
-      );
-      
-      const result = isSmallScreen || isMobileUA;
-      console.log('📱 Device type:', result ? 'Mobile' : 'Desktop', {
+
+      // For web browsers, check screen width only
+      const isSmallScreen = window.innerWidth < 768;
+
+      console.log('📱 Device type:', isSmallScreen ? 'Mobile' : 'Desktop', {
         width: window.innerWidth,
-        isCapacitor,
-        isMobileUA,
-        isSmallScreen
+        isNativePlatform: false
       });
-      
-      setIsMobile(result);
+
+      setIsMobile(isSmallScreen);
     };
 
     checkMobile();

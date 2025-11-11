@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent } from './ui/card';
@@ -19,7 +19,7 @@ import {
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
-import { useProductResources } from '../hooks/useData';
+import { useProductResources, useDocumentation, useMarketingAssets } from '../hooks/useData';
 
 interface Product {
   id: string;
@@ -59,7 +59,30 @@ export default function ProductDetail() {
   const [selectedImage, setSelectedImage] = useState<string>('');
 
   // Fetch product resources from database
-  const { resources, loading: resourcesLoading } = useProductResources(id);
+  const { resources, loading: productResourcesLoading } = useProductResources(id);
+
+  // Fetch documentation and marketing assets using hooks (not edge functions)
+  const { documents: allDocuments, loading: docsLoading } = useDocumentation();
+  const { assets: allAssets, loading: assetsLoading } = useMarketingAssets();
+
+  // Filter by product name when product is loaded
+  const documentation = useMemo(() => {
+    if (!product || !allDocuments) return [];
+    return allDocuments.filter(doc =>
+      doc.product?.toLowerCase() === product.name.toLowerCase() &&
+      doc.status === 'published'
+    );
+  }, [product, allDocuments]);
+
+  const marketingAssets = useMemo(() => {
+    if (!product || !allAssets) return [];
+    return allAssets.filter(asset =>
+      asset.product?.toLowerCase() === product.name.toLowerCase() &&
+      asset.status === 'published'
+    );
+  }, [product, allAssets]);
+
+  const resourcesLoading = docsLoading || assetsLoading;
 
   useEffect(() => {
     if (id) {
@@ -136,14 +159,16 @@ export default function ProductDetail() {
     }
   };
 
-  const handleDownload = async (url: string, type: string) => {
+  const handleDownload = async (url: string, type: string, resourceId?: string, isMarketingAsset?: boolean) => {
     try {
-      // Increment download count
-      await supabase.rpc('increment_product_downloads', { product_id: id });
-      
+      // Increment product download count for tracking
+      if (id) {
+        await supabase.rpc('increment_product_downloads', { product_id: id });
+      }
+
       // Open in new tab
       window.open(url, '_blank');
-      
+
       toast.success(`${type} downloaded`);
     } catch (err) {
       console.error('Error downloading:', err);
@@ -213,7 +238,7 @@ export default function ProductDetail() {
     );
   }
 
-  // Filter resources by category
+  // Filter resources by category (from product_resources table)
   const documentationResources = resources.filter(r =>
     ['datasheet', 'manual', 'brochure'].includes(r.resource_type)
   );
@@ -224,9 +249,9 @@ export default function ProductDetail() {
     ['video', 'training_video'].includes(r.resource_type)
   );
 
-  // Fallback to old product URLs if no resources in database
-  const hasTechnicalDocs = documentationResources.length > 0 || product.datasheet_url || product.manual_url || product.brochure_url;
-  const hasMarketingAssets = marketingResources.length > 0 || product.case_study_url || product.whitepaper_url || product.presentation_url || product.press_release_url;
+  // Check if we have any resources from any source
+  const hasTechnicalDocs = documentationResources.length > 0 || documentation.length > 0 || product.datasheet_url || product.manual_url || product.brochure_url;
+  const hasMarketingAssets = marketingResources.length > 0 || marketingAssets.length > 0 || product.case_study_url || product.whitepaper_url || product.presentation_url || product.press_release_url;
   const hasTrainingMaterials = trainingResources.length > 0 || product.video_url || product.demo_video_url;
 
   // Helper to get icon for resource type
@@ -436,7 +461,42 @@ export default function ProductDetail() {
                   </div>
                 ) : hasTechnicalDocs ? (
                   <div className="grid gap-4">
-                    {/* Render resources from database */}
+                    {/* Render documentation from documentation table */}
+                    {documentation.map((doc) => (
+                      <div key={doc.id} className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-10 w-10 text-[#00a8b5]" />
+                          <div>
+                            <h3 className="font-medium text-slate-900">{doc.title}</h3>
+                            <div className="flex items-center gap-2 text-sm text-slate-500">
+                              <span>{doc.category}</span>
+                              {doc.version && (
+                                <>
+                                  <span>•</span>
+                                  <span>v{doc.version}</span>
+                                </>
+                              )}
+                              {doc.format && (
+                                <>
+                                  <span>•</span>
+                                  <span>{doc.format}</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownload(doc.file_url || '#', doc.title, doc.id, false)}
+                        >
+                          <Download className="mr-2 h-4 w-4" />
+                          Download
+                        </Button>
+                      </div>
+                    ))}
+
+                    {/* Render resources from product_resources table */}
                     {documentationResources.map((resource) => {
                       const Icon = getResourceIcon(resource.resource_type);
                       return (
@@ -539,7 +599,62 @@ export default function ProductDetail() {
                   </div>
                 ) : hasMarketingAssets ? (
                   <div className="grid gap-4">
-                    {/* Render resources from database */}
+                    {/* Render marketing assets from marketing_assets table */}
+                    {marketingAssets.map((asset) => {
+                      const isVideo = asset.type.toLowerCase().includes('video');
+                      const Icon = isVideo ? Video : (asset.format === 'PPT' || asset.format === 'PPTX') ? ImageIcon : FileText;
+
+                      return (
+                        <div key={asset.id} className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <Icon className="h-10 w-10 text-[#00a8b5]" />
+                            <div>
+                              <h3 className="font-medium text-slate-900">{asset.name}</h3>
+                              <div className="flex items-center gap-2 text-sm text-slate-500">
+                                <span>{asset.type}</span>
+                                {asset.format && (
+                                  <>
+                                    <span>•</span>
+                                    <span>{asset.format}</span>
+                                  </>
+                                )}
+                                {asset.language && (
+                                  <>
+                                    <span>•</span>
+                                    <span>{asset.language}</span>
+                                  </>
+                                )}
+                              </div>
+                              {asset.description && (
+                                <p className="text-sm text-slate-500 mt-1">{asset.description}</p>
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => isVideo
+                              ? window.open(asset.file_url || '#', '_blank')
+                              : handleDownload(asset.file_url || '#', asset.name, asset.id, true)
+                            }
+                          >
+                            {isVideo ? (
+                              <>
+                                <ExternalLink className="mr-2 h-4 w-4" />
+                                Watch
+                              </>
+                            ) : (
+                              <>
+                                <Download className="mr-2 h-4 w-4" />
+                                Download
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      );
+                    })}
+
+                    {/* Render resources from product_resources table */}
                     {marketingResources.map((resource) => {
                       const Icon = getResourceIcon(resource.resource_type);
                       const isVideo = resource.resource_type.includes('video');

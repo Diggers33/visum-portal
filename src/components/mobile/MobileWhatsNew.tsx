@@ -47,6 +47,8 @@ export default function MobileWhatsNew() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [filterOpen, setFilterOpen] = useState(false);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   // Sort announcements by date (most recent first)
   const sortedAnnouncements = [...announcements]
@@ -70,6 +72,11 @@ export default function MobileWhatsNew() {
   const truncateText = (text: string, maxLength: number) => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
+  };
+
+  const handleReadMore = (announcement: any) => {
+    setSelectedAnnouncement(announcement);
+    setDetailsOpen(true);
   };
 
   if (loading) {
@@ -185,15 +192,16 @@ export default function MobileWhatsNew() {
                   <div className="flex-shrink-0 mt-auto">
                     {update.link ? (
                       <Link to={update.link}>
-                        <button 
+                        <button
                           className="px-4 py-2.5 bg-white text-[#00a8b5] rounded-lg font-semibold hover:bg-white/95 transition-colors shadow-md text-sm w-full"
                         >
                           {update.link_text || 'Learn More'}
                         </button>
                       </Link>
                     ) : (
-                      <button 
-                        className="px-4 py-2.5 bg-white/90 text-[#00a8b5] rounded-lg font-semibold cursor-default shadow-md text-sm w-full"
+                      <button
+                        className="px-4 py-2.5 bg-white text-[#00a8b5] rounded-lg font-semibold hover:bg-white/95 transition-colors shadow-md text-sm w-full"
+                        onClick={() => handleReadMore(update)}
                       >
                         Read More
                       </button>
@@ -237,10 +245,10 @@ export default function MobileWhatsNew() {
                       </p>
                     )}
 
-                    {update.link && (
+                    {update.link ? (
                       <Link to={update.link} className="inline-block">
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="sm"
                           className="text-[#00a8b5] hover:text-[#008a95] hover:bg-[#00a8b5]/5 -ml-2 gap-1 h-8"
                         >
@@ -248,6 +256,16 @@ export default function MobileWhatsNew() {
                           <ArrowRight className="h-3 w-3" />
                         </Button>
                       </Link>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-[#00a8b5] hover:text-[#008a95] hover:bg-[#00a8b5]/5 -ml-2 gap-1 h-8"
+                        onClick={() => handleReadMore(update)}
+                      >
+                        Read More
+                        <ArrowRight className="h-3 w-3" />
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -264,6 +282,53 @@ export default function MobileWhatsNew() {
           </div>
         )}
       </div>
+
+      {/* Announcement Details Sheet */}
+      <Sheet open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <SheetContent side="bottom" className="h-[85vh] overflow-y-auto">
+          {selectedAnnouncement && (
+            <>
+              <SheetHeader className="mb-4">
+                <div className="flex items-center gap-2 mb-3 flex-wrap">
+                  <Badge
+                    className={categoryColors[selectedAnnouncement.category] || categoryColors.default}
+                  >
+                    {selectedAnnouncement.category || 'Announcement'}
+                  </Badge>
+                  <span className="text-sm text-slate-500">
+                    {formatDate(selectedAnnouncement.created_at)}
+                  </span>
+                </div>
+                <SheetTitle className="text-xl text-left">
+                  {selectedAnnouncement.title}
+                </SheetTitle>
+              </SheetHeader>
+
+              <div className="space-y-4">
+                {selectedAnnouncement.content && (
+                  <div className="prose prose-sm max-w-none">
+                    <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">
+                      {selectedAnnouncement.content}
+                    </p>
+                  </div>
+                )}
+
+                {selectedAnnouncement.link && (
+                  <Link to={selectedAnnouncement.link} className="block mt-6">
+                    <Button
+                      className="w-full bg-[#00a8b5] hover:bg-[#008a95] text-white"
+                      onClick={() => setDetailsOpen(false)}
+                    >
+                      {selectedAnnouncement.link_text || 'Learn More'}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

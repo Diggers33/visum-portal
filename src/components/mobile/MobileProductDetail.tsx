@@ -1,3 +1,4 @@
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
@@ -14,17 +15,39 @@ import {
   PlayCircle,
   Share2,
   Loader2,
-  AlertCircle,
-  File
+  AlertCircle
 } from 'lucide-react';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
-import { useProduct, useProductResources } from '../../hooks/useData';
+import { useProduct, useDocumentation, useMarketingAssets } from '../../hooks/useData';
+import { toast } from 'sonner';
 
 export default function MobileProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { product, loading, error } = useProduct(id);
-  const { resources, loading: resourcesLoading } = useProductResources(id);
+
+  // Fetch documentation and marketing assets using hooks (not edge functions)
+  const { documents: allDocuments, loading: docsLoading } = useDocumentation();
+  const { assets: allAssets, loading: assetsLoading } = useMarketingAssets();
+
+  // Filter by product name when product is loaded
+  const documentation = useMemo(() => {
+    if (!product || !allDocuments) return [];
+    return allDocuments.filter(doc =>
+      doc.product?.toLowerCase() === product.name.toLowerCase() &&
+      doc.status === 'published'
+    );
+  }, [product, allDocuments]);
+
+  const marketingAssets = useMemo(() => {
+    if (!product || !allAssets) return [];
+    return allAssets.filter(asset =>
+      asset.product?.toLowerCase() === product.name.toLowerCase() &&
+      asset.status === 'published'
+    );
+  }, [product, allAssets]);
+
+  const resourcesLoading = docsLoading || assetsLoading;
 
   if (loading) {
     return (
@@ -61,23 +84,112 @@ export default function MobileProductDetail() {
     ? JSON.parse(product.features)
     : (product.features || []);
 
-  // Helper function to get icon and color for resource type
-  const getResourceConfig = (resourceType: string) => {
-    const configs: Record<string, { icon: any; bgColor: string; textColor: string }> = {
-      'datasheet': { icon: FileText, bgColor: 'bg-blue-50', textColor: 'text-blue-600' },
-      'manual': { icon: FileCheck, bgColor: 'bg-green-50', textColor: 'text-green-600' },
-      'video': { icon: PlayCircle, bgColor: 'bg-purple-50', textColor: 'text-purple-600' },
-      'application_note': { icon: BookOpen, bgColor: 'bg-orange-50', textColor: 'text-orange-600' },
-    };
-    return configs[resourceType] || { icon: File, bgColor: 'bg-slate-50', textColor: 'text-slate-600' };
-  };
+  // Build resources array from documentation and marketing_assets tables
+  const resources = [];
 
-  // Helper function to format file size
-  const formatFileSize = (bytes: number | null | undefined) => {
-    if (!bytes) return 'N/A';
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  // Add documentation
+  documentation.forEach((doc) => {
+    resources.push({
+      id: doc.id,
+      type: 'document',
+      title: doc.title,
+      url: doc.file_url || '#',
+      icon: FileText,
+      bgColor: 'bg-blue-50',
+      textColor: 'text-blue-600',
+      fileType: doc.format || 'PDF',
+      description: `${doc.category}${doc.version ? ' • v' + doc.version : ''}`,
+      resourceType: 'documentation',
+      resourceId: doc.id
+    });
+  });
+
+  // Add marketing assets
+  marketingAssets.forEach((asset) => {
+    const isVideo = asset.type.toLowerCase().includes('video');
+    resources.push({
+      id: asset.id,
+      type: isVideo ? 'video' : 'document',
+      title: asset.name,
+      url: asset.file_url || '#',
+      icon: isVideo ? PlayCircle : FileText,
+      bgColor: isVideo ? 'bg-purple-50' : 'bg-orange-50',
+      textColor: isVideo ? 'text-purple-600' : 'text-orange-600',
+      fileType: asset.format || 'File',
+      description: `${asset.type}${asset.language ? ' • ' + asset.language : ''}`,
+      resourceType: 'marketing',
+      resourceId: asset.id
+    });
+  });
+
+  // Fallback to product URL fields if no database resources
+  if (resources.length === 0) {
+    if (product.datasheet_url) {
+      resources.push({
+        id: 'datasheet',
+        type: 'document',
+        title: 'Product Datasheet',
+        url: product.datasheet_url,
+        icon: FileText,
+        bgColor: 'bg-blue-50',
+        textColor: 'text-blue-600',
+        fileType: 'PDF',
+        description: 'Technical specifications and features'
+      });
+    }
+
+    if (product.manual_url) {
+      resources.push({
+        id: 'manual',
+        type: 'document',
+        title: 'User Manual',
+        url: product.manual_url,
+        icon: FileCheck,
+        bgColor: 'bg-green-50',
+        textColor: 'text-green-600',
+        fileType: 'PDF',
+        description: 'Installation and operation guide'
+      });
+    }
+
+    if (product.brochure_url) {
+      resources.push({
+        id: 'brochure',
+        type: 'document',
+        title: 'Product Brochure',
+        url: product.brochure_url,
+        icon: FileText,
+        bgColor: 'bg-blue-50',
+        textColor: 'text-blue-600',
+        fileType: 'PDF',
+        description: 'Marketing and product information'
+      });
+    }
+
+    if (product.demo_video_url) {
+      resources.push({
+        id: 'demo_video',
+        type: 'video',
+        title: 'Product Demo Video',
+        url: product.demo_video_url,
+        icon: PlayCircle,
+        bgColor: 'bg-purple-50',
+        textColor: 'text-purple-600',
+        fileType: 'Video',
+        description: 'See the product in action'
+      });
+    }
+  }
+
+  // Handle download
+  const handleDownload = (url: string, title: string, resourceType?: string, resourceId?: string) => {
+    try {
+      window.open(url, '_blank');
+      toast.success(`${title} opened`);
+    } catch (err) {
+      console.error('Error opening resource:', err);
+      toast.error('Failed to open resource');
+    }
   };
 
   return (
@@ -169,19 +281,18 @@ export default function MobileProductDetail() {
             </div>
           ) : resources.length > 0 ? (
             resources.map((resource) => {
-              const config = getResourceConfig(resource.resource_type);
-              const Icon = config.icon;
+              const Icon = resource.icon;
 
               return (
                 <Card key={resource.id} className="border-slate-200">
                   <CardContent className="p-4 flex items-center gap-3">
-                    <div className={`h-10 w-10 rounded-lg ${config.bgColor} flex items-center justify-center flex-shrink-0`}>
-                      <Icon className={`h-5 w-5 ${config.textColor}`} />
+                    <div className={`h-10 w-10 rounded-lg ${resource.bgColor} flex items-center justify-center flex-shrink-0`}>
+                      <Icon className={`h-5 w-5 ${resource.textColor}`} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm text-slate-900">{resource.title}</div>
                       <div className="text-xs text-slate-500">
-                        {resource.file_type || 'File'} • {formatFileSize(resource.file_size)}
+                        {resource.fileType}
                       </div>
                       {resource.description && (
                         <div className="text-xs text-slate-500 mt-1 line-clamp-1">
@@ -193,9 +304,14 @@ export default function MobileProductDetail() {
                       variant="ghost"
                       size="icon"
                       className="flex-shrink-0"
-                      onClick={() => window.open(resource.file_url, '_blank')}
+                      onClick={() => handleDownload(
+                        resource.url,
+                        resource.title,
+                        resource.resourceType,
+                        resource.resourceId
+                      )}
                     >
-                      {resource.resource_type === 'video' ? (
+                      {resource.type === 'video' ? (
                         <PlayCircle className="h-4 w-4" />
                       ) : (
                         <Download className="h-4 w-4" />
