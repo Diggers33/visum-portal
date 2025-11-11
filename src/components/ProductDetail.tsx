@@ -19,7 +19,7 @@ import {
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
-import { useProductResources, useDocumentation, useMarketingAssets } from '../hooks/useData';
+import { useDocumentation, useMarketingAssets } from '../hooks/useData';
 
 interface Product {
   id: string;
@@ -57,9 +57,6 @@ export default function ProductDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string>('');
-
-  // Fetch product resources from database
-  const { resources, loading: productResourcesLoading } = useProductResources(id);
 
   // Fetch documentation and marketing assets using hooks (not edge functions)
   const { documents: allDocuments, loading: docsLoading } = useDocumentation();
@@ -238,28 +235,10 @@ export default function ProductDetail() {
     );
   }
 
-  // Filter resources by category (from product_resources table)
-  const documentationResources = resources.filter(r =>
-    ['datasheet', 'manual', 'brochure'].includes(r.resource_type)
-  );
-  const marketingResources = resources.filter(r =>
-    ['case_study', 'whitepaper', 'presentation', 'press_release', 'social_image', 'demo_video'].includes(r.resource_type)
-  );
-  const trainingResources = resources.filter(r =>
-    ['video', 'training_video'].includes(r.resource_type)
-  );
-
   // Check if we have any resources from any source
-  const hasTechnicalDocs = documentationResources.length > 0 || documentation.length > 0 || product.datasheet_url || product.manual_url || product.brochure_url;
-  const hasMarketingAssets = marketingResources.length > 0 || marketingAssets.length > 0 || product.case_study_url || product.whitepaper_url || product.presentation_url || product.press_release_url;
-  const hasTrainingMaterials = trainingResources.length > 0 || product.video_url || product.demo_video_url;
-
-  // Helper to get icon for resource type
-  const getResourceIcon = (resourceType: string) => {
-    if (resourceType.includes('video')) return Video;
-    if (resourceType === 'presentation') return ImageIcon;
-    return FileText;
-  };
+  const hasTechnicalDocs = documentation.length > 0 || product.datasheet_url || product.manual_url || product.brochure_url;
+  const hasMarketingAssets = marketingAssets.length > 0 || product.case_study_url || product.whitepaper_url || product.presentation_url || product.press_release_url;
+  const hasTrainingMaterials = product.video_url || product.demo_video_url;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -496,32 +475,8 @@ export default function ProductDetail() {
                       </div>
                     ))}
 
-                    {/* Render resources from product_resources table */}
-                    {documentationResources.map((resource) => {
-                      const Icon = getResourceIcon(resource.resource_type);
-                      return (
-                        <div key={resource.id} className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <Icon className="h-10 w-10 text-[#00a8b5]" />
-                            <div>
-                              <h3 className="font-medium text-slate-900">{resource.title}</h3>
-                              <p className="text-sm text-slate-500">{resource.description || 'Document'}</p>
-                            </div>
-                          </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDownload(resource.file_url, resource.title)}
-                          >
-                            <Download className="mr-2 h-4 w-4" />
-                            Download
-                          </Button>
-                        </div>
-                      );
-                    })}
-
                     {/* Fallback: Render old product URLs if no database resources */}
-                    {documentationResources.length === 0 && product.datasheet_url && (
+                    {documentation.length === 0 && product.datasheet_url && (
                       <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                         <div className="flex items-center gap-3">
                           <FileText className="h-10 w-10 text-[#00a8b5]" />
@@ -541,7 +496,7 @@ export default function ProductDetail() {
                       </div>
                     )}
 
-                    {documentationResources.length === 0 && product.manual_url && (
+                    {documentation.length === 0 && product.manual_url && (
                       <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                         <div className="flex items-center gap-3">
                           <FileText className="h-10 w-10 text-[#00a8b5]" />
@@ -561,7 +516,7 @@ export default function ProductDetail() {
                       </div>
                     )}
 
-                    {documentationResources.length === 0 && product.brochure_url && (
+                    {documentation.length === 0 && product.brochure_url && (
                       <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                         <div className="flex items-center gap-3">
                           <FileText className="h-10 w-10 text-[#00a8b5]" />
@@ -654,46 +609,9 @@ export default function ProductDetail() {
                       );
                     })}
 
-                    {/* Render resources from product_resources table */}
-                    {marketingResources.map((resource) => {
-                      const Icon = getResourceIcon(resource.resource_type);
-                      const isVideo = resource.resource_type.includes('video');
-
-                      return (
-                        <div key={resource.id} className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <Icon className="h-10 w-10 text-[#00a8b5]" />
-                            <div>
-                              <h3 className="font-medium text-slate-900">{resource.title}</h3>
-                              <p className="text-sm text-slate-500">{resource.description || 'Marketing asset'}</p>
-                            </div>
-                          </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => isVideo
-                              ? window.open(resource.file_url, '_blank')
-                              : handleDownload(resource.file_url, resource.title)
-                            }
-                          >
-                            {isVideo ? (
-                              <>
-                                <ExternalLink className="mr-2 h-4 w-4" />
-                                Watch
-                              </>
-                            ) : (
-                              <>
-                                <Download className="mr-2 h-4 w-4" />
-                                Download
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      );
-                    })}
 
                     {/* Fallback: Render old product URLs if no database resources */}
-                    {marketingResources.length === 0 && product.presentation_url && (
+                    {marketingAssets.length === 0 && product.presentation_url && (
                       <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                         <div className="flex items-center gap-3">
                           <ImageIcon className="h-10 w-10 text-[#00a8b5]" />
@@ -713,7 +631,7 @@ export default function ProductDetail() {
                       </div>
                     )}
 
-                    {marketingResources.length === 0 && product.case_study_url && (
+                    {marketingAssets.length === 0 && product.case_study_url && (
                       <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                         <div className="flex items-center gap-3">
                           <FileText className="h-10 w-10 text-[#00a8b5]" />
@@ -733,7 +651,7 @@ export default function ProductDetail() {
                       </div>
                     )}
 
-                    {marketingResources.length === 0 && product.demo_video_url && (
+                    {marketingAssets.length === 0 && product.demo_video_url && (
                       <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                         <div className="flex items-center gap-3">
                           <Video className="h-10 w-10 text-[#00a8b5]" />
@@ -772,29 +690,8 @@ export default function ProductDetail() {
                 </div>
               ) : (
                 <div className="grid gap-4">
-                  {/* Render resources from database */}
-                  {trainingResources.map((resource) => (
-                    <div key={resource.id} className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Video className="h-10 w-10 text-[#00a8b5]" />
-                        <div>
-                          <h3 className="font-medium text-slate-900">{resource.title}</h3>
-                          <p className="text-sm text-slate-500">{resource.description || 'Training material'}</p>
-                        </div>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(resource.file_url, '_blank')}
-                      >
-                        <ExternalLink className="mr-2 h-4 w-4" />
-                        Watch
-                      </Button>
-                    </div>
-                  ))}
-
-                  {/* Fallback: Render old product URL if no database resources */}
-                  {trainingResources.length === 0 && product.video_url && (
+                  {/* Render training videos from product fields */}
+                  {product.video_url && (
                     <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                       <div className="flex items-center gap-3">
                         <Video className="h-10 w-10 text-[#00a8b5]" />
