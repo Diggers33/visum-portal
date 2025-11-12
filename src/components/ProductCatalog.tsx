@@ -114,7 +114,7 @@ export default function ProductCatalog() {
           .from('content_translations')
           .select('*')
           .eq('content_type', 'product')
-          .eq('language', i18n.language)
+          .eq('language_code', i18n.language)
           .in('content_id', productIds);
 
         if (translationsError) {
@@ -135,7 +135,7 @@ export default function ProductCatalog() {
           // Create a map of field -> translation
           const translationMap: Record<string, string> = {};
           productTranslations.forEach(t => {
-            translationMap[t.field] = t.translation;
+            translationMap[t.field_name] = t.translated_text;
           });
 
           // Apply translations

@@ -163,9 +163,9 @@ export default function MarketingAssets() {
       // Fetch translations for all assets in current language
       const { data: translations, error } = await supabase
         .from('content_translations')
-        .select('content_id, field, translation')
+        .select('content_id, field_name, translated_text')
         .eq('content_type', 'marketing_asset')
-        .eq('language', languageCode)
+        .eq('language_code', languageCode)
         .in('content_id', assetIds);
 
       if (error) {
@@ -180,10 +180,10 @@ export default function MarketingAssets() {
         if (!translationMap[t.content_id]) {
           translationMap[t.content_id] = {};
         }
-        if (t.field === 'name') {
-          translationMap[t.content_id].name = t.translation;
-        } else if (t.field === 'description') {
-          translationMap[t.content_id].description = t.translation;
+        if (t.field_name === 'name') {
+          translationMap[t.content_id].name = t.translated_text;
+        } else if (t.field_name === 'description') {
+          translationMap[t.content_id].description = t.translated_text;
         }
       });
 
