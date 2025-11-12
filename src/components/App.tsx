@@ -38,6 +38,7 @@ interface User {
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
     // Check active session
@@ -64,9 +65,22 @@ function App() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔄 Auth state changed:', event, '(isInitialLoad:', isInitialLoad, ')');
+
+      // Only allow SIGNED_IN on the very first load to prevent window focus from triggering refreshes
+      if (event === 'SIGNED_IN') {
+        if (!isInitialLoad) {
+          console.log('⏭️  Ignoring duplicate SIGNED_IN event (not initial load)');
+          return;
+        }
+        console.log('✅ Processing initial SIGNED_IN event');
+        setIsInitialLoad(false);
+      }
+
       // Only react to significant auth events, not silent token refreshes
       // This prevents auto-refresh when switching browser tabs
       if (event !== 'SIGNED_IN' && event !== 'SIGNED_OUT' && event !== 'USER_UPDATED') {
+        console.log('⏭️  Ignoring auth event:', event, '(no UI refresh)');
         return;
       }
 

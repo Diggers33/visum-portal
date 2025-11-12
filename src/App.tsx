@@ -130,6 +130,7 @@ function SmartComponent({
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // Handle deep link OAuth callbacks on mobile
   useEffect(() => {
@@ -248,10 +249,20 @@ function App() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔄 Auth state changed:', event);
+      console.log('🔄 Auth state changed:', event, '(isInitialLoad:', isInitialLoad, ')');
 
-      // Only react to significant auth events, not silent token refreshes
-      // This prevents auto-refresh when switching browser tabs
+      // Only allow SIGNED_IN on the very first load, then ignore subsequent SIGNED_IN events
+      // This prevents auto-refresh when switching browser tabs which incorrectly fires SIGNED_IN
+      if (event === 'SIGNED_IN') {
+        if (!isInitialLoad) {
+          console.log('⏭️  Ignoring duplicate SIGNED_IN event (not initial load)');
+          return;
+        }
+        console.log('✅ Processing initial SIGNED_IN event');
+        setIsInitialLoad(false);
+      }
+
+      // Only react to significant auth events: initial SIGNED_IN, SIGNED_OUT, or USER_UPDATED
       if (event !== 'SIGNED_IN' && event !== 'SIGNED_OUT' && event !== 'USER_UPDATED') {
         console.log('⏭️  Ignoring auth event:', event, '(no UI refresh)');
         return;
