@@ -333,19 +333,6 @@ export default function MobileProductDetail() {
         </TabsContent>
       </Tabs>
 
-      {/* Fixed Bottom CTA */}
-      <div className="fixed bottom-16 left-0 right-0 p-4 bg-white border-t border-slate-200 shadow-lg">
-        <div className="flex gap-2">
-          <Button variant="outline" className="flex-1 h-12 rounded-xl">
-            Contact Sales
-          </Button>
-          <Button className="flex-1 h-12 rounded-xl bg-[#00a8b5] hover:bg-[#008a95]">
-            Request Quote
-          </Button>
-        </div>
-      </div>
-
-      <div className="h-20" />
     </div>
   );
 }

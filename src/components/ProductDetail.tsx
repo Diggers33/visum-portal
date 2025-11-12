@@ -4,9 +4,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { 
+import {
   ArrowLeft,
-  ShoppingCart,
   Download,
   FileText,
   Image as ImageIcon,
@@ -173,32 +172,6 @@ export default function ProductDetail() {
     }
   };
 
-  const handleAddToQuote = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast.error('Please log in to add to quote');
-        return;
-      }
-
-      // Add to quote builder (you'll need to implement this table)
-      const { error } = await supabase
-        .from('quote_items')
-        .insert({
-          user_id: user.id,
-          product_id: product?.id,
-          quantity: 1
-        });
-
-      if (error) throw error;
-
-      toast.success('Added to quote builder');
-    } catch (err) {
-      console.error('Error adding to quote:', err);
-      toast.error('Failed to add to quote');
-    }
-  };
 
   const formatPrice = (price: number, currency: string) => {
     if (!price) return 'Contact for pricing';
@@ -351,15 +324,6 @@ export default function ProductDetail() {
 
             {/* Action Buttons */}
             <div className="space-y-3">
-              <Button
-                onClick={handleAddToQuote}
-                className="w-full bg-[#00a8b5] hover:bg-[#008a95] text-white"
-                size="lg"
-              >
-                <ShoppingCart className="mr-2 h-5 w-5" />
-                Add to Quote Builder
-              </Button>
-              
               {product.datasheet_url && (
                 <Button
                   variant="outline"
