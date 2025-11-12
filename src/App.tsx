@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from './lib/supabase';
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
@@ -130,7 +130,7 @@ function SmartComponent({
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const isInitialLoad = useRef(true);
 
   // Handle deep link OAuth callbacks on mobile
   useEffect(() => {
@@ -249,17 +249,18 @@ function App() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔄 Auth state changed:', event, '(isInitialLoad:', isInitialLoad, ')');
+      console.log('🔄 Auth state changed:', event, '(isInitialLoad:', isInitialLoad.current, ')');
 
       // Only allow SIGNED_IN on the very first load, then ignore subsequent SIGNED_IN events
       // This prevents auto-refresh when switching browser tabs which incorrectly fires SIGNED_IN
       if (event === 'SIGNED_IN') {
-        if (!isInitialLoad) {
-          console.log('⏭️  Ignoring duplicate SIGNED_IN event (not initial load)');
+        if (isInitialLoad.current) {
+          console.log('🔐 Processing initial SIGNED_IN');
+          isInitialLoad.current = false; // Update immediately (synchronous)
+        } else {
+          console.log('⏭️ Ignoring duplicate SIGNED_IN');
           return;
         }
-        console.log('✅ Processing initial SIGNED_IN event');
-        setIsInitialLoad(false);
       }
 
       // Only react to significant auth events: initial SIGNED_IN, SIGNED_OUT, or USER_UPDATED

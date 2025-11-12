@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from './lib/supabase';
 
 // Auth Components
@@ -65,16 +65,17 @@ function App() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔄 Auth state changed:', event, '(isInitialLoad:', isInitialLoad, ')');
+      console.log('🔄 Auth state changed:', event, '(isInitialLoad:', isInitialLoad.current, ')');
 
       // Only allow SIGNED_IN on the very first load to prevent window focus from triggering refreshes
       if (event === 'SIGNED_IN') {
-        if (!isInitialLoad) {
-          console.log('⏭️  Ignoring duplicate SIGNED_IN event (not initial load)');
+        if (isInitialLoad.current) {
+          console.log('🔐 Processing initial SIGNED_IN');
+          isInitialLoad.current = false; // Update immediately (synchronous)
+        } else {
+          console.log('⏭️ Ignoring duplicate SIGNED_IN');
           return;
         }
-        console.log('✅ Processing initial SIGNED_IN event');
-        setIsInitialLoad(false);
       }
 
       // Only react to significant auth events, not silent token refreshes
