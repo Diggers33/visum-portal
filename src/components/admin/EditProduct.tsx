@@ -131,6 +131,16 @@ export default function EditProduct() {
 
       if (data) {
         setProduct(data);
+        // Convert features array to newline-separated text
+        const featuresText = Array.isArray(data.features)
+          ? data.features.join('\n')
+          : (data.features || '');
+
+        // Convert applications array to newline-separated text
+        const applicationsText = Array.isArray(data.applications)
+          ? data.applications.join('\n')
+          : (data.applications || '');
+
         setProductData({
           name: data.name || '',
           sku: data.sku || '',
@@ -140,8 +150,8 @@ export default function EditProduct() {
           price: data.price?.toString() || '',
           currency: data.currency || 'EUR',
           status: data.status || 'draft',
-          features: data.features || '',
-          applications: data.applications || '',
+          features: featuresText,
+          applications: applicationsText,
           datasheet_url: data.datasheet_url || '',
           manual_url: data.manual_url || '',
           brochure_url: data.brochure_url || '',
@@ -214,6 +224,16 @@ export default function EditProduct() {
         return acc;
       }, {} as Record<string, string>);
 
+      // Convert newline-separated features to PostgreSQL array
+      const featuresArray = productData.features
+        ? productData.features.split('\n').filter(f => f.trim() !== '')
+        : null;
+
+      // Convert newline-separated applications to PostgreSQL array
+      const applicationsArray = productData.applications
+        ? productData.applications.split('\n').filter(a => a.trim() !== '')
+        : null;
+
       const updateData = {
         name: productData.name,
         sku: productData.sku || null,
@@ -223,8 +243,8 @@ export default function EditProduct() {
         price: productData.price ? parseFloat(productData.price) : null,
         currency: productData.currency,
         status: productData.status,
-        features: productData.features || null,
-        applications: productData.applications || null,
+        features: featuresArray,
+        applications: applicationsArray,
         specifications: Object.keys(specificationsObject).length > 0 ? specificationsObject : null,
         datasheet_url: productData.datasheet_url || null,
         manual_url: productData.manual_url || null,

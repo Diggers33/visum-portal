@@ -60,10 +60,16 @@ function App() {
       setLoading(false);
     });
 
-    // Listen for auth changes
+    // Listen for auth changes (but ignore silent token refreshes to prevent auto-reload)
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      // Only react to significant auth events, not silent token refreshes
+      // This prevents auto-refresh when switching browser tabs
+      if (event !== 'SIGNED_IN' && event !== 'SIGNED_OUT' && event !== 'USER_UPDATED') {
+        return;
+      }
+
       if (session) {
         supabase
           .from('user_profiles')
