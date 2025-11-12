@@ -77,27 +77,106 @@ export default function ProductCatalog() {
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [i18n.language]); // Re-fetch when language changes
 
   const fetchProducts = async () => {
     try {
       console.log('📡 ProductCatalog: Fetching products from Supabase...');
-      const { data, error } = await supabase
+      console.log('🌐 Current language:', i18n.language);
+      
+      // Fetch products
+      const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select('*')
         .eq('status', 'published')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('❌ ProductCatalog: Error fetching products:', error);
-        throw error;
+      if (productsError) {
+        console.error('❌ ProductCatalog: Error fetching products:', productsError);
+        throw productsError;
       }
 
-      console.log('✅ ProductCatalog: Products fetched:', {
-        count: data?.length || 0,
-        products: data
-      });
-      setProducts(data || []);
+      console.log('✅ ProductCatalog: Products fetched:', productsData?.length || 0);
+
+      // If language is English, no need to fetch translations
+      if (i18n.language === 'en') {
+        setProducts(productsData || []);
+        return;
+      }
+
+      // Fetch translations for current language
+      const productIds = productsData?.map(p => p.id) || [];
+      
+      if (productIds.length > 0) {
+        console.log('🔤 ProductCatalog: Fetching translations for language:', i18n.language);
+        
+        const { data: translationsData, error: translationsError } = await supabase
+          .from('content_translations')
+          .select('*')
+          .eq('content_type', 'product')
+          .eq('language', i18n.language)
+          .in('content_id', productIds);
+
+        if (translationsError) {
+          console.error('⚠️ ProductCatalog: Error fetching translations:', translationsError);
+          // Continue with English if translations fail
+          setProducts(productsData || []);
+          return;
+        }
+
+        console.log('✅ ProductCatalog: Translations fetched:', translationsData?.length || 0);
+
+        // Merge translations into products
+        const translatedProducts = productsData?.map(product => {
+          const productTranslations = translationsData?.filter(
+            t => t.content_id === product.id
+          ) || [];
+
+          // Create a map of field -> translation
+          const translationMap: Record<string, string> = {};
+          productTranslations.forEach(t => {
+            translationMap[t.field] = t.translation;
+          });
+
+          // Apply translations
+          return {
+            ...product,
+            name: translationMap['name'] || product.name,
+            description: translationMap['description'] || product.description,
+            // Features translation - handle both array and string formats
+            features: (() => {
+              // Check if we have translated features
+              const translatedFeatures = Object.keys(translationMap)
+                .filter(key => key.startsWith('features['))
+                .map(key => {
+                  const index = parseInt(key.match(/\[(\d+)\]/)?.[1] || '0');
+                  return { index, value: translationMap[key] };
+                })
+                .sort((a, b) => a.index - b.index)
+                .map(item => item.value);
+
+              if (translatedFeatures.length > 0) {
+                return translatedFeatures;
+              }
+
+              return product.features;
+            })()
+          };
+        }) || [];
+
+        console.log('🌍 ProductCatalog: Products with translations:', {
+          total: translatedProducts.length,
+          firstProduct: translatedProducts[0] ? {
+            id: translatedProducts[0].id,
+            name: translatedProducts[0].name,
+            hasTranslation: translatedProducts[0].name !== productsData?.[0]?.name
+          } : null
+        });
+
+        setProducts(translatedProducts);
+      } else {
+        setProducts([]);
+      }
     } catch (error) {
       console.error('❌ ProductCatalog: Failed to fetch products:', error);
     } finally {
