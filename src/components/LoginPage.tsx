@@ -248,9 +248,21 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         </div>
       </div>
 
-      {/* Right side - Visual background (hidden on mobile, shown on desktop) */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-slate-900 via-[#1e3a5f] to-[#335573] items-center justify-center p-12">
-        <div className="max-w-lg text-center">
+      {/* Right side - Background image with overlay */}
+      <div 
+        className="hidden lg:flex lg:w-1/2 relative items-center justify-center p-12"
+        style={{
+          backgroundImage: 'url(/assets/NIR-Intro.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-slate-900/75 backdrop-blur-[2px]"></div>
+        
+        {/* Content on top of overlay */}
+        <div className="relative z-10 max-w-lg text-center">
           {/* Logo and Brand */}
           <div className="mb-8">
             <div className="mb-4">
