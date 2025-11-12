@@ -43,8 +43,8 @@ interface Product {
   category: string;
   description: string | null;
   specifications: any;
-  features: string | null;
-  applications: string | null;
+  features: string | string[] | null;
+  applications: string | string[] | null;
   image_url: string | null;
   thumbnail_url: string | null;
   brochure_url: string | null;
@@ -181,14 +181,25 @@ export default function ProductCatalog() {
     }).format(price);
   };
 
-  const parseFeatures = (features: string | null) => {
+  const parseFeatures = (features: string | string[] | null) => {
     if (!features) return [];
-    try {
-      const parsed = JSON.parse(features);
-      return Array.isArray(parsed) ? parsed.slice(0, 3) : [];
-    } catch {
-      return features.split('\n').filter(Boolean).slice(0, 3);
+
+    // Handle array format (new PostgreSQL format)
+    if (Array.isArray(features)) {
+      return features.slice(0, 3);
     }
+
+    // Handle string format (old format)
+    if (typeof features === 'string') {
+      try {
+        const parsed = JSON.parse(features);
+        return Array.isArray(parsed) ? parsed.slice(0, 3) : [];
+      } catch {
+        return features.split('\n').filter(f => f.trim()).slice(0, 3);
+      }
+    }
+
+    return [];
   };
 
   const getProductImage = (product: Product) => {
@@ -346,11 +357,18 @@ export default function ProductCatalog() {
                     {/* Industry tags */}
                     {product.applications && (
                       <div className="flex flex-wrap gap-1">
-                        {product.applications.split(',').slice(0, 3).map((app, idx) => (
-                          <Badge key={idx} variant="secondary" className="text-[11px]">
-                            {app.trim()}
-                          </Badge>
-                        ))}
+                        {(() => {
+                          // Handle both array and string formats
+                          const applicationsArray = Array.isArray(product.applications)
+                            ? product.applications
+                            : product.applications.split('\n').filter(a => a.trim());
+
+                          return applicationsArray.slice(0, 3).map((app, idx) => (
+                            <Badge key={idx} variant="secondary" className="text-[11px]">
+                              {app.trim()}
+                            </Badge>
+                          ));
+                        })()}
                       </div>
                     )}
                   </CardContent>
