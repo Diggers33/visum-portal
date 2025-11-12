@@ -19,6 +19,7 @@ import { ImageWithFallback } from './figma/ImageWithFallback';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
 import { useDocumentation, useMarketingAssets } from '../hooks/useData';
+import { trackProductView } from '../lib/activityTracker';
 
 interface Product {
   id: string;
@@ -137,7 +138,13 @@ export default function ProductDetail() {
       } else {
         setProduct(data);
       }
-      
+
+      // Track product view
+      await trackProductView(data.id, data.name, {
+        product_line: data.product_line,
+        category: data.category
+      });
+
       setSelectedImage(data.image_url || '');
     } catch (err: any) {
       console.error('Error loading product:', err);

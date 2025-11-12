@@ -22,6 +22,7 @@ import {
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 import { toast } from 'sonner@2.0.3';
 import { supabase } from '../lib/supabase';
+import { trackDownload } from '../lib/activityTracker';
 
 interface MarketingAsset {
   id: string;
@@ -288,6 +289,11 @@ export default function MarketingAssets() {
 
       console.log('✅ Database updated successfully. Result:', updateResult);
       console.log('Updated asset downloads:', updateResult?.[0]?.downloads);
+
+      // Track download activity
+      await trackDownload('marketing_asset', assetId, assetName, {
+        download_count: updateResult?.[0]?.downloads
+      });
 
       console.log('✅ Database updated successfully');
       console.log('🌐 Opening file in new tab:', fileUrl);

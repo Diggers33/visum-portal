@@ -44,6 +44,7 @@ import {
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 import { toast } from 'sonner@2.0.3';
 import { supabase } from '../lib/supabase';
+import { trackDownload } from '../lib/activityTracker';
 
 // Category definitions with icons and colors
 const categoryDefinitions = [
@@ -330,9 +331,14 @@ export default function TechnicalDocs() {
       console.log('✅ Database updated successfully!');
       console.log('New value in database:', updateResult[0].downloads);
 
+      // Track download activity
+      await trackDownload('document', docId, docTitle, {
+        download_count: updateResult[0].downloads
+      });
+
       // Update local state
-      setDocuments(prev => prev.map(doc => 
-        doc.id === docId 
+      setDocuments(prev => prev.map(doc =>
+        doc.id === docId
           ? { ...doc, downloads: updateResult[0].downloads }
           : doc
       ));

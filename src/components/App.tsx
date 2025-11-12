@@ -18,6 +18,7 @@ import AnnouncementsManagement from './components/admin/AnnouncementsManagement'
 import DistributorsManagement from './components/admin/DistributorsManagement';
 import ProductsManagement from './components/admin/ProductsManagement';
 import EditProduct from './components/admin/EditProduct';
+import ActivityReports from './components/admin/ActivityReports';
 
 // Distributor Portal Pages
 import DashboardLayout from './components/DashboardLayout';
@@ -171,6 +172,7 @@ function App() {
         <Route path="/admin/distributors" element={user?.role === 'admin' ? <AdminLayout onLogout={async () => { await supabase.auth.signOut(); }}><DistributorsManagement /></AdminLayout> : <Navigate to="/login" />} />
         <Route path="/admin/products" element={user?.role === 'admin' ? <AdminLayout onLogout={async () => { await supabase.auth.signOut(); }}><ProductsManagement /></AdminLayout> : <Navigate to="/login" />} />
         <Route path="/admin/products/edit/:id" element={user?.role === 'admin' ? <AdminLayout onLogout={async () => { await supabase.auth.signOut(); }}><EditProduct /></AdminLayout> : <Navigate to="/login" />} />
+        <Route path="/admin/activity-reports" element={user?.role === 'admin' ? <AdminLayout onLogout={async () => { await supabase.auth.signOut(); }}><ActivityReports /></AdminLayout> : <Navigate to="/login" />} />
 
         {/* Distributor Portal Routes - Using children pattern */}
         <Route 

@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
 import { Capacitor } from '@capacitor/core';
+import { trackLogin } from '../lib/activityTracker';
 
 interface LoginPageProps {
   onLogin?: () => void;
@@ -32,7 +33,10 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       });
       
       if (error) throw error;
-      
+
+      // Track successful login
+      await trackLogin();
+
       toast.success('Welcome back!');
       if (onLogin) onLogin();
     } catch (error: any) {
