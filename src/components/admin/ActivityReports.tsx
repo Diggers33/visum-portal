@@ -70,7 +70,7 @@ interface Distributor {
   id: string;
   email: string;
   full_name: string;
-  company: string;
+  company_name: string;
 }
 
 const COLORS = ['#00a8b5', '#008a95', '#00c4d1', '#0090a0', '#00b8c5'];
@@ -110,7 +110,7 @@ export default function ActivityReports() {
     try {
       const { data, error } = await supabase
         .from('user_profiles')
-        .select('id, email, full_name, company')
+        .select('id, email, full_name, company_name')
         .eq('role', 'distributor')
         .order('full_name');
 
