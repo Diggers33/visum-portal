@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Package, 
-  FileText, 
-  FolderOpen, 
-  GraduationCap, 
+import {
+  LayoutDashboard,
+  Users,
+  Package,
+  FileText,
+  FolderOpen,
+  GraduationCap,
   Megaphone,
+  Activity,
   Settings,
   LogOut,
   HelpCircle,
@@ -37,6 +38,7 @@ const navigation = [
   { name: 'Marketing Assets', href: '/admin/marketing', icon: FolderOpen },
   { name: 'Training', href: '/admin/training', icon: GraduationCap },
   { name: 'Announcements', href: '/admin/announcements', icon: Megaphone },
+  { name: 'Activity Reports', href: '/admin/activity-reports', icon: Activity },
 ];
 
 interface AdminLayoutProps {
