@@ -26,12 +26,54 @@ interface ActivityData {
  * @private
  */
 async function trackActivity(data: Omit<ActivityData, 'user_id' | 'ip_address' | 'user_agent'>): Promise<void> {
+  console.log('🔵 trackActivity called with:', {
+    activity_type: data.activity_type,
+    resource_type: data.resource_type,
+    resource_name: data.resource_name,
+    resource_id: data.resource_id,
+    page_url: data.page_url
+  });
+
   try {
     // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    console.log('👤 Auth user result:', {
+      userId: user?.id,
+      email: user?.email,
+      userError: userError
+    });
+
+    if (userError) {
+      console.error('❌ Error getting auth user:', userError);
+      return;
+    }
 
     if (!user) {
-      console.warn('Cannot track activity: No authenticated user');
+      console.error('❌ No authenticated user found');
+      return;
+    }
+
+    // Verify user exists in user_profiles (CRITICAL CHECK)
+    console.log('🔍 Checking if user exists in user_profiles table...');
+    const { data: profile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('id, email, distributor_id, full_name')
+      .eq('id', user.id)
+      .single();
+
+    console.log('👤 User profile result:', {
+      profile: profile,
+      profileError: profileError
+    });
+
+    if (profileError) {
+      console.error('❌ Error getting user profile:', profileError);
+      console.error('❌ This user_id does not exist in user_profiles table!');
+      return;
+    }
+
+    if (!profile) {
+      console.error('❌ No user profile found for user:', user.id);
       return;
     }
 
@@ -47,18 +89,28 @@ async function trackActivity(data: Omit<ActivityData, 'user_id' | 'ip_address' |
       // For now, we'll leave it null and could add via edge function if needed
     };
 
+    console.log('📝 Prepared activity data for insert:', activityData);
+
     // Insert activity record
-    const { error } = await supabase
+    console.log('💾 Attempting to insert into distributor_activity table...');
+    const { data: insertedData, error } = await supabase
       .from('distributor_activity')
-      .insert(activityData);
+      .insert(activityData)
+      .select();
 
     if (error) {
-      console.error('Error tracking activity:', error);
+      console.error('❌ Error inserting activity:', error);
+      console.error('❌ Error details:', JSON.stringify(error, null, 2));
+      console.error('❌ Error code:', error.code);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error hint:', error.hint);
     } else {
-      console.log('✅ Activity tracked:', data.activity_type);
+      console.log('✅ Activity tracked successfully!');
+      console.log('✅ Inserted data:', insertedData);
     }
   } catch (error) {
-    console.error('Error in trackActivity:', error);
+    console.error('❌ Exception in trackActivity:', error);
+    console.error('❌ Exception details:', JSON.stringify(error, null, 2));
   }
 }
 
@@ -171,12 +223,33 @@ export async function trackProductView(
  * @param activities - Array of activity data
  */
 export async function trackBatchActivities(activities: Omit<ActivityData, 'user_id' | 'ip_address' | 'user_agent'>[]): Promise<void> {
+  console.log('🔵 trackBatchActivities called with', activities.length, 'activities');
+
   try {
     // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError) {
+      console.error('❌ Error getting auth user:', userError);
+      return;
+    }
 
     if (!user) {
-      console.warn('Cannot track activities: No authenticated user');
+      console.error('❌ Cannot track activities: No authenticated user');
+      return;
+    }
+
+    console.log('👤 Auth user:', user.id, user.email);
+
+    // Verify user exists in user_profiles
+    const { data: profile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || !profile) {
+      console.error('❌ User profile not found in user_profiles table');
       return;
     }
 
@@ -189,18 +262,25 @@ export async function trackBatchActivities(activities: Omit<ActivityData, 'user_
       user_agent: userAgent,
     }));
 
+    console.log('📝 Prepared batch records:', activityRecords);
+
     // Insert all records
-    const { error } = await supabase
+    console.log('💾 Attempting batch insert...');
+    const { data: insertedData, error } = await supabase
       .from('distributor_activity')
-      .insert(activityRecords);
+      .insert(activityRecords)
+      .select();
 
     if (error) {
-      console.error('Error tracking batch activities:', error);
+      console.error('❌ Error tracking batch activities:', error);
+      console.error('❌ Error details:', JSON.stringify(error, null, 2));
     } else {
-      console.log(`✅ Tracked ${activities.length} activities`);
+      console.log(`✅ Tracked ${activities.length} activities successfully`);
+      console.log('✅ Inserted data:', insertedData);
     }
   } catch (error) {
-    console.error('Error in trackBatchActivities:', error);
+    console.error('❌ Exception in trackBatchActivities:', error);
+    console.error('❌ Exception details:', JSON.stringify(error, null, 2));
   }
 }
 
