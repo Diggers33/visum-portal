@@ -19,7 +19,7 @@ import { ImageWithFallback } from './figma/ImageWithFallback';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
 import { useDocumentation, useMarketingAssets } from '../hooks/useData';
-import { trackProductView } from '../lib/activityTracker';
+import { trackProductView, trackDownload, trackPageView } from '../lib/activityTracker';
 
 interface Product {
   id: string;
@@ -57,6 +57,12 @@ export default function ProductDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string>('');
+
+  // Real-time activity counts
+  const [productDownloadCount, setProductDownloadCount] = useState<number>(0);
+  const [productViewCount, setProductViewCount] = useState<number>(0);
+  const [documentDownloadCounts, setDocumentDownloadCounts] = useState<Record<string, number>>({});
+  const [assetDownloadCounts, setAssetDownloadCounts] = useState<Record<string, number>>({});
 
   // Fetch documentation and marketing assets using hooks (not edge functions)
   const { documents: allDocuments, loading: docsLoading } = useDocumentation();
@@ -162,11 +168,128 @@ export default function ProductDetail() {
     }
   };
 
+  // Fetch activity counts from distributor_activity table
+  const fetchActivityCounts = async () => {
+    if (!id) return;
+
+    try {
+      // Fetch product-level download count from distributor_activity
+      const { count: productDownloads } = await supabase
+        .from('distributor_activity')
+        .select('*', { count: 'exact', head: true })
+        .eq('resource_id', id)
+        .eq('resource_type', 'product')
+        .eq('activity_type', 'download');
+
+      if (productDownloads !== null) {
+        setProductDownloadCount(productDownloads);
+      }
+
+      // Fetch product view count from distributor_activity
+      const { count: productViews } = await supabase
+        .from('distributor_activity')
+        .select('*', { count: 'exact', head: true })
+        .eq('resource_id', id)
+        .eq('resource_type', 'product')
+        .eq('activity_type', 'product_view');
+
+      if (productViews !== null) {
+        setProductViewCount(productViews);
+      }
+    } catch (err) {
+      console.error('Error fetching activity counts:', err);
+    }
+  };
+
+  // Fetch download count for a specific document
+  const fetchDocumentDownloadCount = async (docId: string) => {
+    try {
+      const { count } = await supabase
+        .from('distributor_activity')
+        .select('*', { count: 'exact', head: true })
+        .eq('resource_id', docId)
+        .eq('resource_type', 'document')
+        .eq('activity_type', 'download');
+
+      if (count !== null) {
+        setDocumentDownloadCounts(prev => ({
+          ...prev,
+          [docId]: count
+        }));
+      }
+    } catch (err) {
+      console.error('Error fetching document download count:', err);
+    }
+  };
+
+  // Fetch download count for a specific marketing asset
+  const fetchAssetDownloadCount = async (assetId: string) => {
+    try {
+      const { count } = await supabase
+        .from('distributor_activity')
+        .select('*', { count: 'exact', head: true })
+        .eq('resource_id', assetId)
+        .eq('resource_type', 'marketing_asset')
+        .eq('activity_type', 'download');
+
+      if (count !== null) {
+        setAssetDownloadCounts(prev => ({
+          ...prev,
+          [assetId]: count
+        }));
+      }
+    } catch (err) {
+      console.error('Error fetching asset download count:', err);
+    }
+  };
+
+  // Fetch all document download counts
+  useEffect(() => {
+    if (documentation.length > 0) {
+      documentation.forEach(doc => {
+        fetchDocumentDownloadCount(doc.id);
+      });
+    }
+  }, [documentation]);
+
+  // Fetch all asset download counts
+  useEffect(() => {
+    if (marketingAssets.length > 0) {
+      marketingAssets.forEach(asset => {
+        fetchAssetDownloadCount(asset.id);
+      });
+    }
+  }, [marketingAssets]);
+
+  // Fetch product-level counts on mount
+  useEffect(() => {
+    if (id) {
+      fetchActivityCounts();
+    }
+  }, [id]);
+
   const handleDownload = async (url: string, type: string, resourceId?: string, isMarketingAsset?: boolean) => {
     try {
       // Increment product download count for tracking
       if (id) {
         await supabase.rpc('increment_product_downloads', { product_id: id });
+      }
+
+      // Track activity in distributor_activity table
+      if (resourceId) {
+        const resourceType = isMarketingAsset ? 'marketing_asset' : 'document';
+        await trackDownload(resourceType, resourceId, type);
+
+        // Refetch counts immediately after tracking
+        if (isMarketingAsset) {
+          await fetchAssetDownloadCount(resourceId);
+        } else {
+          await fetchDocumentDownloadCount(resourceId);
+        }
+      } else if (id) {
+        // Track product-level download (datasheet, etc.)
+        await trackDownload('product', id, type);
+        await fetchActivityCounts();
       }
 
       // Open in new tab
@@ -176,6 +299,27 @@ export default function ProductDetail() {
     } catch (err) {
       console.error('Error downloading:', err);
       toast.error('Failed to download');
+    }
+  };
+
+  const handleVideoView = async (url: string, videoTitle: string, resourceId?: string) => {
+    try {
+      // Track video view activity
+      if (resourceId) {
+        // For marketing asset videos
+        await trackPageView(url, `Video: ${videoTitle}`);
+      } else if (id) {
+        // For product training videos
+        await trackPageView(url, `Training Video: ${videoTitle}`);
+      }
+
+      // Open video in new tab
+      window.open(url, '_blank');
+
+      toast.success(`Opening ${videoTitle}`);
+    } catch (err) {
+      console.error('Error opening video:', err);
+      toast.error('Failed to open video');
     }
   };
 
@@ -321,11 +465,11 @@ export default function ProductDetail() {
             {/* Stats */}
             <div className="flex items-center gap-6 text-sm text-slate-500 mb-6 pb-6 border-b border-slate-200">
               <div className="flex items-center gap-1">
-                <span>{product.views} views</span>
+                <span>{productViewCount > 0 ? productViewCount : product.views} views</span>
               </div>
               <div className="flex items-center gap-1">
                 <Download className="h-4 w-4" />
-                <span>{product.downloads} downloads</span>
+                <span>{productDownloadCount > 0 ? productDownloadCount : product.downloads} downloads</span>
               </div>
             </div>
 
@@ -334,7 +478,7 @@ export default function ProductDetail() {
               {product.datasheet_url && (
                 <Button
                   variant="outline"
-                  onClick={() => handleDownload(product.datasheet_url!, 'Datasheet')}
+                  onClick={() => handleDownload(product.datasheet_url!, 'Datasheet', id)}
                   className="w-full"
                   size="lg"
                 >
@@ -388,7 +532,7 @@ export default function ProductDetail() {
                     <div className="pt-4 border-t border-slate-200">
                       <Button
                         variant="outline"
-                        onClick={() => handleDownload(product.datasheet_url!, 'Technical Datasheet')}
+                        onClick={() => handleDownload(product.datasheet_url!, 'Technical Datasheet', id)}
                       >
                         <FileText className="mr-2 h-4 w-4" />
                         Download Full Specifications
@@ -432,6 +576,13 @@ export default function ProductDetail() {
                                   <span>{doc.format}</span>
                                 </>
                               )}
+                              {/* Real-time download count */}
+                              {documentDownloadCounts[doc.id] !== undefined && (
+                                <>
+                                  <span>•</span>
+                                  <span>{documentDownloadCounts[doc.id]} downloads</span>
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -459,7 +610,7 @@ export default function ProductDetail() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDownload(product.datasheet_url!, 'Datasheet')}
+                          onClick={() => handleDownload(product.datasheet_url!, 'Datasheet', id)}
                         >
                           <Download className="mr-2 h-4 w-4" />
                           Download
@@ -479,7 +630,7 @@ export default function ProductDetail() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDownload(product.manual_url!, 'Manual')}
+                          onClick={() => handleDownload(product.manual_url!, 'Manual', id)}
                         >
                           <Download className="mr-2 h-4 w-4" />
                           Download
@@ -499,7 +650,7 @@ export default function ProductDetail() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDownload(product.brochure_url!, 'Brochure')}
+                          onClick={() => handleDownload(product.brochure_url!, 'Brochure', id)}
                         >
                           <Download className="mr-2 h-4 w-4" />
                           Download
@@ -550,6 +701,13 @@ export default function ProductDetail() {
                                     <span>{asset.language}</span>
                                   </>
                                 )}
+                                {/* Real-time download count for non-video assets */}
+                                {!isVideo && assetDownloadCounts[asset.id] !== undefined && (
+                                  <>
+                                    <span>•</span>
+                                    <span>{assetDownloadCounts[asset.id]} downloads</span>
+                                  </>
+                                )}
                               </div>
                               {asset.description && (
                                 <p className="text-sm text-slate-500 mt-1">{asset.description}</p>
@@ -560,7 +718,7 @@ export default function ProductDetail() {
                             variant="outline"
                             size="sm"
                             onClick={() => isVideo
-                              ? window.open(asset.file_url || '#', '_blank')
+                              ? handleVideoView(asset.file_url || '#', asset.name, asset.id)
                               : handleDownload(asset.file_url || '#', asset.name, asset.id, true)
                             }
                           >
@@ -594,7 +752,7 @@ export default function ProductDetail() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDownload(product.presentation_url!, 'Presentation')}
+                          onClick={() => handleDownload(product.presentation_url!, 'Presentation', id)}
                         >
                           <Download className="mr-2 h-4 w-4" />
                           Download
@@ -614,7 +772,7 @@ export default function ProductDetail() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDownload(product.case_study_url!, 'Case Study')}
+                          onClick={() => handleDownload(product.case_study_url!, 'Case Study', id)}
                         >
                           <Download className="mr-2 h-4 w-4" />
                           Download
@@ -634,7 +792,7 @@ export default function ProductDetail() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => window.open(product.demo_video_url!, '_blank')}
+                          onClick={() => handleVideoView(product.demo_video_url!, 'Product Demo Video')}
                         >
                           <ExternalLink className="mr-2 h-4 w-4" />
                           Watch
@@ -674,7 +832,7 @@ export default function ProductDetail() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => window.open(product.video_url!, '_blank')}
+                        onClick={() => handleVideoView(product.video_url!, 'Training Video')}
                       >
                         <ExternalLink className="mr-2 h-4 w-4" />
                         Watch
