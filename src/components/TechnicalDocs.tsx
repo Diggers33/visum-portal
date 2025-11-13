@@ -103,6 +103,9 @@ export default function TechnicalDocs() {
   const [products, setProducts] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Real-time download counts from distributor_activity
+  const [documentDownloadCounts, setDocumentDownloadCounts] = useState<Record<string, number>>({});
+
   // Load documents from database
   useEffect(() => {
     loadDocuments();
@@ -138,11 +141,32 @@ export default function TechnicalDocs() {
         .order('name');
 
       if (error) throw error;
-      
+
       const productNames = data?.map(p => p.name) || [];
       setProducts(['All Products', ...productNames]);
     } catch (error) {
       console.error('Error loading products:', error);
+    }
+  };
+
+  // Fetch download count for a specific document from distributor_activity
+  const fetchDocumentDownloadCount = async (docId: string) => {
+    try {
+      const { count } = await supabase
+        .from('distributor_activity')
+        .select('*', { count: 'exact', head: true })
+        .eq('resource_id', docId)
+        .eq('resource_type', 'document')
+        .eq('activity_type', 'download');
+
+      if (count !== null) {
+        setDocumentDownloadCounts(prev => ({
+          ...prev,
+          [docId]: count
+        }));
+      }
+    } catch (err) {
+      console.error('Error fetching document download count:', err);
     }
   };
 
@@ -153,6 +177,15 @@ export default function TechnicalDocs() {
       document.title = 'Visum Portal';
     };
   }, []);
+
+  // Fetch download counts when documents load
+  useEffect(() => {
+    if (documents && documents.length > 0) {
+      documents.forEach(doc => {
+        fetchDocumentDownloadCount(doc.id);
+      });
+    }
+  }, [documents]);
 
   // Count documents per product (dynamic)
   const productCounts = products.map(product => ({
@@ -335,6 +368,9 @@ export default function TechnicalDocs() {
       await trackDownload('document', docId, docTitle, {
         download_count: updateResult[0].downloads
       });
+
+      // Refetch download count from distributor_activity immediately
+      await fetchDocumentDownloadCount(docId);
 
       // Update local state
       setDocuments(prev => prev.map(doc =>
@@ -703,6 +739,12 @@ export default function TechnicalDocs() {
                             <SortIcon field="updated" />
                           </button>
                         </TableHead>
+                        <TableHead>
+                          <div className="flex items-center gap-1">
+                            <Download className="h-4 w-4" />
+                            Downloads
+                          </div>
+                        </TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
@@ -733,8 +775,16 @@ export default function TechnicalDocs() {
                           </TableCell>
                           <TableCell className="text-sm text-slate-600">{formatFileSize(doc.file_size)}</TableCell>
                           <TableCell className="text-sm text-slate-600">{formatDate(doc.updated_at)}</TableCell>
+                          <TableCell className="text-sm text-slate-600">
+                            <div className="flex items-center gap-1">
+                              <Download className="h-3 w-3" />
+                              {documentDownloadCounts[doc.id] !== undefined
+                                ? documentDownloadCounts[doc.id]
+                                : '-'}
+                            </div>
+                          </TableCell>
                           <TableCell>
-                            <Badge 
+                            <Badge
                               className={
                                 doc.status === 'New' ? 'bg-green-100 text-green-800' :
                                 doc.status === 'Updated' ? 'bg-cyan-100 text-cyan-800' :
@@ -807,7 +857,15 @@ export default function TechnicalDocs() {
                         </div>
                         <div className="flex items-center justify-between text-xs text-slate-500 mb-3">
                           <span>{formatFileSize(doc.file_size)}</span>
-                          <span>{formatDate(doc.updated_at)}</span>
+                          <div className="flex items-center gap-3">
+                            <span className="flex items-center gap-1">
+                              <Download className="h-3 w-3" />
+                              {documentDownloadCounts[doc.id] !== undefined
+                                ? documentDownloadCounts[doc.id]
+                                : '-'}
+                            </span>
+                            <span>{formatDate(doc.updated_at)}</span>
+                          </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <Button size="sm" variant="outline" className="flex-1">
