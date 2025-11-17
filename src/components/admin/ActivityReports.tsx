@@ -11,6 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '../ui/command';
 import {
   Table,
   TableBody,
@@ -48,9 +50,13 @@ import {
   ChevronDown,
   ChevronUp,
   MapPin,
+  Check,
+  ChevronsUpDown,
+  X,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { toast } from 'sonner';
+import { cn } from '../../lib/utils';
 
 interface ActivityRecord {
   id: string;
@@ -113,23 +119,57 @@ export default function ActivityReports() {
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState('30'); // days
   const [selectedDistributor, setSelectedDistributor] = useState<string>('all');
+  const [selectedDistributorIds, setSelectedDistributorIds] = useState<string[]>([]);
+  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+  const [countries, setCountries] = useState<string[]>([]);
   const [selectedActivityType, setSelectedActivityType] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   useEffect(() => {
+    loadCountries();
+  }, []);
+
+  useEffect(() => {
     loadDistributors();
+  }, [selectedCountries]);
+
+  useEffect(() => {
     loadDistributorSummaries();
     loadActivities();
-  }, [dateRange, selectedDistributor, selectedActivityType]);
+  }, [dateRange, selectedDistributor, selectedActivityType, selectedDistributorIds]);
+
+  const loadCountries = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('distributors')
+        .select('country')
+        .not('country', 'is', null);
+
+      if (error) throw error;
+
+      const uniqueCountries = [...new Set(data?.map(d => d.country).filter(Boolean) as string[])];
+      setCountries(uniqueCountries.sort());
+    } catch (error) {
+      console.error('Error loading countries:', error);
+      toast.error('Failed to load countries');
+    }
+  };
 
   const loadDistributors = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('distributors')
         .select('id, company_name, territory, country, status')
         .eq('status', 'active')
         .order('company_name');
+
+      // Filter by selected countries
+      if (selectedCountries.length > 0) {
+        query = query.in('country', selectedCountries);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setDistributors(data || []);
@@ -171,9 +211,14 @@ export default function ActivityReports() {
         .gte('created_at', startDate.toISOString())
         .order('created_at', { ascending: false });
 
-      // Apply distributor filter
+      // Apply distributor filter (legacy single select)
       if (selectedDistributor !== 'all') {
         query = query.eq('distributor_id', selectedDistributor);
+      }
+
+      // Apply multi-select distributor filter
+      if (selectedDistributorIds.length > 0) {
+        query = query.in('distributor_id', selectedDistributorIds);
       }
 
       // Apply activity type filter
@@ -223,6 +268,13 @@ export default function ActivityReports() {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
+    // Filter distributors by selected countries and IDs
+    const filteredDistributors = distributors.filter((d) => {
+      const matchesCountry = selectedCountries.length === 0 || selectedCountries.includes(d.country);
+      const matchesSelection = selectedDistributorIds.length === 0 || selectedDistributorIds.includes(d.id);
+      return matchesCountry && matchesSelection;
+    });
+
     // Count distributors with at least 1 login in last 7 days
     const activeDistributorIds = new Set(
       activities
@@ -232,8 +284,13 @@ export default function ActivityReports() {
         .map((a) => a.distributor_id)
     );
 
-    const totalDistributors = distributors.length;
-    const activeDistributors = activeDistributorIds.size;
+    // Count only filtered distributors that are active
+    const activeFilteredDistributors = filteredDistributors.filter((d) =>
+      activeDistributorIds.has(d.id)
+    ).length;
+
+    const totalDistributors = filteredDistributors.length;
+    const activeDistributors = activeFilteredDistributors;
     const engagementRate = totalDistributors > 0 ? (activeDistributors / totalDistributors) * 100 : 0;
 
     const downloads = activities.filter((a) => a.activity_type === 'download');
@@ -272,7 +329,7 @@ export default function ActivityReports() {
         .slice(0, 5)
         .map(([name, data]) => ({ name, count: data.count, distributor: data.distributor })),
     };
-  }, [activities, distributors]);
+  }, [activities, distributors, selectedCountries, selectedDistributorIds]);
 
   // Activity over time data
   const activityOverTime = useMemo(() => {
@@ -388,7 +445,7 @@ export default function ActivityReports() {
             <CardTitle>Filters</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               {/* Date Range */}
               <div>
                 <Label htmlFor="dateRange">Date Range</Label>
@@ -405,22 +462,92 @@ export default function ActivityReports() {
                 </Select>
               </div>
 
-              {/* Distributor Company */}
+              {/* Country Filter */}
               <div>
-                <Label htmlFor="distributor">Distributor Company</Label>
-                <Select value={selectedDistributor} onValueChange={setSelectedDistributor}>
-                  <SelectTrigger id="distributor">
-                    <SelectValue />
+                <Label htmlFor="country">Country</Label>
+                <Select
+                  value={selectedCountries.length === 0 ? 'all' : selectedCountries[0]}
+                  onValueChange={(value) => {
+                    if (value === 'all') {
+                      setSelectedCountries([]);
+                      setSelectedDistributorIds([]); // Clear distributor selection when country changes
+                    } else {
+                      setSelectedCountries([value]);
+                      setSelectedDistributorIds([]); // Clear distributor selection when country changes
+                    }
+                  }}
+                >
+                  <SelectTrigger id="country">
+                    <SelectValue placeholder="All Countries" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Distributors</SelectItem>
-                    {distributors.map((dist) => (
-                      <SelectItem key={dist.id} value={dist.id}>
-                        {dist.company_name}
+                    <SelectItem value="all">All Countries</SelectItem>
+                    {countries.map((country) => (
+                      <SelectItem key={country} value={country}>
+                        {country}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Distributor Company (Multi-Select) */}
+              <div>
+                <Label>Distributor Company</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between">
+                      {selectedDistributorIds.length === 0
+                        ? "All Distributors"
+                        : `${selectedDistributorIds.length} selected`}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[300px] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Search distributors..." />
+                      <CommandEmpty>No distributor found.</CommandEmpty>
+                      <CommandGroup className="max-h-64 overflow-auto">
+                        <CommandItem
+                          onSelect={() => setSelectedDistributorIds([])}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedDistributorIds.length === 0 ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          All Distributors
+                        </CommandItem>
+                        {distributors.map((distributor) => (
+                          <CommandItem
+                            key={distributor.id}
+                            onSelect={() => {
+                              setSelectedDistributorIds((prev) =>
+                                prev.includes(distributor.id)
+                                  ? prev.filter((id) => id !== distributor.id)
+                                  : [...prev, distributor.id]
+                              );
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedDistributorIds.includes(distributor.id)
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                            <div className="flex flex-col">
+                              <span>{distributor.company_name}</span>
+                              <span className="text-xs text-slate-500">{distributor.country}</span>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
 
               {/* Activity Type */}
@@ -457,6 +584,52 @@ export default function ActivityReports() {
                 </div>
               </div>
             </div>
+
+            {/* Active Filter Chips */}
+            {(selectedCountries.length > 0 || selectedDistributorIds.length > 0) && (
+              <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
+                <span className="text-sm font-medium text-slate-700">Active Filters:</span>
+                {selectedCountries.map((country) => (
+                  <Badge key={country} variant="secondary" className="gap-1">
+                    📍 {country}
+                    <X
+                      className="h-3 w-3 cursor-pointer hover:text-red-600"
+                      onClick={() => {
+                        setSelectedCountries((prev) => prev.filter((c) => c !== country));
+                        setSelectedDistributorIds([]); // Clear distributor selection when country changes
+                      }}
+                    />
+                  </Badge>
+                ))}
+                {selectedDistributorIds.map((id) => {
+                  const dist = distributors.find((d) => d.id === id);
+                  return dist ? (
+                    <Badge key={id} variant="secondary" className="gap-1">
+                      🏢 {dist.company_name}
+                      <X
+                        className="h-3 w-3 cursor-pointer hover:text-red-600"
+                        onClick={() =>
+                          setSelectedDistributorIds((prev) => prev.filter((did) => did !== id))
+                        }
+                      />
+                    </Badge>
+                  ) : null;
+                })}
+                {(selectedCountries.length > 0 || selectedDistributorIds.length > 0) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedCountries([]);
+                      setSelectedDistributorIds([]);
+                    }}
+                    className="h-6 px-2 text-xs"
+                  >
+                    Clear All
+                  </Button>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
