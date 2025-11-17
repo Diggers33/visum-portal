@@ -535,8 +535,8 @@ export default function ActivityReports() {
     toast.success('Excel report exported successfully');
   };
 
-  // Helper function to convert SVG directly to image data
-  const svgToImageData = async (element: HTMLElement): Promise<string | null> => {
+  // Helper function to convert SVG directly to image data with dimensions
+  const svgToImageData = async (element: HTMLElement): Promise<{ dataUrl: string; width: number; height: number } | null> => {
     try {
       // Find the SVG element
       const svg = element.querySelector('svg');
@@ -566,9 +566,11 @@ export default function ActivityReports() {
       return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => {
+          // Use 3x scale for better quality
+          const scale = 3;
           const canvas = document.createElement('canvas');
-          canvas.width = width * 2; // 2x for better quality
-          canvas.height = height * 2;
+          canvas.width = width * scale;
+          canvas.height = height * scale;
 
           const ctx = canvas.getContext('2d');
           if (!ctx) {
@@ -581,12 +583,18 @@ export default function ActivityReports() {
           ctx.fillStyle = '#ffffff';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-          // Draw image scaled
-          ctx.scale(2, 2);
+          // Draw image scaled with smoothing
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.scale(scale, scale);
           ctx.drawImage(img, 0, 0, width, height);
 
           URL.revokeObjectURL(url);
-          resolve(canvas.toDataURL('image/png'));
+          resolve({
+            dataUrl: canvas.toDataURL('image/png'),
+            width,
+            height
+          });
         };
 
         img.onerror = () => {
@@ -721,11 +729,15 @@ export default function ActivityReports() {
 
     if (activityOverTimeChartRef.current) {
       try {
-        const imgData = await svgToImageData(activityOverTimeChartRef.current);
-        if (imgData) {
-          const imgWidth = 130;
-          const imgHeight = 60; // Approximate height, adjust as needed
-          doc.addImage(imgData, 'PNG', 14, yPos, imgWidth, imgHeight);
+        const result = await svgToImageData(activityOverTimeChartRef.current);
+        if (result) {
+          // Calculate dimensions maintaining aspect ratio
+          const maxWidth = 130;
+          const aspectRatio = result.height / result.width;
+          const imgWidth = maxWidth;
+          const imgHeight = maxWidth * aspectRatio;
+
+          doc.addImage(result.dataUrl, 'PNG', 14, yPos, imgWidth, imgHeight);
           yPos += imgHeight + 10;
           console.log('Activity Over Time chart captured and added successfully');
         } else {
@@ -756,11 +768,15 @@ export default function ActivityReports() {
 
     if (activityTypeChartRef.current) {
       try {
-        const imgData = await svgToImageData(activityTypeChartRef.current);
-        if (imgData) {
-          const imgWidth = 130;
-          const imgHeight = 60; // Approximate height, adjust as needed
-          doc.addImage(imgData, 'PNG', 14, yPos, imgWidth, imgHeight);
+        const result = await svgToImageData(activityTypeChartRef.current);
+        if (result) {
+          // Calculate dimensions maintaining aspect ratio
+          const maxWidth = 130;
+          const aspectRatio = result.height / result.width;
+          const imgWidth = maxWidth;
+          const imgHeight = maxWidth * aspectRatio;
+
+          doc.addImage(result.dataUrl, 'PNG', 14, yPos, imgWidth, imgHeight);
           yPos += imgHeight + 10;
           console.log('Activity Type chart captured and added successfully');
         } else {
@@ -789,11 +805,15 @@ export default function ActivityReports() {
 
     if (distributorChartRef.current) {
       try {
-        const imgData = await svgToImageData(distributorChartRef.current);
-        if (imgData) {
-          const imgWidth = 260;
-          const imgHeight = 60; // Approximate height, adjust as needed
-          doc.addImage(imgData, 'PNG', 14, yPos, imgWidth, imgHeight);
+        const result = await svgToImageData(distributorChartRef.current);
+        if (result) {
+          // Calculate dimensions maintaining aspect ratio (wider for bar chart)
+          const maxWidth = 260;
+          const aspectRatio = result.height / result.width;
+          const imgWidth = maxWidth;
+          const imgHeight = maxWidth * aspectRatio;
+
+          doc.addImage(result.dataUrl, 'PNG', 14, yPos, imgWidth, imgHeight);
           yPos += imgHeight + 10;
           console.log('Distributor chart captured and added successfully');
         } else {
