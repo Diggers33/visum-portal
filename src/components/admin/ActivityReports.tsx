@@ -535,48 +535,69 @@ export default function ActivityReports() {
     toast.success('Excel report exported successfully');
   };
 
-  // Helper function to convert SVG to canvas properly
-  const svgToCanvas = async (element: HTMLElement): Promise<HTMLCanvasElement | null> => {
+  // Helper function to convert SVG directly to image data
+  const svgToImageData = async (element: HTMLElement): Promise<string | null> => {
     try {
-      // Find all SVG elements in the container
-      const svgs = element.getElementsByTagName('svg');
-      if (svgs.length === 0) {
+      // Find the SVG element
+      const svg = element.querySelector('svg');
+      if (!svg) {
         console.warn('No SVG found in element');
         return null;
       }
 
-      // Clone the element to avoid modifying the original
-      const clone = element.cloneNode(true) as HTMLElement;
+      // Get SVG dimensions
+      const bbox = svg.getBoundingClientRect();
+      const width = bbox.width;
+      const height = bbox.height;
 
-      // Convert SVGs to images
-      const svgElements = clone.getElementsByTagName('svg');
-      for (let i = 0; i < svgElements.length; i++) {
-        const svg = svgElements[i];
-        const svgData = new XMLSerializer().serializeToString(svg);
-        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-        const url = URL.createObjectURL(svgBlob);
+      // Clone and prepare SVG
+      const svgClone = svg.cloneNode(true) as SVGElement;
+      svgClone.setAttribute('width', width.toString());
+      svgClone.setAttribute('height', height.toString());
 
+      // Serialize SVG to string
+      const svgString = new XMLSerializer().serializeToString(svgClone);
+
+      // Create blob and object URL
+      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+
+      // Create image and canvas
+      return new Promise((resolve, reject) => {
         const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = width * 2; // 2x for better quality
+          canvas.height = height * 2;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            URL.revokeObjectURL(url);
+            reject(new Error('Could not get canvas context'));
+            return;
+          }
+
+          // Set white background
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          // Draw image scaled
+          ctx.scale(2, 2);
+          ctx.drawImage(img, 0, 0, width, height);
+
+          URL.revokeObjectURL(url);
+          resolve(canvas.toDataURL('image/png'));
+        };
+
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          reject(new Error('Failed to load SVG image'));
+        };
+
         img.src = url;
-        await new Promise((resolve) => {
-          img.onload = resolve;
-        });
-
-        svg.parentNode?.replaceChild(img, svg);
-        URL.revokeObjectURL(url);
-      }
-
-      // Now use html2canvas on the modified clone
-      const canvas = await html2canvas(clone, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        useCORS: true,
-        logging: false,
       });
-
-      return canvas;
     } catch (error) {
-      console.error('Error in svgToCanvas:', error);
+      console.error('Error in svgToImageData:', error);
       return null;
     }
   };
@@ -700,16 +721,15 @@ export default function ActivityReports() {
 
     if (activityOverTimeChartRef.current) {
       try {
-        const canvas = await svgToCanvas(activityOverTimeChartRef.current);
-        if (canvas) {
-          const imgData = canvas.toDataURL('image/png');
+        const imgData = await svgToImageData(activityOverTimeChartRef.current);
+        if (imgData) {
           const imgWidth = 130;
-          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          const imgHeight = 60; // Approximate height, adjust as needed
           doc.addImage(imgData, 'PNG', 14, yPos, imgWidth, imgHeight);
           yPos += imgHeight + 10;
           console.log('Activity Over Time chart captured and added successfully');
         } else {
-          throw new Error('Canvas conversion failed');
+          throw new Error('Image conversion failed');
         }
       } catch (error) {
         console.error('Error capturing Activity Over Time chart:', error);
@@ -736,16 +756,15 @@ export default function ActivityReports() {
 
     if (activityTypeChartRef.current) {
       try {
-        const canvas = await svgToCanvas(activityTypeChartRef.current);
-        if (canvas) {
-          const imgData = canvas.toDataURL('image/png');
+        const imgData = await svgToImageData(activityTypeChartRef.current);
+        if (imgData) {
           const imgWidth = 130;
-          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          const imgHeight = 60; // Approximate height, adjust as needed
           doc.addImage(imgData, 'PNG', 14, yPos, imgWidth, imgHeight);
           yPos += imgHeight + 10;
           console.log('Activity Type chart captured and added successfully');
         } else {
-          throw new Error('Canvas conversion failed');
+          throw new Error('Image conversion failed');
         }
       } catch (error) {
         console.error('Error capturing Activity Type chart:', error);
@@ -770,16 +789,15 @@ export default function ActivityReports() {
 
     if (distributorChartRef.current) {
       try {
-        const canvas = await svgToCanvas(distributorChartRef.current);
-        if (canvas) {
-          const imgData = canvas.toDataURL('image/png');
+        const imgData = await svgToImageData(distributorChartRef.current);
+        if (imgData) {
           const imgWidth = 260;
-          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          const imgHeight = 60; // Approximate height, adjust as needed
           doc.addImage(imgData, 'PNG', 14, yPos, imgWidth, imgHeight);
           yPos += imgHeight + 10;
           console.log('Distributor chart captured and added successfully');
         } else {
-          throw new Error('Canvas conversion failed');
+          throw new Error('Image conversion failed');
         }
       } catch (error) {
         console.error('Error capturing Distributor chart:', error);
