@@ -429,7 +429,64 @@ export default function ActivityReports() {
 
   // Export to Excel
   const exportToExcel = () => {
-    const headers = [
+    const wb = XLSX.utils.book_new();
+
+    // Sheet 1: Summary Statistics
+    const summaryData = [
+      ['Distributor Activity Report'],
+      ['Generated:', new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString()],
+      ['Date Range:', `Last ${dateRange} days`],
+      [''],
+      ['Summary Statistics'],
+      ['Total Activities', stats.totalActivities],
+      ['Active Distributors', `${stats.activeDistributors} / ${stats.totalDistributors}`],
+      ['Engagement Rate', `${stats.engagementRate}%`],
+      [''],
+      ['Top Downloaded Resources'],
+      ['Resource Name', 'Download Count', 'Distributor'],
+      ...stats.mostDownloaded.map(item => [item.name, item.count, item.distributor]),
+      [''],
+      ['Top Viewed Products'],
+      ['Product Name', 'View Count', 'Distributor'],
+      ...stats.mostViewed.map(item => [item.name, item.count, item.distributor]),
+    ];
+
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+    wsSummary['!cols'] = [{ wch: 30 }, { wch: 20 }, { wch: 30 }];
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+    // Sheet 2: Activity Over Time
+    const timeData = [
+      ['Activity Over Time'],
+      ['Date', 'Activity Count'],
+      ...activityOverTime.map(item => [item.date, item.count]),
+    ];
+    const wsTime = XLSX.utils.aoa_to_sheet(timeData);
+    wsTime['!cols'] = [{ wch: 15 }, { wch: 15 }];
+    XLSX.utils.book_append_sheet(wb, wsTime, 'Activity Over Time');
+
+    // Sheet 3: Activity by Type
+    const typeData = [
+      ['Activity Type Breakdown'],
+      ['Activity Type', 'Count'],
+      ...activityTypeBreakdown.map(item => [item.name, item.value]),
+    ];
+    const wsType = XLSX.utils.aoa_to_sheet(typeData);
+    wsType['!cols'] = [{ wch: 20 }, { wch: 15 }];
+    XLSX.utils.book_append_sheet(wb, wsType, 'By Activity Type');
+
+    // Sheet 4: Activity by Distributor
+    const distData = [
+      ['Top Distributors by Activity'],
+      ['Distributor Company', 'Activity Count'],
+      ...activityByDistributor.map(item => [item.name, item.count]),
+    ];
+    const wsDist = XLSX.utils.aoa_to_sheet(distData);
+    wsDist['!cols'] = [{ wch: 30 }, { wch: 15 }];
+    XLSX.utils.book_append_sheet(wb, wsDist, 'By Distributor');
+
+    // Sheet 5: Detailed Activity Log
+    const activityHeaders = [
       'Date',
       'Time',
       'Distributor Company',
@@ -441,7 +498,7 @@ export default function ActivityReports() {
       'Page',
     ];
 
-    const rows = filteredActivities.map((activity) => [
+    const activityRows = filteredActivities.map((activity) => [
       new Date(activity.created_at).toLocaleDateString(),
       new Date(activity.created_at).toLocaleTimeString(),
       activity.distributor_company || '',
@@ -453,23 +510,19 @@ export default function ActivityReports() {
       activity.page_url || '',
     ]);
 
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-
-    // Set column widths
-    ws['!cols'] = [
-      { wch: 12 }, // Date
-      { wch: 10 }, // Time
-      { wch: 25 }, // Distributor Company
-      { wch: 15 }, // Territory
-      { wch: 20 }, // User Name
-      { wch: 30 }, // User Email
-      { wch: 15 }, // Activity Type
-      { wch: 30 }, // Resource
-      { wch: 40 }, // Page
+    const wsActivity = XLSX.utils.aoa_to_sheet([activityHeaders, ...activityRows]);
+    wsActivity['!cols'] = [
+      { wch: 12 },
+      { wch: 10 },
+      { wch: 25 },
+      { wch: 15 },
+      { wch: 20 },
+      { wch: 30 },
+      { wch: 15 },
+      { wch: 30 },
+      { wch: 40 },
     ];
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Activity Report');
+    XLSX.utils.book_append_sheet(wb, wsActivity, 'Activity Details');
 
     XLSX.writeFile(wb, `activity-report-${new Date().toISOString().split('T')[0]}.xlsx`);
 
@@ -479,14 +532,17 @@ export default function ActivityReports() {
   // Export to PDF
   const exportToPDF = () => {
     const doc = new jsPDF('landscape');
+    let yPos = 15;
 
     // Add title
-    doc.setFontSize(16);
-    doc.text('Distributor Activity Report', 14, 15);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Distributor Activity Report', 14, yPos);
+    yPos += 10;
 
-    // Add filters info
-    doc.setFontSize(10);
-    let yPos = 25;
+    // Add metadata
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
     doc.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 14, yPos);
     yPos += 5;
     doc.text(`Date Range: Last ${dateRange} days`, 14, yPos);
@@ -505,11 +561,155 @@ export default function ActivityReports() {
       doc.text(`Distributors: ${selectedNames}`, 14, yPos);
       yPos += 5;
     }
+    yPos += 3;
 
-    doc.text(`Total Activities: ${filteredActivities.length}`, 14, yPos);
-    yPos += 5;
+    // Summary Statistics Section
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Summary Statistics', 14, yPos);
+    yPos += 7;
 
-    // Prepare table data
+    autoTable(doc, {
+      startY: yPos,
+      head: [['Metric', 'Value']],
+      body: [
+        ['Total Activities', stats.totalActivities.toString()],
+        ['Active Distributors', `${stats.activeDistributors} / ${stats.totalDistributors}`],
+        ['Engagement Rate', `${stats.engagementRate}%`],
+      ],
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [0, 168, 181], textColor: 255 },
+      theme: 'striped',
+      margin: { left: 14, right: 14 },
+    });
+
+    yPos = (doc as any).lastAutoTable.finalY + 10;
+
+    // Top Downloads Section
+    if (stats.mostDownloaded.length > 0) {
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Top Downloaded Resources', 14, yPos);
+      yPos += 7;
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [['Resource Name', 'Downloads', 'Distributor']],
+        body: stats.mostDownloaded.map(item => [item.name, item.count.toString(), item.distributor]),
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [0, 168, 181], textColor: 255 },
+        theme: 'striped',
+        margin: { left: 14, right: 14 },
+      });
+
+      yPos = (doc as any).lastAutoTable.finalY + 10;
+    }
+
+    // Check if we need a new page
+    if (yPos > 160) {
+      doc.addPage();
+      yPos = 15;
+    }
+
+    // Top Viewed Products Section
+    if (stats.mostViewed.length > 0) {
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Top Viewed Products', 14, yPos);
+      yPos += 7;
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [['Product Name', 'Views', 'Distributor']],
+        body: stats.mostViewed.map(item => [item.name, item.count.toString(), item.distributor]),
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [0, 168, 181], textColor: 255 },
+        theme: 'striped',
+        margin: { left: 14, right: 14 },
+      });
+
+      yPos = (doc as any).lastAutoTable.finalY + 10;
+    }
+
+    // New page for charts data
+    doc.addPage();
+    yPos = 15;
+
+    // Activity Over Time
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Activity Over Time', 14, yPos);
+    yPos += 7;
+
+    autoTable(doc, {
+      startY: yPos,
+      head: [['Date', 'Activity Count']],
+      body: activityOverTime.map(item => [item.date, item.count.toString()]),
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [0, 168, 181], textColor: 255 },
+      theme: 'striped',
+      margin: { left: 14, right: 100 },
+      columnStyles: {
+        0: { cellWidth: 40 },
+        1: { cellWidth: 30 },
+      },
+    });
+
+    yPos = (doc as any).lastAutoTable.finalY + 10;
+
+    // Activity Type Breakdown
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Activity Type Breakdown', 14, yPos);
+    yPos += 7;
+
+    autoTable(doc, {
+      startY: yPos,
+      head: [['Activity Type', 'Count']],
+      body: activityTypeBreakdown.map(item => [item.name, item.value.toString()]),
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [0, 168, 181], textColor: 255 },
+      theme: 'striped',
+      margin: { left: 14, right: 100 },
+      columnStyles: {
+        0: { cellWidth: 40 },
+        1: { cellWidth: 30 },
+      },
+    });
+
+    yPos = (doc as any).lastAutoTable.finalY + 10;
+
+    // Check if we need a new page
+    if (yPos > 160) {
+      doc.addPage();
+      yPos = 15;
+    }
+
+    // Top Distributors by Activity
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Top Distributors by Activity', 14, yPos);
+    yPos += 7;
+
+    autoTable(doc, {
+      startY: yPos,
+      head: [['Distributor Company', 'Activity Count']],
+      body: activityByDistributor.map(item => [item.name, item.count.toString()]),
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [0, 168, 181], textColor: 255 },
+      theme: 'striped',
+      margin: { left: 14, right: 100 },
+    });
+
+    // New page for detailed activity log
+    doc.addPage();
+    yPos = 15;
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Detailed Activity Log', 14, yPos);
+    yPos += 7;
+
     const tableData = filteredActivities.map((activity) => [
       new Date(activity.created_at).toLocaleDateString(),
       new Date(activity.created_at).toLocaleTimeString(),
@@ -517,15 +717,14 @@ export default function ActivityReports() {
       activity.distributor_territory || '',
       activity.user_name || '',
       activity.activity_type,
-      activity.resource_name || activity.page_url || 'N/A',
+      (activity.resource_name || activity.page_url || 'N/A').substring(0, 30),
     ]);
 
-    // Add table
     autoTable(doc, {
-      startY: yPos + 5,
+      startY: yPos,
       head: [['Date', 'Time', 'Distributor', 'Territory', 'User', 'Activity', 'Resource']],
       body: tableData,
-      styles: { fontSize: 8, cellPadding: 2 },
+      styles: { fontSize: 7, cellPadding: 1.5 },
       headStyles: { fillColor: [0, 168, 181], textColor: 255 },
       alternateRowStyles: { fillColor: [245, 247, 250] },
       margin: { top: 10 },
