@@ -56,7 +56,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { toast } from 'sonner';
-import { cn } from '../../lib/utils';
+import { cn } from '../ui/utils';
 
 interface ActivityRecord {
   id: string;
