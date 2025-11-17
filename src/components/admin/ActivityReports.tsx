@@ -537,6 +537,11 @@ export default function ActivityReports() {
 
   // Export to PDF
   const exportToPDF = async () => {
+    toast.info('Generating PDF with charts... Please wait.');
+
+    // Add a small delay to ensure charts are fully rendered
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     const doc = new jsPDF('landscape');
     let yPos = 15;
 
@@ -652,15 +657,26 @@ export default function ActivityReports() {
         const canvas = await html2canvas(activityOverTimeChartRef.current, {
           backgroundColor: '#ffffff',
           scale: 2,
+          useCORS: true,
+          logging: false,
+          allowTaint: true,
+          foreignObjectRendering: true,
         });
         const imgData = canvas.toDataURL('image/png');
         const imgWidth = 130;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
         doc.addImage(imgData, 'PNG', 14, yPos, imgWidth, imgHeight);
         yPos += imgHeight + 10;
+        console.log('Activity Over Time chart captured successfully');
       } catch (error) {
         console.error('Error capturing Activity Over Time chart:', error);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'italic');
+        doc.text('Chart could not be rendered', 14, yPos);
+        yPos += 10;
       }
+    } else {
+      console.warn('Activity Over Time chart ref not found');
     }
 
     // Check if we need a new page
@@ -680,15 +696,26 @@ export default function ActivityReports() {
         const canvas = await html2canvas(activityTypeChartRef.current, {
           backgroundColor: '#ffffff',
           scale: 2,
+          useCORS: true,
+          logging: false,
+          allowTaint: true,
+          foreignObjectRendering: true,
         });
         const imgData = canvas.toDataURL('image/png');
         const imgWidth = 130;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
         doc.addImage(imgData, 'PNG', 14, yPos, imgWidth, imgHeight);
         yPos += imgHeight + 10;
+        console.log('Activity Type chart captured successfully');
       } catch (error) {
         console.error('Error capturing Activity Type chart:', error);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'italic');
+        doc.text('Chart could not be rendered', 14, yPos);
+        yPos += 10;
       }
+    } else {
+      console.warn('Activity Type chart ref not found');
     }
 
     // New page for distributor chart
@@ -706,15 +733,26 @@ export default function ActivityReports() {
         const canvas = await html2canvas(distributorChartRef.current, {
           backgroundColor: '#ffffff',
           scale: 2,
+          useCORS: true,
+          logging: false,
+          allowTaint: true,
+          foreignObjectRendering: true,
         });
         const imgData = canvas.toDataURL('image/png');
         const imgWidth = 260;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
         doc.addImage(imgData, 'PNG', 14, yPos, imgWidth, imgHeight);
         yPos += imgHeight + 10;
+        console.log('Distributor chart captured successfully');
       } catch (error) {
         console.error('Error capturing Distributor chart:', error);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'italic');
+        doc.text('Chart could not be rendered', 14, yPos);
+        yPos += 10;
       }
+    } else {
+      console.warn('Distributor chart ref not found');
     }
 
     // New page for detailed activity log
