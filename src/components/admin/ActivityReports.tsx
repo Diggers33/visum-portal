@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -68,6 +68,7 @@ import { cn } from '../ui/utils';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import html2canvas from 'html2canvas';
 
 interface ActivityRecord {
   id: string;
@@ -136,6 +137,11 @@ export default function ActivityReports() {
   const [selectedActivityType, setSelectedActivityType] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  // Refs for chart capture
+  const activityOverTimeChartRef = useRef<HTMLDivElement>(null);
+  const activityTypeChartRef = useRef<HTMLDivElement>(null);
+  const distributorChartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadCountries();
@@ -530,7 +536,7 @@ export default function ActivityReports() {
   };
 
   // Export to PDF
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
     const doc = new jsPDF('landscape');
     let yPos = 15;
 
@@ -631,53 +637,31 @@ export default function ActivityReports() {
       yPos = (doc as any).lastAutoTable.finalY + 10;
     }
 
-    // New page for charts data
+    // New page for charts
     doc.addPage();
     yPos = 15;
 
-    // Activity Over Time
+    // Capture and add Activity Over Time chart
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text('Activity Over Time', 14, yPos);
     yPos += 7;
 
-    autoTable(doc, {
-      startY: yPos,
-      head: [['Date', 'Activity Count']],
-      body: activityOverTime.map(item => [item.date, item.count.toString()]),
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [0, 168, 181], textColor: 255 },
-      theme: 'striped',
-      margin: { left: 14, right: 100 },
-      columnStyles: {
-        0: { cellWidth: 40 },
-        1: { cellWidth: 30 },
-      },
-    });
-
-    yPos = (doc as any).lastAutoTable.finalY + 10;
-
-    // Activity Type Breakdown
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Activity Type Breakdown', 14, yPos);
-    yPos += 7;
-
-    autoTable(doc, {
-      startY: yPos,
-      head: [['Activity Type', 'Count']],
-      body: activityTypeBreakdown.map(item => [item.name, item.value.toString()]),
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [0, 168, 181], textColor: 255 },
-      theme: 'striped',
-      margin: { left: 14, right: 100 },
-      columnStyles: {
-        0: { cellWidth: 40 },
-        1: { cellWidth: 30 },
-      },
-    });
-
-    yPos = (doc as any).lastAutoTable.finalY + 10;
+    if (activityOverTimeChartRef.current) {
+      try {
+        const canvas = await html2canvas(activityOverTimeChartRef.current, {
+          backgroundColor: '#ffffff',
+          scale: 2,
+        });
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = 130;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        doc.addImage(imgData, 'PNG', 14, yPos, imgWidth, imgHeight);
+        yPos += imgHeight + 10;
+      } catch (error) {
+        console.error('Error capturing Activity Over Time chart:', error);
+      }
+    }
 
     // Check if we need a new page
     if (yPos > 160) {
@@ -685,21 +669,53 @@ export default function ActivityReports() {
       yPos = 15;
     }
 
-    // Top Distributors by Activity
+    // Capture and add Activity Type Breakdown chart
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Activity Type Breakdown', 14, yPos);
+    yPos += 7;
+
+    if (activityTypeChartRef.current) {
+      try {
+        const canvas = await html2canvas(activityTypeChartRef.current, {
+          backgroundColor: '#ffffff',
+          scale: 2,
+        });
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = 130;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        doc.addImage(imgData, 'PNG', 14, yPos, imgWidth, imgHeight);
+        yPos += imgHeight + 10;
+      } catch (error) {
+        console.error('Error capturing Activity Type chart:', error);
+      }
+    }
+
+    // New page for distributor chart
+    doc.addPage();
+    yPos = 15;
+
+    // Capture and add Top Distributors by Activity chart
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text('Top Distributors by Activity', 14, yPos);
     yPos += 7;
 
-    autoTable(doc, {
-      startY: yPos,
-      head: [['Distributor Company', 'Activity Count']],
-      body: activityByDistributor.map(item => [item.name, item.count.toString()]),
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [0, 168, 181], textColor: 255 },
-      theme: 'striped',
-      margin: { left: 14, right: 100 },
-    });
+    if (distributorChartRef.current) {
+      try {
+        const canvas = await html2canvas(distributorChartRef.current, {
+          backgroundColor: '#ffffff',
+          scale: 2,
+        });
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = 260;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        doc.addImage(imgData, 'PNG', 14, yPos, imgWidth, imgHeight);
+        yPos += imgHeight + 10;
+      } catch (error) {
+        console.error('Error capturing Distributor chart:', error);
+      }
+    }
 
     // New page for detailed activity log
     doc.addPage();
@@ -1076,16 +1092,18 @@ export default function ActivityReports() {
               <CardDescription>Daily activity for the selected period</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={activityOverTime}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="count" stroke="#00a8b5" name="Activities" />
-                </LineChart>
-              </ResponsiveContainer>
+              <div ref={activityOverTimeChartRef}>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={activityOverTime}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="count" stroke="#00a8b5" name="Activities" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
 
@@ -1096,25 +1114,27 @@ export default function ActivityReports() {
               <CardDescription>Distribution of activity types</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={activityTypeBreakdown}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={(entry) => entry.name}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {activityTypeBreakdown.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+              <div ref={activityTypeChartRef}>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={activityTypeBreakdown}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={(entry) => entry.name}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {activityTypeBreakdown.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
 
@@ -1125,16 +1145,18 @@ export default function ActivityReports() {
               <CardDescription>Most active distributor companies in the selected period</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={activityByDistributor}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="count" fill="#00a8b5" name="Activities" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div ref={distributorChartRef}>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={activityByDistributor}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="count" fill="#00a8b5" name="Activities" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
         </div>
