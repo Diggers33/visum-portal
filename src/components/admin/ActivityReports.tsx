@@ -14,6 +14,12 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '../ui/command';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
+import {
   Table,
   TableBody,
   TableCell,
@@ -53,10 +59,15 @@ import {
   Check,
   ChevronsUpDown,
   X,
+  FileSpreadsheet,
+  FileText,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { toast } from 'sonner';
 import { cn } from '../ui/utils';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface ActivityRecord {
   id: string;
@@ -413,7 +424,116 @@ export default function ActivityReports() {
     a.click();
     window.URL.revokeObjectURL(url);
 
-    toast.success('Report exported successfully');
+    toast.success('CSV report exported successfully');
+  };
+
+  // Export to Excel
+  const exportToExcel = () => {
+    const headers = [
+      'Date',
+      'Time',
+      'Distributor Company',
+      'Territory',
+      'User Name',
+      'User Email',
+      'Activity Type',
+      'Resource',
+      'Page',
+    ];
+
+    const rows = filteredActivities.map((activity) => [
+      new Date(activity.created_at).toLocaleDateString(),
+      new Date(activity.created_at).toLocaleTimeString(),
+      activity.distributor_company || '',
+      activity.distributor_territory || '',
+      activity.user_name || '',
+      activity.user_email || '',
+      activity.activity_type,
+      activity.resource_name || '',
+      activity.page_url || '',
+    ]);
+
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 12 }, // Date
+      { wch: 10 }, // Time
+      { wch: 25 }, // Distributor Company
+      { wch: 15 }, // Territory
+      { wch: 20 }, // User Name
+      { wch: 30 }, // User Email
+      { wch: 15 }, // Activity Type
+      { wch: 30 }, // Resource
+      { wch: 40 }, // Page
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Activity Report');
+
+    XLSX.writeFile(wb, `activity-report-${new Date().toISOString().split('T')[0]}.xlsx`);
+
+    toast.success('Excel report exported successfully');
+  };
+
+  // Export to PDF
+  const exportToPDF = () => {
+    const doc = new jsPDF('landscape');
+
+    // Add title
+    doc.setFontSize(16);
+    doc.text('Distributor Activity Report', 14, 15);
+
+    // Add filters info
+    doc.setFontSize(10);
+    let yPos = 25;
+    doc.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 14, yPos);
+    yPos += 5;
+    doc.text(`Date Range: Last ${dateRange} days`, 14, yPos);
+    yPos += 5;
+
+    if (selectedCountries.length > 0) {
+      doc.text(`Countries: ${selectedCountries.join(', ')}`, 14, yPos);
+      yPos += 5;
+    }
+
+    if (selectedDistributorIds.length > 0) {
+      const selectedNames = selectedDistributorIds
+        .map(id => distributors.find(d => d.id === id)?.company_name)
+        .filter(Boolean)
+        .join(', ');
+      doc.text(`Distributors: ${selectedNames}`, 14, yPos);
+      yPos += 5;
+    }
+
+    doc.text(`Total Activities: ${filteredActivities.length}`, 14, yPos);
+    yPos += 5;
+
+    // Prepare table data
+    const tableData = filteredActivities.map((activity) => [
+      new Date(activity.created_at).toLocaleDateString(),
+      new Date(activity.created_at).toLocaleTimeString(),
+      activity.distributor_company || '',
+      activity.distributor_territory || '',
+      activity.user_name || '',
+      activity.activity_type,
+      activity.resource_name || activity.page_url || 'N/A',
+    ]);
+
+    // Add table
+    autoTable(doc, {
+      startY: yPos + 5,
+      head: [['Date', 'Time', 'Distributor', 'Territory', 'User', 'Activity', 'Resource']],
+      body: tableData,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [0, 168, 181], textColor: 255 },
+      alternateRowStyles: { fillColor: [245, 247, 250] },
+      margin: { top: 10 },
+    });
+
+    doc.save(`activity-report-${new Date().toISOString().split('T')[0]}.pdf`);
+
+    toast.success('PDF report exported successfully');
   };
 
   const toggleRowExpansion = (id: string) => {
@@ -829,10 +949,29 @@ export default function ActivityReports() {
                 Showing {filteredActivities.length} of {activities.length} activities
               </CardDescription>
             </div>
-            <Button onClick={exportToCSV} variant="outline">
-              <Download className="mr-2 h-4 w-4" />
-              Export to CSV
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <Download className="mr-2 h-4 w-4" />
+                  Export Report
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={exportToCSV}>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Export as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportToExcel}>
+                  <FileSpreadsheet className="mr-2 h-4 w-4" />
+                  Export as Excel
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportToPDF}>
+                  <FileDown className="mr-2 h-4 w-4" />
+                  Export as PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </CardHeader>
           <CardContent>
             {loading ? (
