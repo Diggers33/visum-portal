@@ -143,12 +143,12 @@ export default function ActivityReports() {
     try {
       const { data, error } = await supabase
         .from('distributors')
-        .select('country')
-        .not('country', 'is', null);
+        .select('territory')
+        .not('territory', 'is', null);
 
       if (error) throw error;
 
-      const uniqueCountries = [...new Set(data?.map(d => d.country).filter(Boolean) as string[])];
+      const uniqueCountries = [...new Set(data?.map(d => d.territory).filter(Boolean) as string[])];
       setCountries(uniqueCountries.sort());
     } catch (error) {
       console.error('Error loading countries:', error);
@@ -166,7 +166,7 @@ export default function ActivityReports() {
 
       // Filter by selected countries
       if (selectedCountries.length > 0) {
-        query = query.in('country', selectedCountries);
+        query = query.in('territory', selectedCountries);
       }
 
       const { data, error } = await query;
@@ -270,7 +270,7 @@ export default function ActivityReports() {
 
     // Filter distributors by selected countries and IDs
     const filteredDistributors = distributors.filter((d) => {
-      const matchesCountry = selectedCountries.length === 0 || selectedCountries.includes(d.country);
+      const matchesCountry = selectedCountries.length === 0 || selectedCountries.includes(d.territory);
       const matchesSelection = selectedDistributorIds.length === 0 || selectedDistributorIds.includes(d.id);
       return matchesCountry && matchesSelection;
     });
@@ -540,7 +540,7 @@ export default function ActivityReports() {
                             />
                             <div className="flex flex-col">
                               <span>{distributor.company_name}</span>
-                              <span className="text-xs text-slate-500">{distributor.country}</span>
+                              <span className="text-xs text-slate-500">{distributor.territory}</span>
                             </div>
                           </CommandItem>
                         ))}
