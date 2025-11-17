@@ -535,12 +535,58 @@ export default function ActivityReports() {
     toast.success('Excel report exported successfully');
   };
 
+  // Helper function to convert SVG to canvas properly
+  const svgToCanvas = async (element: HTMLElement): Promise<HTMLCanvasElement | null> => {
+    try {
+      // Find all SVG elements in the container
+      const svgs = element.getElementsByTagName('svg');
+      if (svgs.length === 0) {
+        console.warn('No SVG found in element');
+        return null;
+      }
+
+      // Clone the element to avoid modifying the original
+      const clone = element.cloneNode(true) as HTMLElement;
+
+      // Convert SVGs to images
+      const svgElements = clone.getElementsByTagName('svg');
+      for (let i = 0; i < svgElements.length; i++) {
+        const svg = svgElements[i];
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+
+        const img = new Image();
+        img.src = url;
+        await new Promise((resolve) => {
+          img.onload = resolve;
+        });
+
+        svg.parentNode?.replaceChild(img, svg);
+        URL.revokeObjectURL(url);
+      }
+
+      // Now use html2canvas on the modified clone
+      const canvas = await html2canvas(clone, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+
+      return canvas;
+    } catch (error) {
+      console.error('Error in svgToCanvas:', error);
+      return null;
+    }
+  };
+
   // Export to PDF
   const exportToPDF = async () => {
     toast.info('Generating PDF with charts... Please wait.');
 
     // Add a small delay to ensure charts are fully rendered
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     const doc = new jsPDF('landscape');
     let yPos = 15;
@@ -654,20 +700,17 @@ export default function ActivityReports() {
 
     if (activityOverTimeChartRef.current) {
       try {
-        const canvas = await html2canvas(activityOverTimeChartRef.current, {
-          backgroundColor: '#ffffff',
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          allowTaint: true,
-          foreignObjectRendering: true,
-        });
-        const imgData = canvas.toDataURL('image/png');
-        const imgWidth = 130;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        doc.addImage(imgData, 'PNG', 14, yPos, imgWidth, imgHeight);
-        yPos += imgHeight + 10;
-        console.log('Activity Over Time chart captured successfully');
+        const canvas = await svgToCanvas(activityOverTimeChartRef.current);
+        if (canvas) {
+          const imgData = canvas.toDataURL('image/png');
+          const imgWidth = 130;
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          doc.addImage(imgData, 'PNG', 14, yPos, imgWidth, imgHeight);
+          yPos += imgHeight + 10;
+          console.log('Activity Over Time chart captured and added successfully');
+        } else {
+          throw new Error('Canvas conversion failed');
+        }
       } catch (error) {
         console.error('Error capturing Activity Over Time chart:', error);
         doc.setFontSize(9);
@@ -693,20 +736,17 @@ export default function ActivityReports() {
 
     if (activityTypeChartRef.current) {
       try {
-        const canvas = await html2canvas(activityTypeChartRef.current, {
-          backgroundColor: '#ffffff',
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          allowTaint: true,
-          foreignObjectRendering: true,
-        });
-        const imgData = canvas.toDataURL('image/png');
-        const imgWidth = 130;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        doc.addImage(imgData, 'PNG', 14, yPos, imgWidth, imgHeight);
-        yPos += imgHeight + 10;
-        console.log('Activity Type chart captured successfully');
+        const canvas = await svgToCanvas(activityTypeChartRef.current);
+        if (canvas) {
+          const imgData = canvas.toDataURL('image/png');
+          const imgWidth = 130;
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          doc.addImage(imgData, 'PNG', 14, yPos, imgWidth, imgHeight);
+          yPos += imgHeight + 10;
+          console.log('Activity Type chart captured and added successfully');
+        } else {
+          throw new Error('Canvas conversion failed');
+        }
       } catch (error) {
         console.error('Error capturing Activity Type chart:', error);
         doc.setFontSize(9);
@@ -730,20 +770,17 @@ export default function ActivityReports() {
 
     if (distributorChartRef.current) {
       try {
-        const canvas = await html2canvas(distributorChartRef.current, {
-          backgroundColor: '#ffffff',
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          allowTaint: true,
-          foreignObjectRendering: true,
-        });
-        const imgData = canvas.toDataURL('image/png');
-        const imgWidth = 260;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        doc.addImage(imgData, 'PNG', 14, yPos, imgWidth, imgHeight);
-        yPos += imgHeight + 10;
-        console.log('Distributor chart captured successfully');
+        const canvas = await svgToCanvas(distributorChartRef.current);
+        if (canvas) {
+          const imgData = canvas.toDataURL('image/png');
+          const imgWidth = 260;
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          doc.addImage(imgData, 'PNG', 14, yPos, imgWidth, imgHeight);
+          yPos += imgHeight + 10;
+          console.log('Distributor chart captured and added successfully');
+        } else {
+          throw new Error('Canvas conversion failed');
+        }
       } catch (error) {
         console.error('Error capturing Distributor chart:', error);
         doc.setFontSize(9);
