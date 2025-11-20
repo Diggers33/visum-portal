@@ -105,6 +105,21 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             <p className="text-slate-600">Sign in to access your distributor account</p>
           </div>
 
+          {/* Authorized Access Notice */}
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start">
+              <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <h4 className="text-sm font-semibold text-blue-900 mb-1">Authorized Access Only</h4>
+                <p className="text-sm text-blue-800">
+                  Google sign-in is available only for admin-invited users. If you don't have access, please contact your administrator.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Error Display */}
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm mb-6">
