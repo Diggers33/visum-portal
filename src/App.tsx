@@ -176,27 +176,50 @@ function App() {
           .single()
           .then(async ({ data: adminUser, error: adminError }) => {
             let userRole = 'distributor';
-            
+
             if (adminUser && !adminError) {
               userRole = 'admin';
               console.log('👤 User role: admin (from admin_users)');
+              setUser({
+                id: session.user.id,
+                email: session.user.email!,
+                role: userRole,
+              });
+              setLoading(false);
             } else {
-              const { data: profile } = await supabase
+              // Check user_profiles - MUST exist and be active
+              const { data: profile, error: profileError } = await supabase
                 .from('user_profiles')
-                .select('role')
+                .select('role, status')
                 .eq('id', session.user.id)
                 .single();
-              
-              userRole = profile?.role || 'distributor';
+
+              if (!profile || profileError) {
+                console.error('🚫 SECURITY: No profile found for user', session.user.email);
+                await supabase.auth.signOut();
+                setUser(null);
+                setLoading(false);
+                return;
+              }
+
+              if (profile.status !== 'active') {
+                console.error('🚫 SECURITY: User profile not active', session.user.email, profile.status);
+                await supabase.auth.signOut();
+                setUser(null);
+                setLoading(false);
+                return;
+              }
+
+              userRole = profile.role || 'distributor';
               console.log('👤 User role:', userRole, '(from user_profiles)');
+
+              setUser({
+                id: session.user.id,
+                email: session.user.email!,
+                role: userRole,
+              });
+              setLoading(false);
             }
-            
-            setUser({
-              id: session.user.id,
-              email: session.user.email!,
-              role: userRole,
-            });
-            setLoading(false);
             
             // Load user's language preference (non-blocking)
             try {
@@ -215,31 +238,41 @@ function App() {
               console.log('ℹ️ i18n not loaded (optional)');
             }
           })
-          .catch((error) => {
-            console.log('⚠️ admin_users check failed, using user_profiles');
-            supabase
+          .catch(async (error) => {
+            console.error('⚠️ admin_users check failed:', error);
+
+            // Fallback to user_profiles check
+            const { data: profile, error: profileError } = await supabase
               .from('user_profiles')
-              .select('role')
+              .select('role, status')
               .eq('id', session.user.id)
-              .single()
-              .then(async ({ data: profile }) => {
-                const userRole = profile?.role || 'distributor';
-                console.log('👤 User role:', userRole);
-                setUser({
-                  id: session.user.id,
-                  email: session.user.email!,
-                  role: userRole,
-                });
-                setLoading(false);
-              })
-              .catch(() => {
-                setUser({
-                  id: session.user.id,
-                  email: session.user.email!,
-                  role: 'distributor',
-                });
-                setLoading(false);
-              });
+              .single();
+
+            if (!profile || profileError) {
+              console.error('🚫 SECURITY: No profile found for user', session.user.email);
+              await supabase.auth.signOut();
+              setUser(null);
+              setLoading(false);
+              return;
+            }
+
+            if (profile.status !== 'active') {
+              console.error('🚫 SECURITY: User profile not active', session.user.email, profile.status);
+              await supabase.auth.signOut();
+              setUser(null);
+              setLoading(false);
+              return;
+            }
+
+            const userRole = profile.role || 'distributor';
+            console.log('👤 User role:', userRole, '(from user_profiles fallback)');
+
+            setUser({
+              id: session.user.id,
+              email: session.user.email!,
+              role: userRole,
+            });
+            setLoading(false);
           });
       } else {
         setLoading(false);
@@ -278,25 +311,45 @@ function App() {
           .single()
           .then(async ({ data: adminUser, error: adminError }) => {
             let userRole = 'distributor';
-            
+
             if (adminUser && !adminError) {
               userRole = 'admin';
+              setUser({
+                id: session.user.id,
+                email: session.user.email!,
+                role: userRole,
+              });
             } else {
-              const { data: profile } = await supabase
+              // SECURITY CHECK: Verify profile exists and is active
+              const { data: profile, error: profileError } = await supabase
                 .from('user_profiles')
-                .select('role')
+                .select('role, status')
                 .eq('id', session.user.id)
                 .single();
-              
-              userRole = profile?.role || 'distributor';
+
+              if (!profile || profileError) {
+                console.error('🚫 SECURITY (auth change): No profile found', session.user.email);
+                await supabase.auth.signOut();
+                setUser(null);
+                return;
+              }
+
+              if (profile.status !== 'active') {
+                console.error('🚫 SECURITY (auth change): Inactive profile', session.user.email);
+                await supabase.auth.signOut();
+                setUser(null);
+                return;
+              }
+
+              userRole = profile.role || 'distributor';
+
+              setUser({
+                id: session.user.id,
+                email: session.user.email!,
+                role: userRole,
+              });
             }
-            
-            setUser({
-              id: session.user.id,
-              email: session.user.email!,
-              role: userRole,
-            });
-            
+
             try {
               const { default: i18n } = await import('./i18n');
               const { data: regionalSettings } = await supabase
@@ -304,7 +357,7 @@ function App() {
                 .select('preferred_language')
                 .eq('user_id', session.user.id)
                 .single();
-              
+
               if (regionalSettings?.preferred_language) {
                 await i18n.changeLanguage(regionalSettings.preferred_language);
               }
@@ -312,27 +365,36 @@ function App() {
               // i18n is optional
             }
           })
-          .catch(() => {
-            supabase
+          .catch(async (error) => {
+            console.error('⚠️ admin_users check failed (auth change):', error);
+
+            // Fallback to user_profiles check
+            const { data: profile, error: profileError } = await supabase
               .from('user_profiles')
-              .select('role')
+              .select('role, status')
               .eq('id', session.user.id)
-              .single()
-              .then(async ({ data: profile }) => {
-                const userRole = profile?.role || 'distributor';
-                setUser({
-                  id: session.user.id,
-                  email: session.user.email!,
-                  role: userRole,
-                });
-              })
-              .catch(() => {
-                setUser({
-                  id: session.user.id,
-                  email: session.user.email!,
-                  role: 'distributor',
-                });
-              });
+              .single();
+
+            if (!profile || profileError) {
+              console.error('🚫 SECURITY (auth change): No profile found', session.user.email);
+              await supabase.auth.signOut();
+              setUser(null);
+              return;
+            }
+
+            if (profile.status !== 'active') {
+              console.error('🚫 SECURITY (auth change): Inactive profile', session.user.email);
+              await supabase.auth.signOut();
+              setUser(null);
+              return;
+            }
+
+            const userRole = profile.role || 'distributor';
+            setUser({
+              id: session.user.id,
+              email: session.user.email!,
+              role: userRole,
+            });
           });
       } else {
         setUser(null);
@@ -353,23 +415,71 @@ function App() {
           .single()
           .then(async ({ data: adminUser, error: adminError }) => {
             let userRole = 'distributor';
-            
+
             if (adminUser && !adminError) {
               userRole = 'admin';
+              setUser({
+                id: session.user.id,
+                email: session.user.email!,
+                role: userRole,
+              });
             } else {
-              const { data: profile } = await supabase
+              // SECURITY CHECK: Verify profile exists and is active
+              const { data: profile, error: profileError } = await supabase
                 .from('user_profiles')
-                .select('role')
+                .select('role, status')
                 .eq('id', session.user.id)
                 .single();
-              
-              userRole = profile?.role || 'distributor';
+
+              if (!profile || profileError) {
+                console.error('🚫 SECURITY (login): No profile found', session.user.email);
+                await supabase.auth.signOut();
+                setUser(null);
+                return;
+              }
+
+              if (profile.status !== 'active') {
+                console.error('🚫 SECURITY (login): Inactive profile', session.user.email);
+                await supabase.auth.signOut();
+                setUser(null);
+                return;
+              }
+
+              userRole = profile.role || 'distributor';
+
+              setUser({
+                id: session.user.id,
+                email: session.user.email!,
+                role: userRole,
+              });
             }
-            
+          })
+          .catch(async () => {
+            // Fallback: Check user_profiles
+            const { data: profile, error: profileError } = await supabase
+              .from('user_profiles')
+              .select('role, status')
+              .eq('id', session.user.id)
+              .single();
+
+            if (!profile || profileError) {
+              console.error('🚫 SECURITY (login): No profile found');
+              await supabase.auth.signOut();
+              setUser(null);
+              return;
+            }
+
+            if (profile.status !== 'active') {
+              console.error('🚫 SECURITY (login): Inactive profile');
+              await supabase.auth.signOut();
+              setUser(null);
+              return;
+            }
+
             setUser({
               id: session.user.id,
               email: session.user.email!,
-              role: userRole,
+              role: profile.role || 'distributor',
             });
           });
       }

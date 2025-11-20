@@ -1,143 +1,198 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<string>('Processing authentication...');
 
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // Check if this is an invitation callback
         const type = searchParams.get('type');
-        
-        // Check if this is an OAuth callback with code
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const code = hashParams.get('code') || searchParams.get('code');
-        
+
+        console.log('🔐 Auth callback started:', { type, hasCode: !!code });
+
+        // Handle invitation callbacks
+        if (type === 'invite') {
+          setStatus('Processing invitation...');
+          console.log('📧 Invitation callback detected');
+
+          if (code) {
+            const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+            if (error) throw error;
+
+            if (data.session) {
+              console.log('✅ Invitation session established');
+              navigate('/set-password');
+              return;
+            }
+          }
+
+          navigate('/set-password');
+          return;
+        }
+
+        // Handle OAuth callbacks (Google, Microsoft, etc.)
         if (code) {
-          // Exchange the code for a session
+          setStatus('Verifying account access...');
+          console.log('🔑 OAuth callback - exchanging code for session');
+
           const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-          
+
           if (error) {
-            console.error('Error exchanging code for session:', error);
-            navigate('/login');
-            return;
+            console.error('❌ Code exchange failed:', error);
+            throw new Error('Failed to authenticate. Please try again.');
           }
 
           if (data.session) {
-            // Check if this is an invitation (user hasn't set password yet)
-            if (type === 'invite') {
-              console.log('Invitation detected, redirecting to set password');
-              navigate('/set-password');
-              return;
-            }
+            const user = data.session.user;
+            console.log('👤 OAuth user authenticated:', {
+              id: user.id,
+              email: user.email,
+              provider: user.app_metadata?.provider
+            });
 
-            await handleUserProfile(data.session.user);
-            
-            // Check user role and redirect accordingly
-            const { data: profile } = await supabase
+            // SECURITY CHECK: Verify user has a profile in user_profiles
+            const { data: profile, error: profileError } = await supabase
               .from('user_profiles')
-              .select('role, status')
-              .eq('id', data.session.user.id)
+              .select('id, role, status, full_name')
+              .eq('id', user.id)
               .single();
 
-            // If user is pending and just invited, send to password setup
-            if (profile?.status === 'pending') {
-              navigate('/set-password');
+            if (profileError || !profile) {
+              console.error('🚫 SECURITY BLOCK: User has no profile', {
+                userId: user.id,
+                email: user.email,
+                provider: user.app_metadata?.provider,
+                error: profileError
+              });
+
+              // Sign out the unauthorized user immediately
+              await supabase.auth.signOut();
+
+              toast.error('Access Denied', {
+                description: 'Your account is not authorized. Please contact your administrator for access.',
+              });
+
+              setError('Access Denied: This account is not authorized to access the platform. Only admin-invited users can sign in.');
+
+              setTimeout(() => {
+                navigate('/login');
+              }, 4000);
               return;
             }
 
-            if (profile?.role === 'admin') {
-              navigate('/admin/dashboard');
-            } else {
-              navigate('/portal');
+            // Check if profile status is active
+            if (profile.status !== 'active') {
+              console.error('🚫 SECURITY BLOCK: User profile not active', {
+                userId: user.id,
+                email: user.email,
+                status: profile.status,
+                role: profile.role
+              });
+
+              // Sign out the user with inactive status
+              await supabase.auth.signOut();
+
+              toast.error('Account Inactive', {
+                description: 'Your account is not active. Please contact your administrator.',
+              });
+
+              setError(`Account ${profile.status}: Your account is not currently active. Please contact your administrator for assistance.`);
+
+              setTimeout(() => {
+                navigate('/login');
+              }, 4000);
+              return;
             }
+
+            // Success! User has active profile
+            console.log('✅ SECURITY CHECK PASSED:', {
+              userId: user.id,
+              email: user.email,
+              role: profile.role,
+              status: profile.status,
+              name: profile.full_name
+            });
+
+            toast.success(`Welcome back, ${profile.full_name || user.email}!`);
+            setStatus('Access granted! Redirecting...');
+
+            // Redirect based on role
+            setTimeout(() => {
+              if (profile.role === 'admin') {
+                navigate('/admin/dashboard');
+              } else {
+                navigate('/portal');
+              }
+            }, 1000);
             return;
           }
         }
 
         // Fallback: Try to get existing session
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error('Error getting session:', sessionError);
-          navigate('/login');
-          return;
+
+        if (sessionError || !sessionData.session) {
+          console.error('❌ No session found:', sessionError);
+          throw new Error('No valid session found. Please log in again.');
         }
 
-        if (sessionData.session) {
-          await handleUserProfile(sessionData.session.user);
-          
-          // Check user role and redirect accordingly
-          const { data: profile } = await supabase
-            .from('user_profiles')
-            .select('role, status')
-            .eq('id', sessionData.session.user.id)
-            .single();
+        console.log('ℹ️ Using existing session');
+        const user = sessionData.session.user;
 
-          // If user is pending, send to password setup
-          if (profile?.status === 'pending') {
-            navigate('/set-password');
-            return;
-          }
-
-          if (profile?.role === 'admin') {
-            navigate('/admin/dashboard');
-          } else {
-            navigate('/portal');
-          }
-        } else {
-          console.error('No session found');
-          navigate('/login');
-        }
-      } catch (error) {
-        console.error('Unexpected error in auth callback:', error);
-        navigate('/login');
-      }
-    };
-
-    const handleUserProfile = async (user: any) => {
-      try {
-        // Check if profile exists
+        // SECURITY CHECK for existing sessions too
         const { data: profile, error: profileError } = await supabase
           .from('user_profiles')
-          .select('*')
+          .select('id, role, status, full_name')
           .eq('id', user.id)
           .single();
 
-        if (profileError && profileError.code === 'PGRST116') {
-          // Profile doesn't exist, create one
-          console.log('Creating new user profile...');
-          
-          const { error: insertError } = await supabase
-            .from('user_profiles')
-            .insert([
-              {
-                id: user.id,
-                email: user.email,
-                full_name: user.user_metadata?.full_name || 
-                          user.user_metadata?.name || 
-                          user.email?.split('@')[0] || 
-                          'User',
-                company_name: user.user_metadata?.company_name || '',
-                role: 'distributor', // Default role
-                territory: '',
-                status: 'active'
-              }
-            ]);
+        if (profileError || !profile) {
+          console.error('🚫 SECURITY BLOCK: No profile for existing session', {
+            userId: user.id,
+            email: user.email
+          });
 
-          if (insertError) {
-            console.error('Error creating profile:', insertError);
-          } else {
-            console.log('Profile created successfully');
-          }
-        } else if (profile) {
-          console.log('User profile found:', profile.role, profile.status);
+          await supabase.auth.signOut();
+          toast.error('Access Denied');
+          setError('Your account is not authorized to access this platform.');
+
+          setTimeout(() => navigate('/login'), 4000);
+          return;
         }
-      } catch (error) {
-        console.error('Error handling user profile:', error);
+
+        if (profile.status !== 'active') {
+          console.error('🚫 SECURITY BLOCK: Inactive profile for existing session');
+          await supabase.auth.signOut();
+          toast.error('Account Inactive');
+          setError('Your account is not currently active.');
+
+          setTimeout(() => navigate('/login'), 4000);
+          return;
+        }
+
+        // Redirect based on role
+        if (profile.role === 'admin') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/portal');
+        }
+
+      } catch (error: any) {
+        console.error('❌ Auth callback error:', error);
+        setError(error.message || 'An error occurred during authentication');
+
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
       }
     };
 
@@ -145,11 +200,36 @@ export default function AuthCallback() {
   }, [navigate, searchParams]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00a8b5] mx-auto mb-4"></div>
-        <p className="text-slate-600 text-lg">Completing sign in...</p>
-        <p className="text-slate-400 text-sm mt-2">Please wait</p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="max-w-md w-full mx-4">
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <div className="text-center">
+            {error ? (
+              <>
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <AlertCircle className="w-8 h-8 text-red-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-slate-900 mb-2">
+                  Access Denied
+                </h2>
+                <p className="text-slate-600 mb-4">{error}</p>
+                <p className="text-sm text-slate-500">
+                  Redirecting to login page...
+                </p>
+              </>
+            ) : (
+              <>
+                <Loader2 className="w-16 h-16 text-[#00a8b5] animate-spin mx-auto mb-4" />
+                <h2 className="text-2xl font-bold text-slate-900 mb-2">
+                  {status}
+                </h2>
+                <p className="text-slate-600">
+                  Please wait while we verify your access...
+                </p>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
