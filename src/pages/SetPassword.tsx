@@ -51,7 +51,7 @@ export default function SetPassword() {
 
       // Get user profile to check role
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) {
         throw new Error('User not found');
       }
@@ -59,16 +59,35 @@ export default function SetPassword() {
       // Get user profile from database
       const { data: profile } = await supabase
         .from('user_profiles')
-        .select('role')
+        .select('role, status')
         .eq('id', user.id)
         .single();
+
+      // CRITICAL: Update status to 'active' for pending users
+      if (profile?.status === 'pending') {
+        console.log('✅ Activating pending user account...');
+        const { error: activateError } = await supabase
+          .from('user_profiles')
+          .update({
+            status: 'active',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', user.id);
+
+        if (activateError) {
+          console.error('⚠️ Failed to activate account:', activateError);
+          // Don't fail the operation - password was set successfully
+        } else {
+          console.log('✅ Account activated successfully');
+        }
+      }
 
       // Success! Redirect based on role
       setTimeout(() => {
         if (profile?.role === 'admin') {
           navigate('/admin/dashboard');
         } else {
-          navigate('/distributor/dashboard');
+          navigate('/portal');
         }
       }, 2000);
     } catch (err: any) {

@@ -284,7 +284,24 @@ export default function AuthCallback() {
               name: distributorUser.full_name
             });
 
-            // Check distributor status
+            // CRITICAL: Allow pending users to set password (invitation flow)
+            if (distributorUser.status === 'pending') {
+              console.log('✅ Pending user - allowing password setup', {
+                userId: user.id,
+                email: user.email,
+                status: distributorUser.status
+              });
+
+              toast.success('Welcome! Please set your password to continue.');
+              setStatus('Setting up your account...');
+
+              setTimeout(() => {
+                navigate('/set-password');
+              }, 1000);
+              return;
+            }
+
+            // Check distributor status for non-pending users
             if (distributorUser.status !== 'active') {
               console.error('🚫 SECURITY BLOCK: Distributor user not active', {
                 userId: user.id,

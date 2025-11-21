@@ -151,6 +151,31 @@ export default function ResetPassword() {
         timestamp: new Date().toISOString()
       });
 
+      // CRITICAL: Update status to 'active' for pending users
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('status, role')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profile?.status === 'pending') {
+        console.log('✅ Activating pending user account...');
+        const { error: activateError } = await supabase
+          .from('user_profiles')
+          .update({
+            status: 'active',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', data.user.id);
+
+        if (activateError) {
+          console.error('⚠️ Failed to activate account:', activateError);
+          // Don't fail the operation - password was set successfully
+        } else {
+          console.log('✅ Account activated successfully');
+        }
+      }
+
       // Wait a moment for the update to propagate
       await new Promise(resolve => setTimeout(resolve, 500));
 
