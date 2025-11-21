@@ -20,10 +20,24 @@ export default function ResetPassword() {
   useEffect(() => {
     // Check if we have a valid recovery token
     const checkToken = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      console.log('🔍 Checking reset token validity...');
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        console.error('❌ Session error:', sessionError);
+        setError('Invalid or expired reset link. Please request a new one.');
+        return;
+      }
+
       if (session) {
+        console.log('✅ Valid reset token found:', {
+          userId: session.user?.id,
+          email: session.user?.email,
+          expiresAt: session.expires_at
+        });
         setValidToken(true);
       } else {
+        console.warn('⚠️ No session found - reset link may be expired');
         setError('Invalid or expired reset link. Please request a new one.');
       }
     };
@@ -68,21 +82,33 @@ export default function ResetPassword() {
     }
 
     try {
-      // Update password
-      const { error: updateError } = await supabase.auth.updateUser({
+      console.log('🔐 Attempting to update password...');
+
+      // Update password - this updates auth.users table
+      const { data, error: updateError } = await supabase.auth.updateUser({
         password: password,
       });
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('❌ Password update failed:', updateError);
+        throw updateError;
+      }
+
+      console.log('✅ Password updated successfully:', {
+        userId: data.user?.id,
+        email: data.user?.email,
+        updatedAt: new Date().toISOString()
+      });
 
       setSuccess(true);
 
       // Redirect to login after 2 seconds
       setTimeout(() => {
+        console.log('🔄 Redirecting to login page...');
         navigate('/login');
       }, 2000);
     } catch (err) {
-      console.error('Password update error:', err);
+      console.error('❌ Password update error:', err);
       setError(err instanceof Error ? err.message : 'Failed to update password');
     } finally {
       setLoading(false);
