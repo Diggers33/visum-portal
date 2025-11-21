@@ -100,6 +100,18 @@ export default function ResetPassword() {
         updatedAt: new Date().toISOString()
       });
 
+      // CRITICAL FIX: Sign out user immediately after password update
+      // This ensures the recovery session is cleared and they must use new password
+      console.log('🚪 Signing out user to apply new password...');
+      const { error: signOutError } = await supabase.auth.signOut();
+
+      if (signOutError) {
+        console.warn('⚠️ Sign out warning:', signOutError);
+        // Continue anyway - password was updated
+      } else {
+        console.log('✅ User signed out successfully - new password is active');
+      }
+
       setSuccess(true);
 
       // Redirect to login after 2 seconds
