@@ -456,40 +456,6 @@ export default function EditProduct() {
             </CardContent>
           </Card>
 
-          {/* Pricing */}
-          <Card className="border-slate-200">
-            <CardContent className="p-6 space-y-4">
-              <h2 className="text-[18px] font-semibold text-slate-900">Pricing</h2>
-
-              <div className="space-y-2">
-                <Label htmlFor="price">Starting Price</Label>
-                <div className="flex gap-2">
-                  <Select
-                    value={productData.currency}
-                    onValueChange={(value) => handleFieldChange('currency', value)}
-                  >
-                    <SelectTrigger className="w-24">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="EUR">€</SelectItem>
-                      <SelectItem value="USD">$</SelectItem>
-                      <SelectItem value="GBP">£</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    id="price"
-                    type="number"
-                    value={productData.price}
-                    onChange={(e) => handleFieldChange('price', e.target.value)}
-                    placeholder="24500"
-                    className="flex-1"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Specifications */}
           <Card className="border-slate-200">
             <CardContent className="p-6 space-y-4">

@@ -58,15 +58,16 @@ interface Product {
 }
 
 const TYPES = [
+  'Application Note',
+  'Banner',
   'Brochure',
-  'Datasheet',
   'Case Study',
-  'White Paper',
+  'Datasheet',
+  'Images & Renders',
+  'Logo',
   'Presentation',
   'Video',
-  'Banner',
-  'Logo',
-  'Social Media',
+  'White Paper',
 ];
 
 const LANGUAGES = [
@@ -91,6 +92,16 @@ const FORMATS = [
   'SVG',
   'MP4',
   'ZIP',
+];
+
+const PRODUCTS = [
+  'Visum Palm™',
+  'Visum Palm GxP™',
+  'Visum Master Software™',
+  'Visum NIR In-Line™',
+  'Visum Raman In-Line™',
+  'Visum HSI™',
+  'Others',
 ];
 
 export default function MarketingManagement() {
@@ -159,7 +170,8 @@ export default function MarketingManagement() {
   };
 
   const handleAddAsset = async () => {
-    if (!formData.name || !formData.type || !formData.product || !formData.language || !formData.format) {
+    // Product is now optional - removed from validation
+    if (!formData.name || !formData.type || !formData.language || !formData.format) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -201,7 +213,8 @@ export default function MarketingManagement() {
   const handleEditAsset = async () => {
     if (!selectedAsset) return;
 
-    if (!formData.name || !formData.type || !formData.product || !formData.language || !formData.format) {
+    // Product is now optional - removed from validation
+    if (!formData.name || !formData.type || !formData.language || !formData.format) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -623,18 +636,18 @@ export default function MarketingManagement() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="product">Product *</Label>
+                  <Label htmlFor="product">Product (Optional)</Label>
                   <Select
                     value={formData.product}
                     onValueChange={(value) => setFormData({ ...formData, product: value })}
                   >
                     <SelectTrigger id="product">
-                      <SelectValue placeholder="Select product" />
+                      <SelectValue placeholder="Select product (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      {products.map((product) => (
-                        <SelectItem key={product.id} value={product.name}>
-                          {product.name}
+                      {PRODUCTS.map((product) => (
+                        <SelectItem key={product} value={product}>
+                          {product}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -797,19 +810,19 @@ export default function MarketingManagement() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="edit-product">Product *</Label>
+                  <Label htmlFor="edit-product">Product (Optional)</Label>
                   <Select
                     key={`product-${formData.product}`}
                     value={formData.product}
                     onValueChange={(value) => setFormData({ ...formData, product: value })}
                   >
                     <SelectTrigger id="edit-product">
-                      <SelectValue placeholder="Select product" />
+                      <SelectValue placeholder="Select product (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      {products.map((product) => (
-                        <SelectItem key={product.id} value={product.name}>
-                          {product.name}
+                      {PRODUCTS.map((product) => (
+                        <SelectItem key={product} value={product}>
+                          {product}
                         </SelectItem>
                       ))}
                     </SelectContent>

@@ -132,12 +132,12 @@ export async function createDistributor(
     let userCreated = false;
 
     if (input.send_invite) {
-      console.log('📧 Creating auth user and sending invitation...');
-      
-      // Create auth user using admin client
+      console.log('📧 Creating auth user and sending password reset invitation...');
+
+      // Create auth user using admin client with email confirmed
       const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
         email: input.email.toLowerCase(),
-        email_confirm: false, // They'll confirm via invitation
+        email_confirm: true, // Email confirmed so password reset works
         user_metadata: {
           full_name: input.full_name,
           company_name: input.company_name,
@@ -148,39 +148,42 @@ export async function createDistributor(
 
       if (authError) {
         console.error('❌ Auth user creation error:', authError);
-        return { data: null, error: authError };
+        return { data: null, error: { message: `Failed to create auth user: ${authError.message}` } };
+      }
+
+      if (!authUser?.user) {
+        console.error('❌ No user returned from auth creation');
+        return { data: null, error: { message: 'Auth user creation failed - no user returned' } };
       }
 
       authUserId = authUser.user.id;
       userCreated = true;
 
-      // Send invitation email
-      const { error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+      console.log('✅ Auth user created:', authUserId);
+
+      // Send password reset email (invitation-style)
+      const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(
         input.email.toLowerCase(),
         {
-          redirectTo: `${window.location.origin}/auth/callback?type=invite`,
-          data: {
-            role: 'distributor',
-            full_name: input.full_name,
-            company_name: input.company_name,
-            territory: input.territory,
-          }
+          redirectTo: `${window.location.origin}/reset-password`,
         }
       );
 
-      if (inviteError) {
-        console.error('❌ Invitation email error:', inviteError);
-        // Clean up created user if invitation fails
+      if (resetError) {
+        console.error('❌ Password reset email error:', resetError);
+        // Clean up created user if email fails
         if (userCreated) {
+          console.log('🧹 Cleaning up auth user due to email failure');
           await supabaseAdmin.auth.admin.deleteUser(authUserId);
         }
-        return { data: null, error: inviteError };
+        return { data: null, error: { message: `Failed to send invitation email: ${resetError.message}` } };
       }
 
-      console.log('✅ Invitation email sent successfully');
+      console.log('✅ Password reset invitation email sent successfully');
     } else {
       // Create a placeholder profile without auth user
       authUserId = crypto.randomUUID();
+      console.log('ℹ️ Creating profile without auth user:', authUserId);
     }
 
     // Create user profile
@@ -315,29 +318,23 @@ export async function resendInvitation(id: string): Promise<{ success: boolean; 
       return { success: false, error: { message: 'Distributor not found' } };
     }
 
-    // Send invitation email
-    const { error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+    // Send password reset email (as invitation)
+    const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(
       distributor.email,
       {
-        redirectTo: `${window.location.origin}/auth/callback?type=invite`,
-        data: {
-          role: 'distributor',
-          full_name: distributor.full_name,
-          company_name: distributor.company_name,
-          territory: distributor.territory,
-        }
+        redirectTo: `${window.location.origin}/reset-password`,
       }
     );
 
-    if (inviteError) {
-      console.error('Resend invitation error:', inviteError);
-      return { success: false, error: inviteError };
+    if (resetError) {
+      console.error('❌ Resend invitation error:', resetError);
+      return { success: false, error: { message: `Failed to resend invitation: ${resetError.message}` } };
     }
 
     // Update invited_at timestamp
     await supabase
       .from('user_profiles')
-      .update({ 
+      .update({
         invited_at: new Date().toISOString(),
         status: 'invited'
       })
@@ -346,7 +343,7 @@ export async function resendInvitation(id: string): Promise<{ success: boolean; 
     console.log('✅ Invitation resent successfully');
     return { success: true, error: null };
   } catch (error) {
-    console.error('Resend invitation exception:', error);
+    console.error('💥 Resend invitation exception:', error);
     return { success: false, error };
   }
 }

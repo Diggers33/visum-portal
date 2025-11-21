@@ -54,10 +54,27 @@ import { Alert, AlertDescription } from '../ui/alert';
 import { useToast } from '@/hooks/use-toast';
 
 const availableTerritories = [
-  'Germany', 'France', 'Spain', 'Italy', 'United Kingdom',
-  'Austria', 'Switzerland', 'Poland', 'Netherlands', 'Belgium',
-  'Portugal', 'Sweden', 'Norway', 'Denmark', 'Finland',
-  'Czech Republic', 'Hungary', 'Romania', 'Greece', 'Ireland',
+  // Europe
+  'Austria', 'Belgium', 'Bulgaria', 'Croatia', 'Cyprus',
+  'Czech Republic', 'Denmark', 'Estonia', 'Finland', 'France',
+  'Germany', 'Greece', 'Hungary', 'Iceland', 'Ireland',
+  'Italy', 'Latvia', 'Lithuania', 'Luxembourg', 'Malta',
+  'Netherlands', 'Norway', 'Poland', 'Portugal', 'Romania',
+  'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland',
+  'United Kingdom',
+
+  // Americas
+  'Argentina', 'Brazil', 'Canada', 'Chile', 'Colombia',
+  'Mexico', 'Peru', 'United States', 'Venezuela',
+
+  // Asia Pacific
+  'Australia', 'China', 'Hong Kong', 'India', 'Indonesia',
+  'Japan', 'Malaysia', 'New Zealand', 'Philippines', 'Singapore',
+  'South Korea', 'Taiwan', 'Thailand', 'Vietnam',
+
+  // Middle East & Africa
+  'Egypt', 'Israel', 'Saudi Arabia', 'South Africa',
+  'Turkey', 'United Arab Emirates',
 ];
 
 interface Distributor {

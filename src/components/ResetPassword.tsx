@@ -21,24 +21,68 @@ export default function ResetPassword() {
     // Check if we have a valid recovery token
     const checkToken = async () => {
       console.log('🔍 Checking reset token validity...');
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-      if (sessionError) {
-        console.error('❌ Session error:', sessionError);
-        setError('Invalid or expired reset link. Please request a new one.');
-        return;
-      }
+      try {
+        // Check for token_hash in URL (from email link)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const token_hash = hashParams.get('token_hash');
+        const type = hashParams.get('type');
 
-      if (session) {
-        console.log('✅ Valid reset token found:', {
-          userId: session.user?.id,
-          email: session.user?.email,
-          expiresAt: session.expires_at
+        console.log('🔗 URL params:', {
+          hasTokenHash: !!token_hash,
+          type,
+          fullHash: window.location.hash
         });
-        setValidToken(true);
-      } else {
-        console.warn('⚠️ No session found - reset link may be expired');
-        setError('Invalid or expired reset link. Please request a new one.');
+
+        // If we have a token_hash for recovery, verify it explicitly
+        if (token_hash && type === 'recovery') {
+          console.log('🔑 Verifying recovery token...');
+
+          const { data, error: verifyError } = await supabase.auth.verifyOtp({
+            token_hash,
+            type: 'recovery',
+          });
+
+          if (verifyError) {
+            console.error('❌ Token verification failed:', verifyError);
+            setError('Invalid or expired reset link. Please request a new one.');
+            return;
+          }
+
+          if (data.session) {
+            console.log('✅ Recovery token verified successfully:', {
+              userId: data.session.user?.id,
+              email: data.session.user?.email,
+              expiresAt: data.session.expires_at
+            });
+            setValidToken(true);
+            return;
+          }
+        }
+
+        // Fallback: Check for existing session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionError) {
+          console.error('❌ Session error:', sessionError);
+          setError('Invalid or expired reset link. Please request a new one.');
+          return;
+        }
+
+        if (session) {
+          console.log('✅ Valid session found:', {
+            userId: session.user?.id,
+            email: session.user?.email,
+            expiresAt: session.expires_at
+          });
+          setValidToken(true);
+        } else {
+          console.warn('⚠️ No session or token found - reset link may be expired');
+          setError('Invalid or expired reset link. Please request a new one.');
+        }
+      } catch (err) {
+        console.error('❌ Token check error:', err);
+        setError('An error occurred. Please request a new reset link.');
       }
     };
 
@@ -83,6 +127,7 @@ export default function ResetPassword() {
 
     try {
       console.log('🔐 Attempting to update password...');
+      console.log('📋 Current session before update:', await supabase.auth.getSession());
 
       // Update password - this updates auth.users table
       const { data, error: updateError } = await supabase.auth.updateUser({
@@ -94,23 +139,35 @@ export default function ResetPassword() {
         throw updateError;
       }
 
+      if (!data.user) {
+        console.error('❌ No user data returned from password update');
+        throw new Error('Password update did not return user data');
+      }
+
       console.log('✅ Password updated successfully:', {
-        userId: data.user?.id,
-        email: data.user?.email,
-        updatedAt: new Date().toISOString()
+        userId: data.user.id,
+        email: data.user.email,
+        updatedAt: data.user.updated_at,
+        timestamp: new Date().toISOString()
       });
 
-      // CRITICAL FIX: Sign out user immediately after password update
-      // This ensures the recovery session is cleared and they must use new password
-      console.log('🚪 Signing out user to apply new password...');
+      // Wait a moment for the update to propagate
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // CRITICAL: Sign out user to clear recovery session
+      console.log('🚪 Signing out user to commit password change...');
       const { error: signOutError } = await supabase.auth.signOut();
 
       if (signOutError) {
-        console.warn('⚠️ Sign out warning:', signOutError);
-        // Continue anyway - password was updated
+        console.error('❌ Sign out failed:', signOutError);
+        // Still continue - password was updated
       } else {
-        console.log('✅ User signed out successfully - new password is active');
+        console.log('✅ User signed out successfully');
       }
+
+      // Verify we're signed out
+      const { data: { session: checkSession } } = await supabase.auth.getSession();
+      console.log('🔍 Session after sign out:', checkSession ? 'Still exists (ERROR)' : 'Cleared (GOOD)');
 
       setSuccess(true);
 
