@@ -177,15 +177,7 @@ export default function AdminSettings() {
         role: user.role,
         status: user.status,
         createdAt: new Date(user.created_at).toISOString().split('T')[0],
-        lastLogin: user.last_login 
-          ? new Date(user.last_login).toLocaleString('en-GB', { 
-              year: 'numeric', 
-              month: '2-digit', 
-              day: '2-digit', 
-              hour: '2-digit', 
-              minute: '2-digit' 
-            })
-          : 'Never',
+        lastLogin: 'N/A',
         avatarUrl: user.avatar_url || undefined,
       }));
 

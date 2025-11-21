@@ -946,7 +946,6 @@ export default function DistributorsManagement() {
                     <TableHead>Territory</TableHead>
                     <TableHead>Contact Email</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Last Login</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -954,7 +953,7 @@ export default function DistributorsManagement() {
                 <TableBody>
                   {filteredDistributors.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-12 text-gray-500">
+                      <TableCell colSpan={6} className="text-center py-12 text-gray-500">
                         No distributors found
                       </TableCell>
                     </TableRow>
@@ -1017,11 +1016,6 @@ export default function DistributorsManagement() {
                               {distributor.status.charAt(0).toUpperCase() +
                                 distributor.status.slice(1)}
                             </Badge>
-                          </TableCell>
-                          <TableCell className="text-[13px] text-[#6b7280]">
-                            {distributor.users && distributor.users[0]?.last_login
-                              ? formatDate(distributor.users[0].last_login)
-                              : 'Never'}
                           </TableCell>
                           <TableCell className="text-[13px] text-[#6b7280]">
                             {formatCreatedDate(distributor.created_at)}
@@ -1110,9 +1104,6 @@ export default function DistributorsManagement() {
                                   {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
                                 </Badge>
                               </TableCell>
-                              <TableCell className="text-[12px] text-[#6b7280]">
-                                {formatDate(user.last_login)}
-                              </TableCell>
                               <TableCell className="text-[12px] text-slate-400">—</TableCell>
                               <TableCell className="text-right">
                                 <Button
@@ -1175,7 +1166,6 @@ export default function DistributorsManagement() {
                       <TableHead>Email</TableHead>
                       <TableHead>Role</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Last Login</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1202,9 +1192,6 @@ export default function DistributorsManagement() {
                             >
                               {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
                             </Badge>
-                          </TableCell>
-                          <TableCell className="text-[13px] text-[#6b7280] whitespace-nowrap">
-                            {formatDate(user.last_login)}
                           </TableCell>
                           <TableCell className="text-right">
                             <DropdownMenu>
@@ -1245,7 +1232,7 @@ export default function DistributorsManagement() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+                        <TableCell colSpan={5} className="text-center py-8 text-slate-500">
                           No users found
                         </TableCell>
                       </TableRow>

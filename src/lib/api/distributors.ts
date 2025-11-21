@@ -12,7 +12,6 @@ export interface DistributorUser {
   company_role: 'admin' | 'manager' | 'user';
   status: 'active' | 'pending' | 'inactive';
   invited_at?: string;
-  last_login?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -84,7 +83,6 @@ export async function fetchDistributors(filters?: {
           company_role,
           status,
           invited_at,
-          last_login,
           created_at,
           updated_at
         )
@@ -144,7 +142,6 @@ export async function fetchDistributorById(
           company_role,
           status,
           invited_at,
-          last_login,
           created_at,
           updated_at
         )
@@ -205,8 +202,7 @@ export async function updateDistributor(
           full_name,
           company_role,
           status,
-          invited_at,
-          last_login
+          invited_at
         )
       `)
       .single();
