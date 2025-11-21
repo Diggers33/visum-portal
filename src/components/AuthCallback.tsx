@@ -59,19 +59,38 @@ export default function AuthCallback() {
               provider: user.app_metadata?.provider
             });
 
-            // SECURITY CHECK: Verify user has a profile in user_profiles
-            const { data: profile, error: profileError } = await supabase
+            // SECURITY CHECK: Check BOTH admin_users and user_profiles tables
+            console.log('🔍 Checking both admin_users and user_profiles tables...');
+
+            // Check admin_users table first
+            const { data: adminUser, error: adminError } = await supabase
+              .from('admin_users')
+              .select('id, role, status')
+              .eq('id', user.id)
+              .single();
+
+            // Check user_profiles table (distributors)
+            const { data: distributorUser, error: distributorError } = await supabase
               .from('user_profiles')
               .select('id, role, status, full_name')
               .eq('id', user.id)
               .single();
 
-            if (profileError || !profile) {
-              console.error('🚫 SECURITY BLOCK: User has no profile', {
+            console.log('📋 Table lookup results:', {
+              adminUser: adminUser ? `Found (role: ${adminUser.role}, status: ${adminUser.status})` : 'Not found',
+              distributorUser: distributorUser ? `Found (role: ${distributorUser.role}, status: ${distributorUser.status})` : 'Not found',
+              adminError: adminError?.code,
+              distributorError: distributorError?.code
+            });
+
+            // CRITICAL: User must be in ONE of the tables
+            if (!adminUser && !distributorUser) {
+              console.error('🚫 SECURITY BLOCK: User not found in admin_users OR user_profiles', {
                 userId: user.id,
                 email: user.email,
                 provider: user.app_metadata?.provider,
-                error: profileError
+                adminError: adminError?.code,
+                distributorError: distributorError?.code
               });
 
               // Sign out the unauthorized user immediately
@@ -81,7 +100,7 @@ export default function AuthCallback() {
                 description: 'Your account is not authorized. Please contact your administrator for access.',
               });
 
-              setError('Access Denied: This account is not authorized to access the platform. Only admin-invited users can sign in.');
+              setError('Access Denied: This account is not authorized to access the platform. Only invited users can sign in.');
 
               setTimeout(() => {
                 navigate('/login');
@@ -89,23 +108,22 @@ export default function AuthCallback() {
               return;
             }
 
-            // Check if profile status is active
-            if (profile.status !== 'active') {
-              console.error('🚫 SECURITY BLOCK: User profile not active', {
+            // ERROR: User should not be in BOTH tables
+            if (adminUser && distributorUser) {
+              console.error('⚠️ ERROR: User exists in BOTH admin_users AND user_profiles', {
                 userId: user.id,
                 email: user.email,
-                status: profile.status,
-                role: profile.role
+                adminRole: adminUser.role,
+                distributorRole: distributorUser.role
               });
 
-              // Sign out the user with inactive status
               await supabase.auth.signOut();
 
-              toast.error('Account Inactive', {
-                description: 'Your account is not active. Please contact your administrator.',
+              toast.error('Configuration Error', {
+                description: 'Your account has conflicting configurations. Please contact support.',
               });
 
-              setError(`Account ${profile.status}: Your account is not currently active. Please contact your administrator for assistance.`);
+              setError('Account configuration error: Please contact your administrator to resolve this issue.');
 
               setTimeout(() => {
                 navigate('/login');
@@ -113,27 +131,105 @@ export default function AuthCallback() {
               return;
             }
 
-            // Success! User has active profile
-            console.log('✅ SECURITY CHECK PASSED:', {
-              userId: user.id,
-              email: user.email,
-              role: profile.role,
-              status: profile.status,
-              name: profile.full_name
-            });
+            // ADMIN USER FLOW
+            if (adminUser) {
+              console.log('👔 Admin user detected:', {
+                userId: user.id,
+                email: user.email,
+                role: adminUser.role,
+                status: adminUser.status
+              });
 
-            toast.success(`Welcome back, ${profile.full_name || user.email}!`);
-            setStatus('Access granted! Redirecting...');
+              // Check admin status
+              if (adminUser.status !== 'active') {
+                console.error('🚫 SECURITY BLOCK: Admin user not active', {
+                  userId: user.id,
+                  email: user.email,
+                  status: adminUser.status,
+                  role: adminUser.role
+                });
 
-            // Redirect based on role
-            setTimeout(() => {
-              if (profile.role === 'admin') {
-                navigate('/admin/dashboard');
-              } else {
-                navigate('/portal');
+                await supabase.auth.signOut();
+
+                toast.error('Account Inactive', {
+                  description: 'Your admin account is not active. Please contact your administrator.',
+                });
+
+                setError(`Account ${adminUser.status}: Your admin account is not currently active. Please contact support.`);
+
+                setTimeout(() => {
+                  navigate('/login');
+                }, 4000);
+                return;
               }
-            }, 1000);
-            return;
+
+              // Success - Admin user with active status
+              console.log('✅ SECURITY CHECK PASSED: Admin user', {
+                userId: user.id,
+                email: user.email,
+                role: adminUser.role,
+                status: adminUser.status
+              });
+
+              toast.success(`Welcome back, Admin!`);
+              setStatus('Access granted! Redirecting to admin dashboard...');
+
+              setTimeout(() => {
+                navigate('/admin/dashboard');
+              }, 1000);
+              return;
+            }
+
+            // DISTRIBUTOR USER FLOW
+            if (distributorUser) {
+              console.log('🏢 Distributor user detected:', {
+                userId: user.id,
+                email: user.email,
+                role: distributorUser.role,
+                status: distributorUser.status,
+                name: distributorUser.full_name
+              });
+
+              // Check distributor status
+              if (distributorUser.status !== 'active') {
+                console.error('🚫 SECURITY BLOCK: Distributor user not active', {
+                  userId: user.id,
+                  email: user.email,
+                  status: distributorUser.status,
+                  role: distributorUser.role
+                });
+
+                await supabase.auth.signOut();
+
+                toast.error('Account Inactive', {
+                  description: 'Your distributor account is not active. Please contact your administrator.',
+                });
+
+                setError(`Account ${distributorUser.status}: Your distributor account is not currently active. Please contact support.`);
+
+                setTimeout(() => {
+                  navigate('/login');
+                }, 4000);
+                return;
+              }
+
+              // Success - Distributor user with active status
+              console.log('✅ SECURITY CHECK PASSED: Distributor user', {
+                userId: user.id,
+                email: user.email,
+                role: distributorUser.role,
+                status: distributorUser.status,
+                name: distributorUser.full_name
+              });
+
+              toast.success(`Welcome back, ${distributorUser.full_name || user.email}!`);
+              setStatus('Access granted! Redirecting to portal...');
+
+              setTimeout(() => {
+                navigate('/portal');
+              }, 1000);
+              return;
+            }
           }
         }
 
@@ -148,15 +244,24 @@ export default function AuthCallback() {
         console.log('ℹ️ Using existing session');
         const user = sessionData.session.user;
 
-        // SECURITY CHECK for existing sessions too
-        const { data: profile, error: profileError } = await supabase
+        // SECURITY CHECK: Check BOTH tables for existing sessions too
+        console.log('🔍 Checking both tables for existing session...');
+
+        const { data: adminUser } = await supabase
+          .from('admin_users')
+          .select('id, role, status')
+          .eq('id', user.id)
+          .single();
+
+        const { data: distributorUser } = await supabase
           .from('user_profiles')
           .select('id, role, status, full_name')
           .eq('id', user.id)
           .single();
 
-        if (profileError || !profile) {
-          console.error('🚫 SECURITY BLOCK: No profile for existing session', {
+        // Must be in one of the tables
+        if (!adminUser && !distributorUser) {
+          console.error('🚫 SECURITY BLOCK: User not in either table (existing session)', {
             userId: user.id,
             email: user.email
           });
@@ -169,21 +274,36 @@ export default function AuthCallback() {
           return;
         }
 
-        if (profile.status !== 'active') {
-          console.error('🚫 SECURITY BLOCK: Inactive profile for existing session');
-          await supabase.auth.signOut();
-          toast.error('Account Inactive');
-          setError('Your account is not currently active.');
+        // Admin user flow
+        if (adminUser) {
+          if (adminUser.status !== 'active') {
+            console.error('🚫 SECURITY BLOCK: Inactive admin (existing session)');
+            await supabase.auth.signOut();
+            toast.error('Account Inactive');
+            setError('Your admin account is not currently active.');
+            setTimeout(() => navigate('/login'), 4000);
+            return;
+          }
 
-          setTimeout(() => navigate('/login'), 4000);
+          console.log('✅ Admin user session valid');
+          navigate('/admin/dashboard');
           return;
         }
 
-        // Redirect based on role
-        if (profile.role === 'admin') {
-          navigate('/admin/dashboard');
-        } else {
+        // Distributor user flow
+        if (distributorUser) {
+          if (distributorUser.status !== 'active') {
+            console.error('🚫 SECURITY BLOCK: Inactive distributor (existing session)');
+            await supabase.auth.signOut();
+            toast.error('Account Inactive');
+            setError('Your distributor account is not currently active.');
+            setTimeout(() => navigate('/login'), 4000);
+            return;
+          }
+
+          console.log('✅ Distributor user session valid');
           navigate('/portal');
+          return;
         }
 
       } catch (error: any) {
