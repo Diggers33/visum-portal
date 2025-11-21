@@ -202,6 +202,29 @@ function App() {
                 return;
               }
 
+              // CRITICAL: Allow pending users ONLY on password setup routes
+              if (profile.status === 'pending') {
+                const currentPath = window.location.pathname;
+                const isPasswordSetupRoute = [
+                  '/set-password',
+                  '/reset-password',
+                  '/auth/callback'
+                ].includes(currentPath);
+
+                if (isPasswordSetupRoute) {
+                  console.log('✅ Allowing pending user on password setup route (initial load):', currentPath);
+                  setLoading(false);
+                  return;
+                } else {
+                  console.log('⚠️ Pending user on protected route - signing out (initial load)');
+                  await supabase.auth.signOut();
+                  setUser(null);
+                  setLoading(false);
+                  return;
+                }
+              }
+
+              // Block inactive users everywhere
               if (profile.status !== 'active') {
                 console.error('🚫 SECURITY: User profile not active', session.user.email, profile.status);
                 await supabase.auth.signOut();
@@ -256,6 +279,29 @@ function App() {
               return;
             }
 
+            // CRITICAL: Allow pending users ONLY on password setup routes
+            if (profile.status === 'pending') {
+              const currentPath = window.location.pathname;
+              const isPasswordSetupRoute = [
+                '/set-password',
+                '/reset-password',
+                '/auth/callback'
+              ].includes(currentPath);
+
+              if (isPasswordSetupRoute) {
+                console.log('✅ Allowing pending user on password setup route (fallback load):', currentPath);
+                setLoading(false);
+                return;
+              } else {
+                console.log('⚠️ Pending user on protected route - signing out (fallback load)');
+                await supabase.auth.signOut();
+                setUser(null);
+                setLoading(false);
+                return;
+              }
+            }
+
+            // Block inactive users everywhere
             if (profile.status !== 'active') {
               console.error('🚫 SECURITY: User profile not active', session.user.email, profile.status);
               await supabase.auth.signOut();
@@ -334,6 +380,28 @@ function App() {
                 return;
               }
 
+              // CRITICAL: Allow pending users ONLY on password setup routes
+              if (profile.status === 'pending') {
+                const currentPath = window.location.pathname;
+                const isPasswordSetupRoute = [
+                  '/set-password',
+                  '/reset-password',
+                  '/auth/callback'
+                ].includes(currentPath);
+
+                if (isPasswordSetupRoute) {
+                  console.log('✅ Allowing pending user on password setup route:', currentPath);
+                  // Allow them to continue - don't set user state yet
+                  return;
+                } else {
+                  console.log('⚠️ Pending user on protected route - signing out');
+                  await supabase.auth.signOut();
+                  setUser(null);
+                  return;
+                }
+              }
+
+              // Block inactive users everywhere
               if (profile.status !== 'active') {
                 console.error('🚫 SECURITY (auth change): Inactive profile', session.user.email);
                 await supabase.auth.signOut();
@@ -382,6 +450,28 @@ function App() {
               return;
             }
 
+            // CRITICAL: Allow pending users ONLY on password setup routes
+            if (profile.status === 'pending') {
+              const currentPath = window.location.pathname;
+              const isPasswordSetupRoute = [
+                '/set-password',
+                '/reset-password',
+                '/auth/callback'
+              ].includes(currentPath);
+
+              if (isPasswordSetupRoute) {
+                console.log('✅ Allowing pending user on password setup route (fallback):', currentPath);
+                // Allow them to continue - don't set user state yet
+                return;
+              } else {
+                console.log('⚠️ Pending user on protected route - signing out (fallback)');
+                await supabase.auth.signOut();
+                setUser(null);
+                return;
+              }
+            }
+
+            // Block inactive users everywhere
             if (profile.status !== 'active') {
               console.error('🚫 SECURITY (auth change): Inactive profile', session.user.email);
               await supabase.auth.signOut();
@@ -438,6 +528,27 @@ function App() {
                 return;
               }
 
+              // CRITICAL: Allow pending users ONLY on password setup routes
+              if (profile.status === 'pending') {
+                const currentPath = window.location.pathname;
+                const isPasswordSetupRoute = [
+                  '/set-password',
+                  '/reset-password',
+                  '/auth/callback'
+                ].includes(currentPath);
+
+                if (isPasswordSetupRoute) {
+                  console.log('✅ Allowing pending user on password setup route (login):', currentPath);
+                  return;
+                } else {
+                  console.log('⚠️ Pending user on protected route - signing out (login)');
+                  await supabase.auth.signOut();
+                  setUser(null);
+                  return;
+                }
+              }
+
+              // Block inactive users everywhere
               if (profile.status !== 'active') {
                 console.error('🚫 SECURITY (login): Inactive profile', session.user.email);
                 await supabase.auth.signOut();
@@ -469,6 +580,27 @@ function App() {
               return;
             }
 
+            // CRITICAL: Allow pending users ONLY on password setup routes
+            if (profile.status === 'pending') {
+              const currentPath = window.location.pathname;
+              const isPasswordSetupRoute = [
+                '/set-password',
+                '/reset-password',
+                '/auth/callback'
+              ].includes(currentPath);
+
+              if (isPasswordSetupRoute) {
+                console.log('✅ Allowing pending user on password setup route (login fallback):', currentPath);
+                return;
+              } else {
+                console.log('⚠️ Pending user on protected route - signing out (login fallback)');
+                await supabase.auth.signOut();
+                setUser(null);
+                return;
+              }
+            }
+
+            // Block inactive users everywhere
             if (profile.status !== 'active') {
               console.error('🚫 SECURITY (login): Inactive profile');
               await supabase.auth.signOut();
