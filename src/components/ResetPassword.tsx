@@ -32,15 +32,23 @@ export default function ResetPassword() {
 
         const token_hash = queryParams.get('token_hash') || hashParams.get('token_hash');
         const type = queryParams.get('type') || hashParams.get('type');
-        const access_token = queryParams.get('access_token') || hashParams.get('access_token');
+
+        // CRITICAL: Accept BOTH 'access_token' (standard) and 'token' (from our redirect)
+        // This handles both direct Supabase links and our custom redirect URLs
+        const access_token = queryParams.get('access_token') || hashParams.get('access_token') ||
+                            queryParams.get('token') || hashParams.get('token');
         const refresh_token = queryParams.get('refresh_token') || hashParams.get('refresh_token');
 
         console.log('🔗 URL params:', {
           hasTokenHash: !!token_hash,
-          hasAccessToken: !!access_token,
+          hasAccessToken: !!queryParams.get('access_token') || !!hashParams.get('access_token'),
+          hasToken: !!queryParams.get('token') || !!hashParams.get('token'),
           hasRefreshToken: !!refresh_token,
           type,
-          source: queryParams.has('token_hash') ? 'query' : hashParams.has('token_hash') ? 'hash' : 'none',
+          tokenSource: queryParams.get('access_token') ? 'query:access_token' :
+                      hashParams.get('access_token') ? 'hash:access_token' :
+                      queryParams.get('token') ? 'query:token' :
+                      hashParams.get('token') ? 'hash:token' : 'none',
           fullSearch: window.location.search,
           fullHash: window.location.hash
         });

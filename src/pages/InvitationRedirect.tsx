@@ -18,9 +18,10 @@ export default function InvitationRedirect() {
       const distributorId = params.get('distributor_id');
 
       // CRITICAL: Extract tokens from HASH fragments (Supabase OAuth tokens)
-      // Supabase appends tokens as: #access_token=xyz&refresh_token=abc&type=recovery
+      // Supabase may append tokens as: #access_token=xyz OR #token=xyz
+      // Different Supabase configurations use different parameter names
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
+      const accessToken = hashParams.get('access_token') || hashParams.get('token');
       const refreshToken = hashParams.get('refresh_token');
       const type = hashParams.get('type');
       const tokenHash = hashParams.get('token_hash');
@@ -30,10 +31,12 @@ export default function InvitationRedirect() {
         hashParams: window.location.hash,
         target,
         distributorId,
-        hasAccessToken: !!accessToken,
+        hasAccessToken: !!hashParams.get('access_token'),
+        hasToken: !!hashParams.get('token'),
         hasRefreshToken: !!refreshToken,
         hasTokenHash: !!tokenHash,
-        type
+        type,
+        tokenUsed: hashParams.get('access_token') ? 'access_token' : hashParams.get('token') ? 'token' : 'none'
       });
 
       // Log the invitation click for analytics
@@ -68,9 +71,11 @@ export default function InvitationRedirect() {
       const finalUrl = new URL(target, window.location.origin);
 
       // Add OAuth tokens (from hash)
+      // Set BOTH 'access_token' and 'token' for maximum compatibility
       if (accessToken) {
         finalUrl.searchParams.set('access_token', accessToken);
-        console.log('✅ Added access_token to final URL');
+        finalUrl.searchParams.set('token', accessToken);  // Also set as 'token' for compatibility
+        console.log('✅ Added access_token and token to final URL');
       }
       if (refreshToken) {
         finalUrl.searchParams.set('refresh_token', refreshToken);
