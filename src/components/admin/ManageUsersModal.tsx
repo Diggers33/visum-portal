@@ -40,6 +40,7 @@ import {
   DistributorUser,
   getDistributorUsers,
   updateDistributorUser,
+  deleteDistributorUser,
   resendInvitation,
 } from '@/lib/api/distributors';
 import InviteUserForm from './InviteUserForm';
@@ -180,19 +181,11 @@ export default function ManageUsersModal({
 
     setDeletingUser(true);
     try {
-      // Call Edge Function to delete user
-      const response = await fetch('/functions/v1/delete-distributor-user', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId: deleteUserId }),
-      });
+      // Delete user from user_profiles table
+      const { success, error } = await deleteDistributorUser(deleteUserId);
 
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || 'Failed to delete user');
+      if (!success || error) {
+        throw new Error(error?.message || 'Failed to delete user');
       }
 
       toast({

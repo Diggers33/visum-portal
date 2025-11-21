@@ -339,6 +339,36 @@ export async function updateDistributorUser(
   }
 }
 
+/**
+ * Delete a distributor user
+ *
+ * Deletes from user_profiles table
+ * Note: This does NOT delete the auth.users record - that requires admin privileges
+ */
+export async function deleteDistributorUser(
+  userId: string
+): Promise<{ success: boolean; error: any }> {
+  try {
+    console.log('🗑️ Deleting distributor user:', userId);
+
+    const { error } = await supabase
+      .from('user_profiles')
+      .delete()
+      .eq('id', userId);
+
+    if (error) {
+      console.error('❌ Delete user error:', error);
+      return { success: false, error };
+    }
+
+    console.log('✅ User deleted successfully');
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('💥 Delete user exception:', error);
+    return { success: false, error };
+  }
+}
+
 // ============================================================================
 // INVITATION FUNCTIONS - Uses regular Supabase client (safe for frontend)
 // ============================================================================
