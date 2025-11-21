@@ -12,26 +12,27 @@ export default function InvitationRedirect() {
 
   const handleRedirect = async () => {
     try {
-      // Get the encoded Supabase invitation URL from query params
+      // Get parameters from query string
       const params = new URLSearchParams(window.location.search);
-      const encodedUrl = params.get('url');
+      const target = params.get('target'); // e.g., '/reset-password'
       const distributorId = params.get('distributor_id');
+      const tokenHash = params.get('token_hash');
+      const type = params.get('type');
 
-      if (!encodedUrl) {
-        console.error('❌ Missing invitation URL parameter');
+      if (!target) {
+        console.error('❌ Missing target URL parameter');
         setError('Invalid invitation link. Please contact your administrator.');
         setTimeout(() => navigate('/login'), 3000);
         return;
       }
 
-      // Decode the real Supabase URL
-      const invitationUrl = decodeURIComponent(encodedUrl);
-
+      // Log the invitation click for analytics
       console.log('📧 Invitation click tracked:', {
         distributorId: distributorId || 'unknown',
         timestamp: new Date().toISOString(),
         userAgent: navigator.userAgent,
-        targetUrl: invitationUrl
+        target,
+        hasToken: !!tokenHash
       });
 
       // Optional: Log to backend for analytics
@@ -43,7 +44,8 @@ export default function InvitationRedirect() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             distributorId,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            target
           })
         });
       } catch (err) {
@@ -52,12 +54,21 @@ export default function InvitationRedirect() {
       }
       */
 
+      // Build the final URL with Supabase token
+      const finalUrl = new URL(target, window.location.origin);
+      if (tokenHash) {
+        finalUrl.searchParams.set('token_hash', tokenHash);
+      }
+      if (type) {
+        finalUrl.searchParams.set('type', type);
+      }
+
       // Small delay to ensure logging completes
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Redirect to real Supabase invitation URL (preserves hash token)
-      console.log('🔄 Redirecting to Supabase URL...');
-      window.location.href = invitationUrl;
+      // Redirect to final destination (password reset page with token)
+      console.log('🔄 Redirecting to:', finalUrl.pathname);
+      window.location.href = finalUrl.toString();
 
     } catch (error) {
       console.error('❌ Redirect error:', error);
