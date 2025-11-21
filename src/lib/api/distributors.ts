@@ -309,6 +309,7 @@ export async function deleteDistributor(
 
 /**
  * Resend invitation email to a distributor
+ * NOTE: This function is safe to call from the frontend - it uses the regular Supabase client
  */
 export async function resendInvitation(id: string): Promise<{ success: boolean; error: any }> {
   try {
@@ -318,8 +319,8 @@ export async function resendInvitation(id: string): Promise<{ success: boolean; 
       return { success: false, error: { message: 'Distributor not found' } };
     }
 
-    // Send password reset email (as invitation)
-    const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(
+    // Send password reset email (as invitation) - uses regular client, no admin needed
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(
       distributor.email,
       {
         redirectTo: `${window.location.origin}/reset-password`,
