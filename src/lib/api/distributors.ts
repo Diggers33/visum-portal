@@ -1,5 +1,4 @@
 import { supabase } from '../supabase';
-import { supabaseAdmin } from '../supabase-admin';
 
 export interface Distributor {
   id: string;
@@ -106,8 +105,12 @@ export async function fetchDistributorById(
 }
 
 /**
- * Create a new distributor with real auth user and invitation
+ * NOTE: The following admin functions (createDistributor, deleteDistributor) are
+ * only used in Edge Functions, not in the frontend. They are commented out here
+ * to prevent bundling supabaseAdmin in the client code.
  */
+
+/*
 export async function createDistributor(
   input: CreateDistributorInput
 ): Promise<{ data: Distributor | null; error: any }> {
@@ -221,6 +224,7 @@ export async function createDistributor(
     return { data: null, error };
   }
 }
+*/
 
 /**
  * Update an existing distributor
@@ -264,16 +268,18 @@ export async function updateDistributor(
   }
 }
 
-/**
+/*
  * Delete a distributor (removes both profile and auth user)
+ * NOTE: Commented out - only used in Edge Functions
  */
+/*
 export async function deleteDistributor(
   id: string
 ): Promise<{ success: boolean; error: any }> {
   try {
     // Get distributor info first
     const { data: distributor } = await fetchDistributorById(id);
-    
+
     if (!distributor) {
       return { success: false, error: { message: 'Distributor not found' } };
     }
@@ -306,6 +312,7 @@ export async function deleteDistributor(
     return { success: false, error };
   }
 }
+*/
 
 /**
  * Resend invitation email to a distributor
