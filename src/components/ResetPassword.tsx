@@ -15,6 +15,7 @@ export default function ResetPassword() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [validToken, setValidToken] = useState(false);
+  const [checkingToken, setCheckingToken] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -44,13 +45,27 @@ export default function ResetPassword() {
           fullHash: window.location.hash
         });
 
-        // If we have OAuth tokens (access_token + refresh_token), set the session directly
-        if (access_token && refresh_token) {
-          console.log('🔑 Setting session with OAuth tokens...');
+        // CRITICAL: Handle password reset tokens (from InvitationRedirect)
+        // Supabase sends access_token + refresh_token via resetPasswordForEmail()
+        if (access_token) {
+          console.log('🔑 Found access_token - attempting to set session...');
+
+          // Verify this is a recovery/password reset type
+          if (type && type !== 'recovery') {
+            console.warn('⚠️ Invalid type for password reset:', type);
+            setError('Invalid reset link type. Please request a new password reset link.');
+            return;
+          }
+
+          console.log('🔑 Setting session with OAuth tokens...', {
+            hasAccessToken: !!access_token,
+            hasRefreshToken: !!refresh_token,
+            type
+          });
 
           const { data, error: sessionError } = await supabase.auth.setSession({
             access_token,
-            refresh_token
+            refresh_token: refresh_token || ''
           });
 
           if (sessionError) {
@@ -59,15 +74,19 @@ export default function ResetPassword() {
             return;
           }
 
-          if (data.session) {
-            console.log('✅ Session established successfully:', {
-              userId: data.session.user?.id,
-              email: data.session.user?.email,
-              expiresAt: data.session.expires_at
-            });
-            setValidToken(true);
+          if (!data.session) {
+            console.error('❌ setSession succeeded but no session returned');
+            setError('Failed to establish session. Please request a new reset link.');
             return;
           }
+
+          console.log('✅ Session established successfully:', {
+            userId: data.session.user?.id,
+            email: data.session.user?.email,
+            expiresAt: data.session.expires_at
+          });
+          setValidToken(true);
+          return;
         }
 
         // If we have a token_hash for recovery, verify it explicitly
@@ -119,6 +138,8 @@ export default function ResetPassword() {
       } catch (err) {
         console.error('❌ Token check error:', err);
         setError('An error occurred. Please request a new reset link.');
+      } finally {
+        setCheckingToken(false);
       }
     };
 
@@ -244,6 +265,25 @@ export default function ResetPassword() {
       setLoading(false);
     }
   };
+
+  // Show loading state while checking token
+  if (checkingToken) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
+          <div className="text-center">
+            <div className="mx-auto w-16 h-16 bg-[#00a8b5]/10 rounded-full flex items-center justify-center mb-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00a8b5]"></div>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">Verifying Link</h2>
+            <p className="text-slate-600">
+              Please wait while we verify your password reset link...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!validToken && error) {
     return (
