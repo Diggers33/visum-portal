@@ -11,6 +11,7 @@ import AuthCallback from './components/AuthCallback';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
 import SetPassword from './components/SetPassword';
+import InvitationRedirect from './pages/InvitationRedirect';
 
 // Admin Pages
 import AdminLayout from './components/admin/AdminLayout';
@@ -712,6 +713,7 @@ function App() {
         />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/set-password" element={<SetPassword />} />
+        <Route path="/invitation-redirect" element={<InvitationRedirect />} />
 
         {/* Admin Routes - UNCHANGED */}
         <Route 
