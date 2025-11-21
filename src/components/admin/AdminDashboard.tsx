@@ -2,30 +2,48 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { 
-  Users, 
-  FolderOpen, 
-  Download, 
+import {
+  Users,
+  FolderOpen,
+  Download,
   Megaphone,
   Plus,
   Upload,
-  Eye,
   ArrowRight,
-  Loader2
+  Loader2,
+  Building2,
+  Globe
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { toast } from 'sonner';
+import { getDistributorStats, getDistributorUserStats } from '@/lib/api/distributors';
 
 interface DashboardStats {
-  totalDistributors: number;
-  newDistributorsThisMonth: number;
+  // Company stats
+  totalCompanies: number;
+  activeCompanies: number;
+  pendingCompanies: number;
+  inactiveCompanies: number;
+  exclusiveCompanies: number;
+  nonExclusiveCompanies: number;
+
+  // User stats
+  totalUsers: number;
+  activeUsers: number;
+  pendingUsers: number;
+  inactiveUsers: number;
+
+  // Content stats
   totalDocs: number;
   totalMarketing: number;
   totalTraining: number;
   recentDownloads: number;
   totalAnnouncements: number;
   draftAnnouncements: number;
+
+  // Territory breakdown
+  topTerritories: { territory: string; count: number }[];
 }
 
 interface Activity {
@@ -38,14 +56,23 @@ interface Activity {
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats>({
-    totalDistributors: 0,
-    newDistributorsThisMonth: 0,
+    totalCompanies: 0,
+    activeCompanies: 0,
+    pendingCompanies: 0,
+    inactiveCompanies: 0,
+    exclusiveCompanies: 0,
+    nonExclusiveCompanies: 0,
+    totalUsers: 0,
+    activeUsers: 0,
+    pendingUsers: 0,
+    inactiveUsers: 0,
     totalDocs: 0,
     totalMarketing: 0,
     totalTraining: 0,
     recentDownloads: 0,
     totalAnnouncements: 0,
     draftAnnouncements: 0,
+    topTerritories: [],
   });
   const [recentActivity, setRecentActivity] = useState<Activity[]>([]);
 
@@ -57,35 +84,16 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
 
-      // Fetch distributors from user_profiles table
-      let totalDistributors = 0;
-      let newDistributorsThisMonth = 0;
-      
-      try {
-        const { data: distributorProfiles } = await supabase
-          .from('user_profiles')
-          .select('id, created_at, status')
-          .eq('role', 'distributor');
+      // Fetch company statistics
+      const { data: companyStats, error: companyError } = await getDistributorStats();
+      if (companyError) {
+        console.error('Error fetching company stats:', companyError);
+      }
 
-        if (distributorProfiles) {
-          // Count active distributors (case-insensitive)
-          const active = distributorProfiles.filter(d => {
-            const status = d.status?.toLowerCase();
-            return status === 'active' || !status; // Count as active if no status
-          });
-          totalDistributors = active.length || 0;
-          
-          const thirtyDaysAgo = new Date();
-          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-          newDistributorsThisMonth = distributorProfiles.filter(d => {
-            const status = d.status?.toLowerCase();
-            const isActive = status === 'active' || !status;
-            const isRecent = new Date(d.created_at) > thirtyDaysAgo;
-            return isActive && isRecent;
-          }).length || 0;
-        }
-      } catch (error) {
-        console.log('Error fetching distributors:', error);
+      // Fetch user statistics
+      const { data: userStats, error: userError } = await getDistributorUserStats();
+      if (userError) {
+        console.error('Error fetching user stats:', userError);
       }
 
       // Fetch documentation count
@@ -126,18 +134,42 @@ export default function AdminDashboard() {
 
       const totalMarketingDownloads = marketingAssets?.reduce((sum, asset) => sum + (asset.downloads || 0), 0) || 0;
 
+      // Convert territory object to sorted array
+      const topTerritories = companyStats?.by_territory
+        ? Object.entries(companyStats.by_territory)
+            .map(([territory, count]) => ({ territory, count: count as number }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5)
+        : [];
+
       setStats({
-        totalDistributors,
-        newDistributorsThisMonth,
+        // Company stats
+        totalCompanies: companyStats?.total || 0,
+        activeCompanies: companyStats?.active || 0,
+        pendingCompanies: companyStats?.pending || 0,
+        inactiveCompanies: companyStats?.inactive || 0,
+        exclusiveCompanies: companyStats?.by_account_type?.exclusive || 0,
+        nonExclusiveCompanies: companyStats?.by_account_type?.['non-exclusive'] || 0,
+
+        // User stats
+        totalUsers: userStats?.total_users || 0,
+        activeUsers: userStats?.active_users || 0,
+        pendingUsers: userStats?.pending_users || 0,
+        inactiveUsers: userStats?.inactive_users || 0,
+
+        // Content stats
         totalDocs: docsCount || 0,
         totalMarketing: marketingCount || 0,
         totalTraining: trainingCount || 0,
         recentDownloads: totalMarketingDownloads,
         totalAnnouncements,
         draftAnnouncements,
+
+        // Territory breakdown
+        topTerritories,
       });
 
-      // Load recent activity - this is simplified, you can enhance with actual activity tracking
+      // Load recent activity
       await loadRecentActivity();
 
     } catch (error) {
@@ -305,10 +337,26 @@ export default function AdminDashboard() {
 
   const statCards = [
     {
-      title: 'Active Distributors',
-      value: stats.totalDistributors.toString(),
-      subtitle: `${stats.newDistributorsThisMonth} new this month`,
+      title: 'Distributor Companies',
+      value: stats.totalCompanies.toString(),
+      subtitle: `${stats.activeCompanies} active | ${stats.pendingCompanies} pending | ${stats.inactiveCompanies} inactive`,
+      icon: Building2,
+      color: 'text-[#00a8b5]',
+      bgColor: 'bg-[#00a8b5]/10',
+    },
+    {
+      title: 'Total Users',
+      value: stats.totalUsers.toString(),
+      subtitle: `${stats.activeUsers} active | ${stats.pendingUsers} pending`,
       icon: Users,
+      color: 'text-[#00a8b5]',
+      bgColor: 'bg-[#00a8b5]/10',
+    },
+    {
+      title: 'Account Types',
+      value: `${stats.exclusiveCompanies} / ${stats.nonExclusiveCompanies}`,
+      subtitle: 'Exclusive / Non-exclusive',
+      icon: Globe,
       color: 'text-[#00a8b5]',
       bgColor: 'bg-[#00a8b5]/10',
     },
@@ -355,7 +403,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {statCards.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -376,6 +424,30 @@ export default function AdminDashboard() {
           );
         })}
       </div>
+
+      {/* Territory Breakdown */}
+      {stats.topTerritories.length > 0 && (
+        <Card className="border-slate-200">
+          <CardHeader>
+            <CardTitle className="text-[18px]">Top Territories</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {stats.topTerritories.map((territory) => (
+                <div key={territory.territory} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-[#00a8b5]" />
+                    <span className="text-[14px] text-slate-900">{territory.territory}</span>
+                  </div>
+                  <Badge variant="secondary" className="bg-[#00a8b5]/10 text-[#00a8b5]">
+                    {territory.count} {territory.count === 1 ? 'company' : 'companies'}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Quick Actions */}
       <Card className="border-slate-200">

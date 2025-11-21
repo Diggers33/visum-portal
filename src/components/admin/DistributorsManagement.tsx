@@ -1,24 +1,24 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
-import { 
-  Plus, 
+import {
+  Plus,
   Search,
+  Download,
   Edit,
+  Eye,
   Trash2,
   MoreVertical,
   Mail,
   X,
   ChevronDown,
+  Users,
+  ChevronRight,
   Loader2,
-  AlertCircle,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react';
 import {
   Table,
@@ -35,7 +35,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '../ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
 import { Label } from '../ui/label';
 import { Checkbox } from '../ui/checkbox';
 import {
@@ -50,8 +58,25 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '../ui/popover';
-import { Alert, AlertDescription } from '../ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Distributor,
+  DistributorUser,
+  fetchDistributors,
+  updateDistributor,
+  getDistributorUsers,
+  resendInvitation,
+} from '@/lib/api/distributors';
 
 const availableTerritories = [
   // Europe
@@ -62,80 +87,65 @@ const availableTerritories = [
   'Netherlands', 'Norway', 'Poland', 'Portugal', 'Romania',
   'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland',
   'United Kingdom',
-
   // Americas
   'Argentina', 'Brazil', 'Canada', 'Chile', 'Colombia',
   'Mexico', 'Peru', 'United States', 'Venezuela',
-
   // Asia Pacific
   'Australia', 'China', 'Hong Kong', 'India', 'Indonesia',
   'Japan', 'Malaysia', 'New Zealand', 'Philippines', 'Singapore',
   'South Korea', 'Taiwan', 'Thailand', 'Vietnam',
-
   // Middle East & Africa
   'Egypt', 'Israel', 'Saudi Arabia', 'South Africa',
   'Turkey', 'United Arab Emirates',
 ];
 
-interface Distributor {
-  id: string;
-  company_name: string;
-  full_name: string;
-  email: string;
-  territory?: string;
-  status: 'active' | 'pending' | 'inactive';
-  created_at: string;
-  last_login?: string;
-  account_type?: string;
-}
-
-// Error types matching backend
-enum ErrorType {
-  VALIDATION = 'VALIDATION_ERROR',
-  USER_EXISTS = 'USER_ALREADY_EXISTS',
-  AUTH_FAILED = 'AUTH_CREATION_FAILED',
-  DATABASE_FAILED = 'DATABASE_INSERT_FAILED',
-  CONSTRAINT_VIOLATION = 'CONSTRAINT_VIOLATION',
-  UNKNOWN = 'UNKNOWN_ERROR'
-}
-
-interface ApiError {
-  success: false;
-  errorType: ErrorType;
-  error: string;
-  details?: string;
-}
-
-const EDGE_FUNCTIONS_URL = import.meta.env.VITE_SUPABASE_URL.replace('.supabase.co', '.functions.supabase.co');
-
 export default function DistributorsManagement() {
   const location = useLocation();
+  const { toast } = useToast();
+
+  // State
+  const [distributors, setDistributors] = useState<Distributor[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>([]);
   const [isTerritoryPopoverOpen, setIsTerritoryPopoverOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<string[]>(['active', 'pending', 'inactive']);
-  const [accountTypeFilter, setAccountTypeFilter] = useState<string[]>(['exclusive', 'non-exclusive']);
-  const [operationError, setOperationError] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const { toast } = useToast();
+
+  // Expanded rows state for tree view
+  const [expandedDistributors, setExpandedDistributors] = useState<Set<string>>(new Set());
+
+  // Manage Users Dialog
+  const [isManageUsersDialogOpen, setIsManageUsersDialogOpen] = useState(false);
+  const [selectedDistributorId, setSelectedDistributorId] = useState<string | null>(null);
+  const [manageUsersLoading, setManageUsersLoading] = useState(false);
+  const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
+  const [newUser, setNewUser] = useState({
+    name: '',
+    email: '',
+    role: 'user',
+  });
+
+  // Delete confirmation
+  const [deleteDistributorId, setDeleteDistributorId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [newDistributor, setNewDistributor] = useState({
     companyName: '',
-    fullName: '',
+    contactName: '',
     email: '',
+    phone: '',
     accountType: 'exclusive',
+    partnerSince: '',
+    notes: '',
     sendWelcome: false,
   });
 
-  const [editDistributor, setEditDistributor] = useState<Distributor | null>(null);
-  const [editTerritories, setEditTerritories] = useState<string[]>([]);
-  const [distributors, setDistributors] = useState<Distributor[]>([]);
+  const selectedDistributor = distributors.find((d) => d.id === selectedDistributorId);
 
+  // Load distributors on mount
   useEffect(() => {
-    fetchDistributors();
+    loadDistributors();
   }, []);
 
   // Open add dialog if navigated from quick action
@@ -143,31 +153,25 @@ export default function DistributorsManagement() {
     const state = location.state as { openAddDialog?: boolean };
     if (state?.openAddDialog) {
       setIsAddDialogOpen(true);
-      // Clear the state so it doesn't reopen on refresh
       window.history.replaceState({}, document.title);
     }
   }, [location]);
 
-  const fetchDistributors = async () => {
+  const loadDistributors = async () => {
     setIsLoading(true);
-    setOperationError(null);
-    
     try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('role', 'distributor')
-        .order('created_at', { ascending: false });
+      const { data, error } = await fetchDistributors();
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(error.message || 'Failed to load distributors');
+      }
 
       setDistributors(data || []);
     } catch (error: any) {
-      console.error('Error fetching distributors:', error);
-      setOperationError('Failed to load distributors. Please refresh the page.');
+      console.error('❌ Error loading distributors:', error);
       toast({
         title: 'Error',
-        description: 'Failed to load distributors',
+        description: error.message || 'Failed to load distributors',
         variant: 'destructive',
       });
     } finally {
@@ -175,154 +179,86 @@ export default function DistributorsManagement() {
     }
   };
 
+  const toggleDistributorExpand = (distributorId: string) => {
+    setExpandedDistributors((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(distributorId)) {
+        newSet.delete(distributorId);
+      } else {
+        newSet.add(distributorId);
+      }
+      return newSet;
+    });
+  };
+
   const handleAddDistributor = async () => {
-    // Reset errors
-    setOperationError(null);
-
-    // Validation
-    if (!newDistributor.companyName || !newDistributor.fullName || !newDistributor.email || selectedTerritories.length === 0) {
-      setOperationError('Please fill in all required fields');
-      return;
-    }
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(newDistributor.email)) {
-      setOperationError('Please enter a valid email address');
+    if (!newDistributor.companyName || !newDistributor.email || selectedTerritories.length === 0) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please fill in all required fields',
+        variant: 'destructive',
+      });
       return;
     }
 
     setIsCreating(true);
 
     try {
-      const { data: session } = await supabase.auth.getSession();
-      
-      const response = await fetch(`${EDGE_FUNCTIONS_URL}/create-distributor`, {
+      // Call Edge Function to create distributor
+      const response = await fetch('/functions/v1/create-distributor', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.session?.access_token || import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({
-          companyName: newDistributor.companyName.trim(),
-          fullName: newDistributor.fullName.trim(),
-          email: newDistributor.email.trim(),
+          company_name: newDistributor.companyName,
           territory: selectedTerritories.join(', '),
-          accountType: newDistributor.accountType,
-          sendWelcome: newDistributor.sendWelcome,
+          account_type: newDistributor.accountType,
+          contact_email: newDistributor.email,
+          phone: newDistributor.phone || null,
+          // First user data
+          create_first_user: true,
+          user_email: newDistributor.email,
+          user_full_name: newDistributor.contactName || null,
+          user_company_role: 'admin',
+          send_invitation: newDistributor.sendWelcome,
         }),
       });
 
       const result = await response.json();
 
-      if (!result.success) {
-        const apiError = result as ApiError;
-        
-        // Handle specific error types
-        switch (apiError.errorType) {
-          case ErrorType.USER_EXISTS:
-            setOperationError(`A distributor with email ${newDistributor.email} already exists`);
-            break;
-          case ErrorType.VALIDATION:
-            setOperationError(apiError.details || apiError.error);
-            break;
-          case ErrorType.CONSTRAINT_VIOLATION:
-            setOperationError('Invalid data provided. Please check all required fields.');
-            break;
-          case ErrorType.AUTH_FAILED:
-            setOperationError('Failed to create user account. Please try again.');
-            break;
-          default:
-            setOperationError(apiError.error);
-        }
-        
-        throw new Error(apiError.error);
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to create distributor');
       }
 
-      // Success! Refresh list from server
-      await fetchDistributors();
+      toast({
+        title: 'Success',
+        description: `${newDistributor.companyName} added successfully`,
+      });
+
+      // Reload distributors
+      await loadDistributors();
 
       // Close dialog and reset form
       setIsAddDialogOpen(false);
       setNewDistributor({
         companyName: '',
-        fullName: '',
+        contactName: '',
         email: '',
+        phone: '',
         accountType: 'exclusive',
+        partnerSince: '',
+        notes: '',
         sendWelcome: false,
       });
       setSelectedTerritories([]);
-      setOperationError(null);
-
-      toast({
-        title: 'Success',
-        description: result.message,
-      });
     } catch (error: any) {
-      console.error('Error adding distributor:', error);
-      // Error message already set above
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
-  const handleEditClick = (distributor: Distributor) => {
-    setEditDistributor(distributor);
-    setEditTerritories(distributor.territory ? distributor.territory.split(', ') : []);
-    setOperationError(null);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleUpdateDistributor = async () => {
-    if (!editDistributor) return;
-
-    setOperationError(null);
-
-    if (!editDistributor.company_name || !editDistributor.full_name || !editDistributor.email || editTerritories.length === 0) {
-      setOperationError('Please fill in all required fields');
-      return;
-    }
-
-    setIsCreating(true);
-
-    try {
-      const { data: session } = await supabase.auth.getSession();
-
-      const response = await fetch(`${EDGE_FUNCTIONS_URL}/update-distributor`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.session?.access_token || import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({
-          id: editDistributor.id,
-          companyName: editDistributor.company_name.trim(),
-          fullName: editDistributor.full_name.trim(),
-          email: editDistributor.email.trim(),
-          territory: editTerritories.join(', '),
-          accountType: editDistributor.account_type,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!result.success) {
-        setOperationError(result.error);
-        throw new Error(result.error);
-      }
-
-      // Refresh from server
-      await fetchDistributors();
-
-      setIsEditDialogOpen(false);
-      setOperationError(null);
-
+      console.error('❌ Add distributor error:', error);
       toast({
-        title: 'Success',
-        description: result.message,
+        title: 'Error',
+        description: error.message || 'Failed to add distributor',
+        variant: 'destructive',
       });
-    } catch (error: any) {
-      console.error('Error updating distributor:', error);
     } finally {
       setIsCreating(false);
     }
@@ -332,129 +268,84 @@ export default function DistributorsManagement() {
     const distributor = distributors.find((d) => d.id === distributorId);
     if (!distributor) return;
 
-    const newStatus: 'active' | 'inactive' = distributor.status === 'active' ? 'inactive' : 'active';
+    const newStatus = distributor.status === 'active' ? 'inactive' : 'active';
+
+    // Optimistic update
+    setDistributors((prev) =>
+      prev.map((d) => (d.id === distributorId ? { ...d, status: newStatus as any } : d))
+    );
 
     try {
-      const { data: session } = await supabase.auth.getSession();
-      
-      const response = await fetch(`${EDGE_FUNCTIONS_URL}/update-distributor-status`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.session?.access_token || import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({
-          id: distributorId,
-          status: newStatus,
-        }),
+      const { error } = await updateDistributor(distributorId, {
+        status: newStatus,
       });
 
-      const result = await response.json();
-
-      if (!result.success) {
-        throw new Error(result.error);
+      if (error) {
+        throw new Error(error.message || 'Failed to update status');
       }
-
-      // Refresh from server
-      await fetchDistributors();
 
       toast({
         title: 'Success',
         description: `${distributor.company_name} ${newStatus === 'active' ? 'activated' : 'deactivated'}`,
       });
     } catch (error: any) {
-      console.error('Error updating status:', error);
+      console.error('❌ Toggle status error:', error);
+      // Revert optimistic update
+      setDistributors((prev) =>
+        prev.map((d) => (d.id === distributorId ? { ...d, status: distributor.status } : d))
+      );
       toast({
         title: 'Error',
-        description: 'Failed to update status',
+        description: error.message || 'Failed to update status',
         variant: 'destructive',
       });
     }
   };
 
-  const handleResendInvitation = async (distributorId: string) => {
-    const distributor = distributors.find((d) => d.id === distributorId);
-    if (!distributor) return;
-
-    try {
-      console.log('🔄 Resending invitation to:', distributor.email);
-
-      const { data: session } = await supabase.auth.getSession();
-
-      const response = await fetch(`${EDGE_FUNCTIONS_URL}/resend-invitation`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.session?.access_token || import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({
-          id: distributorId,
-          email: distributor.email,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to resend invitation');
-      }
-
-      toast({
-        title: 'Success',
-        description: result.message || `Invitation resent to ${distributor.email}`,
-      });
-    } catch (error: any) {
-      console.error('Error resending invitation:', error);
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to resend invitation',
-        variant: 'destructive',
-      });
-    }
+  const handleDeleteClick = (distributorId: string) => {
+    setDeleteDistributorId(distributorId);
   };
 
-  const handleDelete = async (distributorId: string) => {
-    const distributor = distributors.find((d) => d.id === distributorId);
+  const handleDeleteConfirm = async () => {
+    if (!deleteDistributorId) return;
+
+    const distributor = distributors.find((d) => d.id === deleteDistributorId);
     if (!distributor) return;
 
-    if (!confirm(`Are you sure you want to delete ${distributor.company_name}? This action cannot be undone.`)) {
-      return;
-    }
+    setIsDeleting(true);
 
     try {
-      const { data: session } = await supabase.auth.getSession();
-      
-      const response = await fetch(`${EDGE_FUNCTIONS_URL}/delete-distributor`, {
-        method: 'POST',
+      // Call Edge Function to delete distributor
+      const response = await fetch('/functions/v1/delete-distributor', {
+        method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.session?.access_token || import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify({
-          id: distributorId,
-        }),
+        body: JSON.stringify({ distributorId: deleteDistributorId }),
       });
 
       const result = await response.json();
 
-      if (!result.success) {
-        throw new Error(result.error);
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to delete distributor');
       }
-
-      // Refresh from server
-      await fetchDistributors();
 
       toast({
         title: 'Success',
         description: `${distributor.company_name} deleted successfully`,
       });
+
+      setDeleteDistributorId(null);
+      await loadDistributors();
     } catch (error: any) {
-      console.error('Error deleting distributor:', error);
+      console.error('❌ Delete error:', error);
       toast({
         title: 'Error',
-        description: 'Failed to delete distributor',
+        description: error.message || 'Failed to delete distributor',
         variant: 'destructive',
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -464,51 +355,233 @@ export default function DistributorsManagement() {
     );
   };
 
-  const toggleEditTerritory = (territory: string) => {
-    setEditTerritories((prev) =>
-      prev.includes(territory) ? prev.filter((t) => t !== territory) : [...prev, territory]
-    );
-  };
-
   const removeTerritory = (territory: string) => {
     setSelectedTerritories((prev) => prev.filter((t) => t !== territory));
   };
 
-  const removeEditTerritory = (territory: string) => {
-    setEditTerritories((prev) => prev.filter((t) => t !== territory));
+  const handleManageUsers = async (distributorId: string) => {
+    setSelectedDistributorId(distributorId);
+    setIsManageUsersDialogOpen(true);
+    setManageUsersLoading(true);
+
+    try {
+      // Reload distributor users to get fresh data
+      const { data, error } = await getDistributorUsers(distributorId);
+
+      if (error) {
+        throw new Error(error.message || 'Failed to load users');
+      }
+
+      // Update the distributor's users in state
+      setDistributors((prev) =>
+        prev.map((d) => (d.id === distributorId ? { ...d, users: data || [] } : d))
+      );
+    } catch (error: any) {
+      console.error('❌ Load users error:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to load users',
+        variant: 'destructive',
+      });
+    } finally {
+      setManageUsersLoading(false);
+    }
   };
 
-  const toggleStatusFilter = (status: string) => {
-    setStatusFilter((prev) =>
-      prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
+  const handleAddUser = async () => {
+    if (!newUser.name || !newUser.email || !selectedDistributorId) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please fill in all required fields',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      // Call Edge Function to add user
+      const response = await fetch('/functions/v1/create-distributor-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          distributor_id: selectedDistributorId,
+          email: newUser.email,
+          full_name: newUser.name,
+          company_role: newUser.role,
+          send_invitation: true,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to add user');
+      }
+
+      toast({
+        title: 'Success',
+        description: `User ${newUser.name} added successfully`,
+      });
+
+      // Reload users for this distributor
+      const { data } = await getDistributorUsers(selectedDistributorId);
+      setDistributors((prev) =>
+        prev.map((d) => (d.id === selectedDistributorId ? { ...d, users: data || [] } : d))
+      );
+
+      // Close dialog and reset form
+      setIsAddUserDialogOpen(false);
+      setNewUser({ name: '', email: '', role: 'user' });
+    } catch (error: any) {
+      console.error('❌ Add user error:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to add user',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleToggleUserStatus = async (userId: string) => {
+    if (!selectedDistributorId) return;
+
+    const user = selectedDistributor?.users?.find((u) => u.id === userId);
+    if (!user) return;
+
+    const newStatus = user.status === 'active' ? 'inactive' : 'active';
+
+    // Optimistic update
+    setDistributors((prev) =>
+      prev.map((d) =>
+        d.id === selectedDistributorId
+          ? {
+              ...d,
+              users: d.users?.map((u) => (u.id === userId ? { ...u, status: newStatus as any } : u)),
+            }
+          : d
+      )
     );
+
+    try {
+      // Update user via API (would need updateDistributorUser function)
+      const response = await fetch('/functions/v1/update-distributor-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          status: newStatus,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to update user status');
+      }
+
+      toast({
+        title: 'Success',
+        description: `User ${newStatus === 'active' ? 'activated' : 'deactivated'}`,
+      });
+    } catch (error: any) {
+      console.error('❌ Toggle user status error:', error);
+      // Revert optimistic update
+      setDistributors((prev) =>
+        prev.map((d) =>
+          d.id === selectedDistributorId
+            ? {
+                ...d,
+                users: d.users?.map((u) => (u.id === userId ? { ...u, status: user.status } : u)),
+              }
+            : d
+        )
+      );
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update user status',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const toggleAccountTypeFilter = (type: string) => {
-    setAccountTypeFilter((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
-    );
+  const handleDeleteUser = async (userId: string) => {
+    if (!selectedDistributorId) return;
+
+    const user = selectedDistributor?.users?.find((u) => u.id === userId);
+
+    // Don't allow deleting the last user
+    if (selectedDistributor && selectedDistributor.users && selectedDistributor.users.length === 1) {
+      toast({
+        title: 'Error',
+        description: 'Cannot delete the last user. Each distributor must have at least one user.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      // Call Edge Function to delete user
+      const response = await fetch('/functions/v1/delete-distributor-user', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to delete user');
+      }
+
+      toast({
+        title: 'Success',
+        description: `User ${user?.full_name || user?.email} deleted`,
+      });
+
+      // Update state
+      setDistributors((prev) =>
+        prev.map((d) =>
+          d.id === selectedDistributorId
+            ? { ...d, users: d.users?.filter((u) => u.id !== userId) }
+            : d
+        )
+      );
+    } catch (error: any) {
+      console.error('❌ Delete user error:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete user',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const filteredDistributors = distributors.filter((dist) => {
-    const matchesSearch = searchQuery === '' || 
-      (dist.company_name && dist.company_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (dist.territory && dist.territory.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (dist.email && dist.email.toLowerCase().includes(searchQuery.toLowerCase()));
+  const handleResendInvitation = async (userId: string, userEmail: string) => {
+    try {
+      const { success, error } = await resendInvitation(userId);
 
-    const matchesStatus = statusFilter.includes(dist.status);
-    const matchesAccountType = !dist.account_type || accountTypeFilter.includes(dist.account_type);
+      if (!success || error) {
+        throw new Error(error?.message || 'Failed to resend invitation');
+      }
 
-    return matchesSearch && matchesStatus && matchesAccountType;
-  });
-
-  const stats = {
-    all: distributors.length,
-    active: distributors.filter((d) => d.status === 'active').length,
-    inactive: distributors.filter((d) => d.status === 'inactive').length,
-    pending: distributors.filter((d) => d.status === 'pending').length,
-    exclusive: distributors.filter((d) => d.account_type === 'exclusive').length,
-    nonExclusive: distributors.filter((d) => d.account_type === 'non-exclusive').length,
+      toast({
+        title: 'Success',
+        description: `Invitation sent to ${userEmail}`,
+      });
+    } catch (error: any) {
+      console.error('❌ Resend invitation error:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to resend invitation',
+        variant: 'destructive',
+      });
+    }
   };
 
   const formatDate = (dateString?: string) => {
@@ -532,6 +605,13 @@ export default function DistributorsManagement() {
     return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   };
 
+  const filteredDistributors = distributors.filter(
+    (dist) =>
+      dist.company_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      dist.territory?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      dist.contact_email?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -540,49 +620,27 @@ export default function DistributorsManagement() {
         <p className="text-[16px] text-[#6b7280]">Manage distributor accounts and access</p>
       </div>
 
-      {/* Global Error Display */}
-      {operationError && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{operationError}</AlertDescription>
-        </Alert>
-      )}
-
       {/* Top Bar */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <div className="flex flex-col sm:flex-row gap-3 flex-1 w-full">
-          {/* Add New Distributor Dialog */}
-          <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
-            setIsAddDialogOpen(open);
-            if (!open) setOperationError(null);
-          }}>
-            <Button 
-              className="bg-[#00a8b5] hover:bg-[#008a95] text-white"
-              onClick={() => setIsAddDialogOpen(true)}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Add New Distributor
-            </Button>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-[#00a8b5] hover:bg-[#008a95] text-white">
+                <Plus className="mr-2 h-4 w-4" />
+                Add New Distributor
+              </Button>
+            </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add New Distributor</DialogTitle>
                 <DialogDescription>
-                  Create a new distributor account. All fields marked with * are required.
+                  Create a new distributor account and set up their access
                 </DialogDescription>
               </DialogHeader>
 
-              {operationError && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{operationError}</AlertDescription>
-                </Alert>
-              )}
-
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="companyName">
-                    Company Name <span className="text-red-500">*</span>
-                  </Label>
+                  <Label htmlFor="companyName">Company Name *</Label>
                   <Input
                     id="companyName"
                     value={newDistributor.companyName}
@@ -595,14 +653,12 @@ export default function DistributorsManagement() {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="fullName">
-                    Contact Person Name <span className="text-red-500">*</span>
-                  </Label>
+                  <Label htmlFor="contactName">Contact Person Name *</Label>
                   <Input
-                    id="fullName"
-                    value={newDistributor.fullName}
+                    id="contactName"
+                    value={newDistributor.contactName}
                     onChange={(e) =>
-                      setNewDistributor({ ...newDistributor, fullName: e.target.value })
+                      setNewDistributor({ ...newDistributor, contactName: e.target.value })
                     }
                     placeholder="e.g., John Smith"
                     disabled={isCreating}
@@ -610,9 +666,7 @@ export default function DistributorsManagement() {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="email">
-                    Email Address <span className="text-red-500">*</span>
-                  </Label>
+                  <Label htmlFor="email">Email Address *</Label>
                   <Input
                     id="email"
                     type="email"
@@ -627,9 +681,21 @@ export default function DistributorsManagement() {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="territory">
-                    Country/Territory <span className="text-red-500">*</span>
-                  </Label>
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={newDistributor.phone}
+                    onChange={(e) =>
+                      setNewDistributor({ ...newDistributor, phone: e.target.value })
+                    }
+                    placeholder="+49 89 1234 5678"
+                    disabled={isCreating}
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="territory">Country/Territory *</Label>
                   <Popover open={isTerritoryPopoverOpen} onOpenChange={setIsTerritoryPopoverOpen}>
                     <PopoverTrigger asChild>
                       <Button
@@ -667,6 +733,7 @@ export default function DistributorsManagement() {
                     </PopoverContent>
                   </Popover>
 
+                  {/* Selected territories as badges */}
                   {selectedTerritories.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-2">
                       {selectedTerritories.map((territory) => (
@@ -691,9 +758,7 @@ export default function DistributorsManagement() {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label>
-                    Account Type <span className="text-red-500">*</span>
-                  </Label>
+                  <Label>Account Type *</Label>
                   <div className="flex gap-4">
                     <div className="flex items-center space-x-2">
                       <input
@@ -748,8 +813,8 @@ export default function DistributorsManagement() {
               </div>
 
               <DialogFooter>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => setIsAddDialogOpen(false)}
                   disabled={isCreating}
                 >
@@ -773,7 +838,6 @@ export default function DistributorsManagement() {
             </DialogContent>
           </Dialog>
 
-          {/* Search */}
           <div className="flex-1 relative min-w-0">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <Input
@@ -785,10 +849,9 @@ export default function DistributorsManagement() {
             />
           </div>
 
-          {/* Refresh Button */}
-          <Button 
-            variant="outline" 
-            onClick={fetchDistributors}
+          <Button
+            variant="outline"
+            onClick={loadDistributors}
             disabled={isLoading}
             className="border-slate-200"
           >
@@ -799,50 +862,43 @@ export default function DistributorsManagement() {
             )}
           </Button>
         </div>
+
+        <Button variant="outline" className="border-slate-200">
+          <Download className="mr-2 h-4 w-4" />
+          Export List
+        </Button>
       </div>
 
-      {/* Filters + Table */}
+      {/* Filters Sidebar + Table */}
       <div className="flex gap-6">
-        {/* Filters Sidebar */}
+        {/* Filters */}
         <Card className="w-64 h-fit border-slate-200 hidden lg:block">
           <CardContent className="p-4 space-y-4">
             <div>
               <h3 className="text-[14px] font-semibold text-slate-900 mb-3">Status</h3>
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="status-active"
-                    checked={statusFilter.includes('active')}
-                    onCheckedChange={() => toggleStatusFilter('active')}
-                  />
-                  <Label htmlFor="status-active" className="text-[13px] font-normal cursor-pointer">
-                    Active ({stats.active})
+                  <Checkbox id="all" defaultChecked />
+                  <Label htmlFor="all" className="text-[13px] font-normal cursor-pointer">
+                    All ({distributors.length})
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="status-inactive"
-                    checked={statusFilter.includes('inactive')}
-                    onCheckedChange={() => toggleStatusFilter('inactive')}
-                  />
-                  <Label
-                    htmlFor="status-inactive"
-                    className="text-[13px] font-normal cursor-pointer"
-                  >
-                    Inactive ({stats.inactive})
+                  <Checkbox id="active" />
+                  <Label htmlFor="active" className="text-[13px] font-normal cursor-pointer">
+                    Active ({distributors.filter((d) => d.status === 'active').length})
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="status-pending"
-                    checked={statusFilter.includes('pending')}
-                    onCheckedChange={() => toggleStatusFilter('pending')}
-                  />
-                  <Label
-                    htmlFor="status-pending"
-                    className="text-[13px] font-normal cursor-pointer"
-                  >
-                    Pending ({stats.pending})
+                  <Checkbox id="inactive" />
+                  <Label htmlFor="inactive" className="text-[13px] font-normal cursor-pointer">
+                    Inactive ({distributors.filter((d) => d.status === 'inactive').length})
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="pending" />
+                  <Label htmlFor="pending" className="text-[13px] font-normal cursor-pointer">
+                    Pending ({distributors.filter((d) => d.status === 'pending').length})
                   </Label>
                 </div>
               </div>
@@ -852,29 +908,22 @@ export default function DistributorsManagement() {
               <h3 className="text-[14px] font-semibold text-slate-900 mb-3">Account Type</h3>
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="exclusive-filter"
-                    checked={accountTypeFilter.includes('exclusive')}
-                    onCheckedChange={() => toggleAccountTypeFilter('exclusive')}
-                  />
+                  <Checkbox id="exclusive-filter" defaultChecked />
                   <Label
                     htmlFor="exclusive-filter"
                     className="text-[13px] font-normal cursor-pointer"
                   >
-                    Exclusive ({stats.exclusive})
+                    Exclusive ({distributors.filter((d) => d.account_type === 'exclusive').length})
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="non-exclusive-filter"
-                    checked={accountTypeFilter.includes('non-exclusive')}
-                    onCheckedChange={() => toggleAccountTypeFilter('non-exclusive')}
-                  />
+                  <Checkbox id="non-exclusive-filter" />
                   <Label
                     htmlFor="non-exclusive-filter"
                     className="text-[13px] font-normal cursor-pointer"
                   >
-                    Non-exclusive ({stats.nonExclusive})
+                    Non-exclusive (
+                    {distributors.filter((d) => d.account_type === 'non-exclusive').length})
                   </Label>
                 </div>
               </div>
@@ -911,80 +960,172 @@ export default function DistributorsManagement() {
                     </TableRow>
                   ) : (
                     filteredDistributors.map((distributor) => (
-                      <TableRow key={distributor.id}>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium text-slate-900">
-                              {distributor.company_name}
-                            </p>
-                            <p className="text-[12px] text-[#9ca3af]">
-                              {distributor.account_type
-                                ? distributor.account_type.charAt(0).toUpperCase() +
-                                  distributor.account_type.slice(1)
-                                : 'Not specified'}
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-[13px]">
-                          {distributor.territory || 'Not specified'}
-                        </TableCell>
-                        <TableCell className="text-[13px]">{distributor.email}</TableCell>
-                        <TableCell>
-                          <Badge
-                            className={
-                              distributor.status === 'active'
-                                ? 'bg-green-100 text-green-700 hover:bg-green-100'
-                                : distributor.status === 'inactive'
-                                ? 'bg-slate-100 text-slate-700 hover:bg-slate-100'
-                                : 'bg-orange-100 text-orange-700 hover:bg-orange-100'
-                            }
-                          >
-                            {distributor.status.charAt(0).toUpperCase() +
-                              distributor.status.slice(1)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-[13px] text-[#6b7280]">
-                          {formatDate(distributor.last_login)}
-                        </TableCell>
-                        <TableCell className="text-[13px] text-[#6b7280]">
-                          {formatCreatedDate(distributor.created_at)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleEditClick(distributor)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit Distributor
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => handleToggleStatus(distributor.id)}
-                              >
-                                {distributor.status === 'active' ? 'Deactivate' : 'Activate'}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleResendInvitation(distributor.id)}
-                              >
-                                <Mail className="mr-2 h-4 w-4" />
-                                Resend Welcome Email
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => handleDelete(distributor.id)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
+                      <React.Fragment key={distributor.id}>
+                        {/* Distributor Row */}
+                        <TableRow>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {distributor.users && distributor.users.length > 1 && (
+                                <button
+                                  onClick={() => toggleDistributorExpand(distributor.id)}
+                                  className="p-1 hover:bg-slate-100 rounded transition-colors"
+                                >
+                                  {expandedDistributors.has(distributor.id) ? (
+                                    <ChevronDown className="h-4 w-4 text-slate-600" />
+                                  ) : (
+                                    <ChevronRight className="h-4 w-4 text-slate-600" />
+                                  )}
+                                </button>
+                              )}
+                              {(!distributor.users || distributor.users.length === 1) && (
+                                <div className="w-6" />
+                              )}
+                              <div>
+                                <p className="font-medium text-slate-900">
+                                  {distributor.company_name}
+                                </p>
+                                <p className="text-[12px] text-[#9ca3af]">
+                                  {distributor.account_type === 'exclusive'
+                                    ? 'Exclusive'
+                                    : 'Non-exclusive'}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-[13px]">
+                            {distributor.territory || 'Not specified'}
+                          </TableCell>
+                          <TableCell className="text-[13px]">
+                            {distributor.users && distributor.users.length > 1 ? (
+                              <span className="text-[#6b7280]">{distributor.users.length} users</span>
+                            ) : distributor.users && distributor.users[0] ? (
+                              distributor.users[0].email
+                            ) : (
+                              distributor.contact_email || 'No users'
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              className={
+                                distributor.status === 'active'
+                                  ? 'bg-green-100 text-green-700 hover:bg-green-100'
+                                  : distributor.status === 'inactive'
+                                  ? 'bg-slate-100 text-slate-700 hover:bg-slate-100'
+                                  : 'bg-orange-100 text-orange-700 hover:bg-orange-100'
+                              }
+                            >
+                              {distributor.status.charAt(0).toUpperCase() +
+                                distributor.status.slice(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-[13px] text-[#6b7280]">
+                            {distributor.users && distributor.users[0]?.last_login
+                              ? formatDate(distributor.users[0].last_login)
+                              : 'Never'}
+                          </TableCell>
+                          <TableCell className="text-[13px] text-[#6b7280]">
+                            {formatCreatedDate(distributor.created_at)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit Distributor
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleManageUsers(distributor.id)}>
+                                  <Users className="mr-2 h-4 w-4" />
+                                  Manage Users ({distributor.users?.length || 0})
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View as Distributor
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => handleToggleStatus(distributor.id)}>
+                                  {distributor.status === 'active' ? 'Deactivate' : 'Activate'}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    distributor.users &&
+                                    distributor.users[0] &&
+                                    handleResendInvitation(
+                                      distributor.users[0].id,
+                                      distributor.users[0].email
+                                    )
+                                  }
+                                  disabled={!distributor.users || distributor.users.length === 0}
+                                >
+                                  <Mail className="mr-2 h-4 w-4" />
+                                  Resend Welcome Email
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-red-600"
+                                  onClick={() => handleDeleteClick(distributor.id)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+
+                        {/* User Rows (only if expanded and has multiple users) */}
+                        {expandedDistributors.has(distributor.id) &&
+                          distributor.users &&
+                          distributor.users.length > 1 &&
+                          distributor.users.map((user) => (
+                            <TableRow key={`user-${user.id}`} className="bg-slate-50/50">
+                              <TableCell>
+                                <div className="flex items-center gap-2 pl-10">
+                                  <div className="w-px h-6 bg-slate-300 -ml-4 mr-2" />
+                                  <div>
+                                    <p className="text-[13px] text-slate-700">
+                                      {user.full_name || 'No name'}
+                                    </p>
+                                    <Badge variant="outline" className="text-[10px] mt-0.5">
+                                      {user.company_role}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-[12px] text-slate-500">—</TableCell>
+                              <TableCell className="text-[13px]">{user.email}</TableCell>
+                              <TableCell>
+                                <Badge
+                                  variant="outline"
+                                  className={
+                                    user.status === 'active'
+                                      ? 'text-green-700 border-green-200'
+                                      : 'text-slate-600 border-slate-200'
+                                  }
+                                >
+                                  {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-[12px] text-[#6b7280]">
+                                {formatDate(user.last_login)}
+                              </TableCell>
+                              <TableCell className="text-[12px] text-slate-400">—</TableCell>
+                              <TableCell className="text-right">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 text-[12px] text-slate-500"
+                                >
+                                  Edit
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                      </React.Fragment>
                     ))
                   )}
                 </TableBody>
@@ -994,207 +1135,231 @@ export default function DistributorsManagement() {
         </Card>
       </div>
 
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
-        setIsEditDialogOpen(open);
-        if (!open) setOperationError(null);
-      }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      {/* Manage Users Dialog */}
+      <Dialog open={isManageUsersDialogOpen} onOpenChange={setIsManageUsersDialogOpen}>
+        <DialogContent className="max-w-[95vw] sm:max-w-[1400px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Distributor</DialogTitle>
+            <DialogTitle>Manage Users - {selectedDistributor?.company_name}</DialogTitle>
             <DialogDescription>
-              Update distributor account details. All fields marked with * are required.
+              Add and manage user accounts for this distributor
             </DialogDescription>
           </DialogHeader>
 
-          {operationError && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{operationError}</AlertDescription>
-            </Alert>
-          )}
-
-          {editDistributor && (
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="edit-companyName">
-                  Company Name <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="edit-companyName"
-                  value={editDistributor.company_name}
-                  onChange={(e) =>
-                    setEditDistributor({ ...editDistributor, company_name: e.target.value })
-                  }
-                  placeholder="e.g., TechDist Global"
-                  disabled={isCreating}
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="edit-fullName">
-                  Contact Person Name <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="edit-fullName"
-                  value={editDistributor.full_name}
-                  onChange={(e) =>
-                    setEditDistributor({ ...editDistributor, full_name: e.target.value })
-                  }
-                  placeholder="e.g., John Smith"
-                  disabled={isCreating}
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="edit-email">
-                  Email Address <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="edit-email"
-                  type="email"
-                  value={editDistributor.email}
-                  onChange={(e) =>
-                    setEditDistributor({ ...editDistributor, email: e.target.value })
-                  }
-                  placeholder="contact@company.com"
-                  disabled={isCreating}
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="edit-territory">
-                  Country/Territory <span className="text-red-500">*</span>
-                </Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className="w-full justify-between font-normal"
-                      disabled={isCreating}
-                    >
-                      {editTerritories.length === 0
-                        ? 'Select territories...'
-                        : `${editTerritories.length} ${
-                            editTerritories.length === 1 ? 'country' : 'countries'
-                          } selected`}
-                      <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-0" align="start">
-                    <div className="max-h-[300px] overflow-y-auto p-2">
-                      {availableTerritories.map((territory) => (
-                        <div
-                          key={territory}
-                          className="flex items-center space-x-2 p-2 hover:bg-slate-100 rounded cursor-pointer"
-                          onClick={() => toggleEditTerritory(territory)}
-                        >
-                          <Checkbox
-                            checked={editTerritories.includes(territory)}
-                            onCheckedChange={() => toggleEditTerritory(territory)}
-                          />
-                          <label className="text-[14px] cursor-pointer flex-1">
-                            {territory}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-
-                {editTerritories.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {editTerritories.map((territory) => (
-                      <Badge
-                        key={territory}
-                        variant="secondary"
-                        className="bg-[#00a8b5]/10 text-[#00a8b5] hover:bg-[#00a8b5]/20"
-                      >
-                        {territory}
-                        <button
-                          type="button"
-                          onClick={() => removeEditTerritory(territory)}
-                          className="ml-1 hover:text-[#008a95]"
-                          disabled={isCreating}
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="grid gap-2">
-                <Label>
-                  Account Type <span className="text-red-500">*</span>
-                </Label>
-                <div className="flex gap-4">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="edit-exclusive"
-                      name="editAccountType"
-                      value="exclusive"
-                      checked={editDistributor.account_type === 'exclusive'}
-                      onChange={(e) =>
-                        setEditDistributor({ ...editDistributor, account_type: e.target.value })
-                      }
-                      className="w-4 h-4 text-[#00a8b5]"
-                      disabled={isCreating}
-                    />
-                    <Label htmlFor="edit-exclusive" className="font-normal cursor-pointer">
-                      Exclusive
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="edit-non-exclusive"
-                      name="editAccountType"
-                      value="non-exclusive"
-                      checked={editDistributor.account_type === 'non-exclusive'}
-                      onChange={(e) =>
-                        setEditDistributor({ ...editDistributor, account_type: e.target.value })
-                      }
-                      className="w-4 h-4 text-[#00a8b5]"
-                      disabled={isCreating}
-                    />
-                    <Label htmlFor="edit-non-exclusive" className="font-normal cursor-pointer">
-                      Non-exclusive
-                    </Label>
-                  </div>
-                </div>
-              </div>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-slate-600">
+                {selectedDistributor?.users?.length || 0}{' '}
+                {selectedDistributor?.users?.length === 1 ? 'user' : 'users'}
+              </p>
+              <Button
+                size="sm"
+                className="bg-[#00a8b5] hover:bg-[#008a95]"
+                onClick={() => setIsAddUserDialogOpen(true)}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add User
+              </Button>
             </div>
-          )}
+
+            {/* Users Table */}
+            {manageUsersLoading ? (
+              <div className="flex items-center justify-center h-48">
+                <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5]" />
+              </div>
+            ) : (
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Last Login</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {selectedDistributor?.users && selectedDistributor.users.length > 0 ? (
+                      selectedDistributor.users.map((user) => (
+                        <TableRow key={user.id}>
+                          <TableCell className="font-medium whitespace-nowrap">
+                            {user.full_name || 'No name'}
+                          </TableCell>
+                          <TableCell className="text-[13px]">{user.email}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-[11px]">
+                              {user.company_role}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              className={
+                                user.status === 'active'
+                                  ? 'bg-green-100 text-green-700 hover:bg-green-100'
+                                  : 'bg-slate-100 text-slate-700 hover:bg-slate-100'
+                              }
+                            >
+                              {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-[13px] text-[#6b7280] whitespace-nowrap">
+                            {formatDate(user.last_login)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit User
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleToggleUserStatus(user.id)}
+                                >
+                                  {user.status === 'active' ? 'Deactivate' : 'Activate'}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleResendInvitation(user.id, user.email)}
+                                >
+                                  <Mail className="mr-2 h-4 w-4" />
+                                  Resend Invitation
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-red-600"
+                                  onClick={() => handleDeleteUser(user.id)}
+                                  disabled={selectedDistributor?.users?.length === 1}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete User
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+                          No users found
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
 
           <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setIsEditDialogOpen(false)}
-              disabled={isCreating}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleUpdateDistributor}
-              className="bg-[#00a8b5] hover:bg-[#008a95]"
-              disabled={isCreating}
-            >
-              {isCreating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Updating...
-                </>
-              ) : (
-                'Save Changes'
-              )}
+            <Button variant="outline" onClick={() => setIsManageUsersDialogOpen(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Add User Dialog - Separate dialog to avoid nesting issues */}
+      <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New User</DialogTitle>
+            <DialogDescription>
+              Add a new user to {selectedDistributor?.company_name}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="userName">Full Name *</Label>
+              <Input
+                id="userName"
+                value={newUser.name}
+                onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+                placeholder="e.g., John Smith"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="userEmail">Email Address *</Label>
+              <Input
+                id="userEmail"
+                type="email"
+                value={newUser.email}
+                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                placeholder="john.smith@company.com"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="userRole">Role *</Label>
+              <Select
+                value={newUser.role}
+                onValueChange={(value) => setNewUser({ ...newUser, role: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="manager">Manager</SelectItem>
+                  <SelectItem value="user">User</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddUserDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddUser} className="bg-[#00a8b5] hover:bg-[#008a95]">
+              Add User
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteDistributorId} onOpenChange={() => setDeleteDistributorId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Distributor Company</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this distributor company? This will permanently
+              delete:
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>The company record</li>
+                <li>All associated users</li>
+                <li>All user accounts and access</li>
+              </ul>
+              <p className="mt-2 font-semibold text-red-600">This action cannot be undone.</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete Company'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
