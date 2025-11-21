@@ -132,54 +132,36 @@ export async function createDistributor(
     let userCreated = false;
 
     if (input.send_invite) {
-      console.log('📧 Creating auth user and sending password reset invitation...');
+      console.log('📧 Inviting new distributor user...');
 
-      // Create auth user using admin client with email confirmed
-      const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
-        email: input.email.toLowerCase(),
-        email_confirm: true, // Email confirmed so password reset works
-        user_metadata: {
-          full_name: input.full_name,
-          company_name: input.company_name,
-          role: 'distributor',
-          territory: input.territory,
-        }
-      });
-
-      if (authError) {
-        console.error('❌ Auth user creation error:', authError);
-        return { data: null, error: { message: `Failed to create auth user: ${authError.message}` } };
-      }
-
-      if (!authUser?.user) {
-        console.error('❌ No user returned from auth creation');
-        return { data: null, error: { message: 'Auth user creation failed - no user returned' } };
-      }
-
-      authUserId = authUser.user.id;
-      userCreated = true;
-
-      console.log('✅ Auth user created:', authUserId);
-
-      // Send password reset email (invitation-style)
-      const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(
+      // Send invitation email - this creates the user and sends invitation
+      const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
         input.email.toLowerCase(),
         {
-          redirectTo: `${window.location.origin}/reset-password`,
+          redirectTo: `${window.location.origin}/auth/callback?type=invite`,
+          data: {
+            full_name: input.full_name,
+            company_name: input.company_name,
+            role: 'distributor',
+            territory: input.territory,
+          }
         }
       );
 
-      if (resetError) {
-        console.error('❌ Password reset email error:', resetError);
-        // Clean up created user if email fails
-        if (userCreated) {
-          console.log('🧹 Cleaning up auth user due to email failure');
-          await supabaseAdmin.auth.admin.deleteUser(authUserId);
-        }
-        return { data: null, error: { message: `Failed to send invitation email: ${resetError.message}` } };
+      if (inviteError) {
+        console.error('❌ Invitation error:', inviteError);
+        return { data: null, error: { message: `Failed to invite user: ${inviteError.message}` } };
       }
 
-      console.log('✅ Password reset invitation email sent successfully');
+      if (!inviteData?.user) {
+        console.error('❌ No user returned from invitation');
+        return { data: null, error: { message: 'Invitation failed - no user returned' } };
+      }
+
+      authUserId = inviteData.user.id;
+      userCreated = true;
+
+      console.log('✅ Invitation sent successfully, user created:', authUserId);
     } else {
       // Create a placeholder profile without auth user
       authUserId = crypto.randomUUID();

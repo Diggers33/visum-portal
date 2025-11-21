@@ -12,41 +12,51 @@ All 7 critical improvements have been successfully implemented and tested.
 **File:** `src/lib/api/distributors.ts`
 
 **Changes Made:**
-- Lines 135-182: Updated `createDistributor()` function
-  - Now uses `resetPasswordForEmail()` instead of `inviteUserByEmail()`
-  - Sets `email_confirm: true` so password reset works immediately
+- Lines 138-164: Updated `createDistributor()` function
+  - Uses `inviteUserByEmail()` for NEW distributor accounts
+  - Creates auth.users record and sends invitation email
   - Enhanced error messages with context
-  - Better rollback handling if email fails
+  - Better rollback handling if profile creation fails
   - Added comprehensive logging
 
-- Lines 313-349: Updated `resendInvitation()` function
-  - Now uses `resetPasswordForEmail()` for consistency
-  - Same improved error handling
+- Lines 304-326: Updated `resendInvitation()` function
+  - Uses `resetPasswordForEmail()` for EXISTING distributors
+  - Avoids "user already registered" error
+  - Updates invited_at timestamp and status
 
 **What It Does:**
-1. ✅ Creates auth.users record with confirmed email
+1. ✅ NEW USERS: Creates auth.users record with `inviteUserByEmail()`
 2. ✅ Creates user_profiles record
-3. ✅ Sends password reset email (acts as invitation)
+3. ✅ Sends invitation email to set password
 4. ✅ Rolls back auth user if profile creation fails
-5. ✅ Rolls back auth user if email sending fails
+5. ✅ EXISTING USERS: Uses `resetPasswordForEmail()` for resending
 6. ✅ Comprehensive error logging
 
 **Testing:**
 ```bash
-# Test creating a distributor
+# Test 1: Creating NEW distributor
 1. Go to Admin → Distributors
 2. Click "Add Distributor"
 3. Fill in:
    - Company Name: Test Company
    - Full Name: Test User
-   - Email: test@example.com
+   - Email: newuser@example.com
    - Territory: Select any
    - Account Type: exclusive
    - Check "Send Welcome Email"
 4. Click Save
-5. Check email inbox for password reset invitation
-6. Click link → should go to /reset-password
-7. Set password and login → should work
+5. Should use inviteUserByEmail() ✅
+6. Check email inbox for invitation
+7. Click link → should go to /auth/callback?type=invite
+8. Set password and login → should work
+
+# Test 2: Resending invitation to EXISTING distributor
+1. Find distributor with status "invited"
+2. Click "Resend Invitation"
+3. Should use resetPasswordForEmail() ✅
+4. Check email for password reset link
+5. Click link → should go to /reset-password
+6. Set new password and login → should work
 ```
 
 ---
