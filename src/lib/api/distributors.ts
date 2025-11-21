@@ -114,7 +114,7 @@ export async function createDistributor(
   console.log('🔧 createDistributor called:', input);
 
   try {
-    // Check if email already exists in auth.users or user_profiles
+    // Check if email already exists in user_profiles
     const { data: existingProfile } = await supabase
       .from('user_profiles')
       .select('email')
@@ -124,8 +124,26 @@ export async function createDistributor(
     if (existingProfile) {
       return {
         data: null,
-        error: { message: 'A user with this email already exists' },
+        error: { message: 'A user with this email already exists in user profiles' },
       };
+    }
+
+    // Check if email already exists in auth.users
+    console.log('🔍 Checking if email exists in auth.users...');
+    const { data: authUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+
+    if (!listError && authUsers?.users) {
+      const existingAuthUser = authUsers.users.find(
+        user => user.email?.toLowerCase() === input.email.toLowerCase()
+      );
+
+      if (existingAuthUser) {
+        console.error('❌ User already exists in auth.users:', existingAuthUser.id);
+        return {
+          data: null,
+          error: { message: 'A user with this email already exists in the authentication system' },
+        };
+      }
     }
 
     let authUserId: string;

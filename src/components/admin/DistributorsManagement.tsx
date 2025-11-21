@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
+import { resendInvitation } from '@/lib/api/distributors';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -377,29 +378,18 @@ export default function DistributorsManagement() {
     if (!distributor) return;
 
     try {
-      const { data: session } = await supabase.auth.getSession();
+      console.log('🔄 Resending invitation to:', distributor.email);
 
-      const response = await fetch(`${EDGE_FUNCTIONS_URL}/resend-invitation`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.session?.access_token || import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({
-          id: distributorId,
-          email: distributor.email,
-        }),
-      });
+      // Use local API instead of edge function
+      const { success, error } = await resendInvitation(distributorId);
 
-      const result = await response.json();
-
-      if (!result.success) {
-        throw new Error(result.error);
+      if (!success) {
+        throw new Error(error?.message || 'Failed to resend invitation');
       }
 
       toast({
         title: 'Success',
-        description: result.message,
+        description: `Invitation resent to ${distributor.email}`,
       });
     } catch (error: any) {
       console.error('Error resending invitation:', error);
