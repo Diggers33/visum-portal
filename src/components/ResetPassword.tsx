@@ -30,54 +30,42 @@ export default function ResetPassword() {
         const queryParams = new URLSearchParams(window.location.search);
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
 
-        const token_hash = queryParams.get('token_hash') || hashParams.get('token_hash');
+        // CRITICAL: Distinguish between different token types
+        // 1. token_hash (from verifyOtp) - can be 'token_hash' or 'token' parameter
+        // 2. access_token (from OAuth/setSession) - only in hash fragments
+
+        // Token hash from resetPasswordForEmail() - in query params
+        const token_hash = queryParams.get('token_hash') || queryParams.get('token') ||
+                          hashParams.get('token_hash');
         const type = queryParams.get('type') || hashParams.get('type');
 
-        // CRITICAL: Accept BOTH 'access_token' (standard) and 'token' (from our redirect)
-        // This handles both direct Supabase links and our custom redirect URLs
-        const access_token = queryParams.get('access_token') || hashParams.get('access_token') ||
-                            queryParams.get('token') || hashParams.get('token');
-        const refresh_token = queryParams.get('refresh_token') || hashParams.get('refresh_token');
+        // OAuth tokens - ONLY from hash fragments (not query params)
+        const access_token = hashParams.get('access_token');
+        const refresh_token = hashParams.get('refresh_token');
 
         console.log('🔗 URL params:', {
           hasTokenHash: !!token_hash,
-          hasAccessToken: !!queryParams.get('access_token') || !!hashParams.get('access_token'),
-          hasToken: !!queryParams.get('token') || !!hashParams.get('token'),
+          hasAccessToken: !!access_token,
           hasRefreshToken: !!refresh_token,
           type,
-          tokenSource: queryParams.get('access_token') ? 'query:access_token' :
-                      hashParams.get('access_token') ? 'hash:access_token' :
-                      queryParams.get('token') ? 'query:token' :
-                      hashParams.get('token') ? 'hash:token' : 'none',
+          tokenSource: token_hash ? (queryParams.get('token_hash') ? 'query:token_hash' :
+                                     queryParams.get('token') ? 'query:token' : 'hash:token_hash') :
+                      access_token ? 'hash:access_token' : 'none',
           fullSearch: window.location.search,
           fullHash: window.location.hash
         });
 
-        // CRITICAL: Handle password reset tokens (from InvitationRedirect)
-        // Supabase sends access_token + refresh_token via resetPasswordForEmail()
-        if (access_token) {
-          console.log('🔑 Found access_token - attempting to set session...');
-
-          // Verify this is a recovery/password reset type
-          if (type && type !== 'recovery') {
-            console.warn('⚠️ Invalid type for password reset:', type);
-            setError('Invalid reset link type. Please request a new password reset link.');
-            return;
-          }
-
-          console.log('🔑 Setting session with OAuth tokens...', {
-            hasAccessToken: !!access_token,
-            hasRefreshToken: !!refresh_token,
-            type
-          });
+        // PRIORITY 1: Handle OAuth tokens from hash (direct Supabase OAuth flow)
+        if (access_token && refresh_token) {
+          console.log('🔑 Found OAuth tokens in hash - using setSession...');
 
           const { data, error: sessionError } = await supabase.auth.setSession({
             access_token,
-            refresh_token: refresh_token || ''
+            refresh_token
           });
 
           if (sessionError) {
-            console.error('❌ Session setup failed:', sessionError);
+            console.error('❌ OAuth session setup failed:', sessionError);
             setError('Invalid or expired reset link. Please request a new one.');
             return;
           }
@@ -88,7 +76,7 @@ export default function ResetPassword() {
             return;
           }
 
-          console.log('✅ Session established successfully:', {
+          console.log('✅ OAuth session established successfully:', {
             userId: data.session.user?.id,
             email: data.session.user?.email,
             expiresAt: data.session.expires_at
