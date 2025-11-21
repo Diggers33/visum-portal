@@ -12,19 +12,29 @@ export default function InvitationRedirect() {
 
   const handleRedirect = async () => {
     try {
-      // Get parameters from query string
+      // Get query parameters
       const params = new URLSearchParams(window.location.search);
-      const target = params.get('target'); // e.g., '/reset-password'
+      const target = params.get('target') || '/reset-password';
       const distributorId = params.get('distributor_id');
-      const tokenHash = params.get('token_hash');
-      const type = params.get('type');
 
-      if (!target) {
-        console.error('❌ Missing target URL parameter');
-        setError('Invalid invitation link. Please contact your administrator.');
-        setTimeout(() => navigate('/login'), 3000);
-        return;
-      }
+      // CRITICAL: Extract tokens from HASH fragments (Supabase OAuth tokens)
+      // Supabase appends tokens as: #access_token=xyz&refresh_token=abc&type=recovery
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      const type = hashParams.get('type');
+      const tokenHash = hashParams.get('token_hash');
+
+      console.log('🔍 URL Analysis:', {
+        queryParams: window.location.search,
+        hashParams: window.location.hash,
+        target,
+        distributorId,
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+        hasTokenHash: !!tokenHash,
+        type
+      });
 
       // Log the invitation click for analytics
       console.log('📧 Invitation click tracked:', {
@@ -32,7 +42,7 @@ export default function InvitationRedirect() {
         timestamp: new Date().toISOString(),
         userAgent: navigator.userAgent,
         target,
-        hasToken: !!tokenHash
+        hasToken: !!(accessToken || tokenHash)
       });
 
       // Optional: Log to backend for analytics
@@ -54,20 +64,36 @@ export default function InvitationRedirect() {
       }
       */
 
-      // Build the final URL with Supabase token
+      // Build final URL with tokens as QUERY params (ResetPassword expects query params)
       const finalUrl = new URL(target, window.location.origin);
+
+      // Add OAuth tokens (from hash)
+      if (accessToken) {
+        finalUrl.searchParams.set('access_token', accessToken);
+        console.log('✅ Added access_token to final URL');
+      }
+      if (refreshToken) {
+        finalUrl.searchParams.set('refresh_token', refreshToken);
+        console.log('✅ Added refresh_token to final URL');
+      }
+
+      // Add token_hash (from hash or query)
       if (tokenHash) {
         finalUrl.searchParams.set('token_hash', tokenHash);
+        console.log('✅ Added token_hash to final URL');
       }
+
+      // Add type parameter
       if (type) {
         finalUrl.searchParams.set('type', type);
+        console.log('✅ Added type to final URL');
       }
 
       // Small delay to ensure logging completes
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Redirect to final destination (password reset page with token)
-      console.log('🔄 Redirecting to:', finalUrl.pathname);
+      // Redirect to final destination with all tokens preserved
+      console.log('🔄 Redirecting to:', finalUrl.toString());
       window.location.href = finalUrl.toString();
 
     } catch (error) {
