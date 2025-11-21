@@ -188,9 +188,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password" className="font-medium">Password</Label>
-                <a href="#" className="text-sm text-[#00a8b5] hover:text-[#008a95] transition-colors duration-200">
+                <Link to="/forgot-password" className="text-sm text-[#00a8b5] hover:text-[#008a95] transition-colors duration-200">
                   Forgot password?
-                </a>
+                </Link>
               </div>
               <div className="relative">
                 <Input
