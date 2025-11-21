@@ -7,17 +7,26 @@ The invitation redirect tracking endpoint has been successfully implemented and 
 
 ### Frontend Changes (Already Deployed)
 1. **InvitationRedirect.tsx** - New page component at `/invitation-redirect`
-   - Extracts parameters: `target`, `distributor_id`, `token_hash`, `type`
+   - **CRITICAL FIX**: Extracts auth tokens from hash fragments (`#access_token=xyz`)
+   - Converts hash tokens to query parameters for compatibility
    - Logs invitation clicks with timestamp and user agent
-   - Redirects to password setup page with tokens intact
+   - Redirects to password setup page with all tokens preserved
+   - Supports both OAuth tokens (access_token/refresh_token) and token_hash
 
-2. **App.tsx** - Route added
+2. **ResetPassword.tsx** - Updated to accept tokens from multiple sources
+   - Checks BOTH query parameters and hash fragments for tokens
+   - Handles OAuth tokens via `setSession()` method
+   - Falls back to `verifyOtp()` for token_hash method
+   - Detailed logging for debugging token sources
+
+3. **App.tsx** - Route added
    - Route: `/invitation-redirect`
    - Publicly accessible (no authentication required)
 
-3. **Git commits pushed:**
+4. **Git commits pushed:**
    - `db52269` - Add invitation redirect tracking endpoint
    - `df4ec89` - Update InvitationRedirect to handle token in query params
+   - `72cc39f` - Fix InvitationRedirect to preserve Supabase hash tokens (CRITICAL)
 
 ## What Needs to Be Done Manually 🔧
 
@@ -104,26 +113,44 @@ const { error: emailError } = await supabaseAdmin.auth.resetPasswordForEmail(
 
 ## How It Works 🔄
 
-### URL Flow:
+### URL Flow with Token Preservation:
 
 1. **Admin creates/resends invitation** → Edge function generates URL:
    ```
    https://visum-portal.vercel.app/invitation-redirect?target=/reset-password&distributor_id=abc-123
    ```
 
-2. **Supabase adds auth tokens** to the URL (when user clicks):
+2. **Supabase adds auth tokens** to the URL as HASH FRAGMENTS (when user clicks):
    ```
-   https://visum-portal.vercel.app/invitation-redirect?target=/reset-password&distributor_id=abc-123&token_hash=xyz&type=recovery
+   https://visum-portal.vercel.app/invitation-redirect?target=/reset-password&distributor_id=abc-123#access_token=xyz&refresh_token=abc&type=recovery
    ```
+   **Note:** Supabase uses hash fragments (`#`) not query params for OAuth tokens
 
 3. **SendGrid tracks the click** (because URL goes through SendGrid's tracking domain)
 
-4. **InvitationRedirect page:**
+4. **InvitationRedirect page extracts and converts tokens:**
+   - Reads query params: `target`, `distributor_id`
+   - Reads hash fragments: `access_token`, `refresh_token`, `type`, `token_hash`
    - Logs the click with distributor_id, timestamp, user agent
-   - Rebuilds final URL: `/reset-password?token_hash=xyz&type=recovery`
-   - Redirects user to password setup page
+   - Converts hash to query params: `/reset-password?access_token=xyz&refresh_token=abc&type=recovery`
+   - Redirects user with all tokens preserved
 
-5. **User sets password** → Account activated → Success!
+5. **ResetPassword page handles tokens:**
+   - Checks query params first (from InvitationRedirect)
+   - Falls back to hash params (direct Supabase links)
+   - If OAuth tokens present: calls `supabase.auth.setSession()`
+   - If token_hash present: calls `supabase.auth.verifyOtp()`
+   - Validates token and shows password form
+
+6. **User sets password** → Account activated → Success!
+
+### Why This Approach Works:
+
+- **Hash fragments are preserved**: SendGrid click tracking doesn't modify hash fragments
+- **Query params are tracked**: SendGrid can track the redirect URL itself
+- **Token conversion**: InvitationRedirect converts hash → query for compatibility
+- **Dual support**: ResetPassword accepts tokens from both sources
+- **Fallback safe**: Works with direct Supabase links AND redirect links
 
 ---
 
