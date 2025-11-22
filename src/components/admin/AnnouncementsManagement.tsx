@@ -481,15 +481,15 @@ export default function AnnouncementsManagement() {
 
       {/* Add Announcement Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-4xl h-[90vh] p-0 flex flex-col">
+        <DialogContent className="max-w-4xl max-h-[85vh] p-0 flex flex-col overflow-hidden">
           {/* Fixed header */}
-          <DialogHeader className="px-6 pt-6 pb-4 border-b">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
             <DialogTitle>Create Announcement</DialogTitle>
             <DialogDescription>Create a new announcement for distributors</DialogDescription>
           </DialogHeader>
 
           {/* Scrollable content */}
-          <div className="flex-1 overflow-y-auto px-6 py-4">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4" style={{minHeight: 0}}>
             <form className="space-y-6">
               {/* Category and Status in one row */}
               <div className="grid grid-cols-2 gap-4">
@@ -663,7 +663,7 @@ export default function AnnouncementsManagement() {
           </div>
 
           {/* Fixed footer */}
-          <DialogFooter className="px-6 py-4 border-t bg-muted/50">
+          <DialogFooter className="px-6 py-4 border-t bg-muted/50 shrink-0">
             <Button
               variant="outline"
               onClick={() => {
@@ -687,15 +687,15 @@ export default function AnnouncementsManagement() {
 
       {/* Edit Announcement Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-4xl h-[90vh] p-0 flex flex-col">
+        <DialogContent className="max-w-4xl max-h-[85vh] p-0 flex flex-col overflow-hidden">
           {/* Fixed header */}
-          <DialogHeader className="px-6 pt-6 pb-4 border-b">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
             <DialogTitle>Edit Announcement</DialogTitle>
             <DialogDescription>Update announcement information</DialogDescription>
           </DialogHeader>
 
           {/* Scrollable content */}
-          <div className="flex-1 overflow-y-auto px-6 py-4">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4" style={{minHeight: 0}}>
             <form className="space-y-6">
               {/* Category and Status in one row */}
               <div className="grid grid-cols-2 gap-4">
@@ -871,7 +871,7 @@ export default function AnnouncementsManagement() {
           </div>
 
           {/* Fixed footer */}
-          <DialogFooter className="px-6 py-4 border-t bg-muted/50">
+          <DialogFooter className="px-6 py-4 border-t bg-muted/50 shrink-0">
             <Button
               variant="outline"
               onClick={() => {
