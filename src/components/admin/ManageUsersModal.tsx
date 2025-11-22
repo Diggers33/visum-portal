@@ -43,6 +43,7 @@ import {
   deleteDistributorUser,
   resendInvitation,
 } from '@/lib/api/distributors';
+import { supabase } from '@/lib/supabase';
 import InviteUserForm from './InviteUserForm';
 
 interface ManageUsersModalProps {
@@ -188,10 +189,19 @@ export default function ManageUsersModal({
 
     setDeletingUser(true);
     try {
+      // Get session for auth
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        throw new Error('No active session');
+      }
+
       // Call Edge Function to delete user (uses service role to bypass RLS)
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-distributor-user`, {
         method: 'DELETE',
         headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ userId: deleteUserId }),
