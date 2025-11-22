@@ -50,6 +50,8 @@ import {
   type CreateTrainingMaterialInput,
 } from '../../lib/api/training-materials';
 import { supabase } from '../../lib/supabase';
+import { DistributorSelector } from './DistributorSelector';
+import { saveContentSharing, getContentDistributors } from '../../lib/api/sharing';
 
 interface Product {
   id: string;
@@ -105,6 +107,7 @@ export default function TrainingManagement() {
   });
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedDistributorIds, setSelectedDistributorIds] = useState<string[]>([]);
 
   // Sidebar filter states
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
@@ -173,8 +176,13 @@ export default function TrainingManagement() {
         modules: formData.modules || 0,
       };
 
-      await createTrainingMaterial(materialData);
-      
+      const newMaterial = await createTrainingMaterial(materialData);
+
+      // Save distributor sharing
+      if (newMaterial) {
+        await saveContentSharing('training_materials', newMaterial.id, selectedDistributorIds);
+      }
+
       toast.success('Training material added successfully');
       setIsAddDialogOpen(false);
       resetForm();
@@ -213,6 +221,9 @@ export default function TrainingManagement() {
         modules: formData.modules || 0,
       });
 
+      // Save distributor sharing
+      await saveContentSharing('training_materials', selectedMaterial.id, selectedDistributorIds);
+
       toast.success('Training material updated successfully');
       setIsEditDialogOpen(false);
       resetForm();
@@ -240,7 +251,7 @@ export default function TrainingManagement() {
     }
   };
 
-  const openEditDialog = (material: TrainingMaterial) => {
+  const openEditDialog = async (material: TrainingMaterial) => {
     setSelectedMaterial(material);
     setFormData({
       title: material.title,
@@ -256,6 +267,11 @@ export default function TrainingManagement() {
       internal_notes: material.internal_notes || '',
     });
     setSelectedFile(null);
+
+    // Load existing sharing
+    const distributorIds = await getContentDistributors('training_materials', material.id);
+    setSelectedDistributorIds(distributorIds);
+
     setIsEditDialogOpen(true);
   };
 
@@ -280,6 +296,7 @@ export default function TrainingManagement() {
     });
     setSelectedFile(null);
     setSelectedMaterial(null);
+    setSelectedDistributorIds([]);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -777,6 +794,16 @@ export default function TrainingManagement() {
                   placeholder="Add any internal notes..."
                 />
               </div>
+
+              {/* Distributor Sharing */}
+              <div className="border-t pt-4">
+                <DistributorSelector
+                  selectedDistributorIds={selectedDistributorIds}
+                  onChange={setSelectedDistributorIds}
+                  label="Share with"
+                  description="Select which distributors can access this training material"
+                />
+              </div>
             </div>
 
             <DialogFooter>
@@ -989,6 +1016,16 @@ export default function TrainingManagement() {
                   onChange={(e) => setFormData({ ...formData, internal_notes: e.target.value })}
                   rows={2}
                   placeholder="Add any internal notes..."
+                />
+              </div>
+
+              {/* Distributor Sharing */}
+              <div className="border-t pt-4">
+                <DistributorSelector
+                  selectedDistributorIds={selectedDistributorIds}
+                  onChange={setSelectedDistributorIds}
+                  label="Share with"
+                  description="Select which distributors can access this training material"
                 />
               </div>
             </div>

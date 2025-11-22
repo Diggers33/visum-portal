@@ -19,6 +19,8 @@ import {
   type Announcement,
   type CreateAnnouncementInput,
 } from '../../lib/api/announcements';
+import { DistributorSelector } from './DistributorSelector';
+import { saveContentSharing, getContentDistributors } from '../../lib/api/sharing';
 
 const CATEGORIES = [
   'New Product',
@@ -51,6 +53,7 @@ export default function AnnouncementsManagement() {
     link_url: '',
     internal_notes: '',
   });
+  const [selectedDistributorIds, setSelectedDistributorIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -103,7 +106,13 @@ export default function AnnouncementsManagement() {
     }
     setSubmitting(true);
     try {
-      await createAnnouncement(formData);
+      const newAnnouncement = await createAnnouncement(formData);
+
+      // Save distributor sharing
+      if (newAnnouncement) {
+        await saveContentSharing('announcements', newAnnouncement.id, selectedDistributorIds);
+      }
+
       toast.success('Announcement created successfully');
       setIsAddDialogOpen(false);
       resetForm();
@@ -126,6 +135,10 @@ export default function AnnouncementsManagement() {
     setSubmitting(true);
     try {
       await updateAnnouncement(selectedAnnouncement.id, formData);
+
+      // Save distributor sharing
+      await saveContentSharing('announcements', selectedAnnouncement.id, selectedDistributorIds);
+
       toast.success('Announcement updated successfully');
       setIsEditDialogOpen(false);
       resetForm();
@@ -152,7 +165,7 @@ export default function AnnouncementsManagement() {
     }
   };
 
-  const openEditDialog = (announcement: Announcement) => {
+  const openEditDialog = async (announcement: Announcement) => {
     setSelectedAnnouncement(announcement);
     setFormData({
       category: announcement.category,
@@ -163,6 +176,11 @@ export default function AnnouncementsManagement() {
       link_url: announcement.link_url || '',
       internal_notes: announcement.internal_notes || '',
     });
+
+    // Load existing sharing
+    const distributorIds = await getContentDistributors('announcements', announcement.id);
+    setSelectedDistributorIds(distributorIds);
+
     setIsEditDialogOpen(true);
   };
 
@@ -177,6 +195,7 @@ export default function AnnouncementsManagement() {
       internal_notes: '',
     });
     setSelectedAnnouncement(null);
+    setSelectedDistributorIds([]);
   };
 
   const getStatusColor = (status: string) => {
@@ -488,8 +507,18 @@ export default function AnnouncementsManagement() {
                   placeholder="Add any internal notes..."
                 />
               </div>
+
+              {/* Distributor Sharing */}
+              <div className="border-t pt-4">
+                <DistributorSelector
+                  selectedDistributorIds={selectedDistributorIds}
+                  onChange={setSelectedDistributorIds}
+                  label="Share with"
+                  description="Select which distributors can see this announcement"
+                />
+              </div>
             </div>
-            
+
             <DialogFooter>
               <Button
                 type="button"
@@ -607,8 +636,18 @@ export default function AnnouncementsManagement() {
                   rows={2}
                 />
               </div>
+
+              {/* Distributor Sharing */}
+              <div className="border-t pt-4">
+                <DistributorSelector
+                  selectedDistributorIds={selectedDistributorIds}
+                  onChange={setSelectedDistributorIds}
+                  label="Share with"
+                  description="Select which distributors can see this announcement"
+                />
+              </div>
             </div>
-            
+
             <DialogFooter>
               <Button
                 type="button"

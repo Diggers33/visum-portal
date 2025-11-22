@@ -51,6 +51,8 @@ import {
 } from '../../lib/api/marketing-assets';
 import { supabase } from '../../lib/supabase';
 import TranslateButton from '../TranslateButton';
+import { DistributorSelector } from './DistributorSelector';
+import { saveContentSharing, getContentDistributors } from '../../lib/api/sharing';
 
 interface Product {
   id: string;
@@ -130,6 +132,7 @@ export default function MarketingManagement() {
   });
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedDistributorIds, setSelectedDistributorIds] = useState<string[]>([]);
 
   // Sidebar filter states
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
@@ -191,13 +194,16 @@ export default function MarketingManagement() {
       };
 
       const createdAsset = await createMarketingAsset(assetData);
-      
+
       // Upload file
       const fileUrl = await uploadMarketingAssetFile(selectedFile, createdAsset.id);
-      
+
       // Update asset with file URL
       await updateMarketingAsset(createdAsset.id, { file_url: fileUrl });
-      
+
+      // Save distributor sharing
+      await saveContentSharing('marketing_assets', createdAsset.id, selectedDistributorIds);
+
       toast.success('Marketing asset added successfully');
       setIsAddDialogOpen(false);
       resetForm();
@@ -235,6 +241,9 @@ export default function MarketingManagement() {
         size: selectedFile ? selectedFile.size : selectedAsset.size,
       });
 
+      // Save distributor sharing
+      await saveContentSharing('marketing_assets', selectedAsset.id, selectedDistributorIds);
+
       toast.success('Marketing asset updated successfully');
       setIsEditDialogOpen(false);
       resetForm();
@@ -262,7 +271,7 @@ export default function MarketingManagement() {
     }
   };
 
-  const openEditDialog = (asset: MarketingAsset) => {
+  const openEditDialog = async (asset: MarketingAsset) => {
     setSelectedAsset(asset);
     setFormData({
       name: asset.name,
@@ -275,6 +284,11 @@ export default function MarketingManagement() {
       internal_notes: asset.internal_notes || '',
     });
     setSelectedFile(null);
+
+    // Load existing sharing
+    const distributorIds = await getContentDistributors('marketing_assets', asset.id);
+    setSelectedDistributorIds(distributorIds);
+
     setIsEditDialogOpen(true);
   };
 
@@ -296,6 +310,7 @@ export default function MarketingManagement() {
     });
     setSelectedFile(null);
     setSelectedAsset(null);
+    setSelectedDistributorIds([]);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -744,6 +759,16 @@ export default function MarketingManagement() {
                   placeholder="Add any internal notes..."
                 />
               </div>
+
+              {/* Distributor Sharing */}
+              <div className="border-t pt-4">
+                <DistributorSelector
+                  selectedDistributorIds={selectedDistributorIds}
+                  onChange={setSelectedDistributorIds}
+                  label="Share with"
+                  description="Select which distributors can access this marketing asset"
+                />
+              </div>
             </div>
 
             <DialogFooter>
@@ -919,6 +944,16 @@ export default function MarketingManagement() {
                   value={formData.internal_notes || ''}
                   onChange={(e) => setFormData({ ...formData, internal_notes: e.target.value })}
                   rows={2}
+                />
+              </div>
+
+              {/* Distributor Sharing */}
+              <div className="border-t pt-4">
+                <DistributorSelector
+                  selectedDistributorIds={selectedDistributorIds}
+                  onChange={setSelectedDistributorIds}
+                  label="Share with"
+                  description="Select which distributors can access this marketing asset"
                 />
               </div>
             </div>

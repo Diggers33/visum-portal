@@ -131,6 +131,11 @@ export default function DistributorsManagement() {
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [deletingUser, setDeletingUser] = useState(false);
 
+  // Edit User Inline
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editStatus, setEditStatus] = useState<'active' | 'pending' | 'inactive'>('active');
+  const [savingEdit, setSavingEdit] = useState(false);
+
   // Delete confirmation
   const [deleteDistributorId, setDeleteDistributorId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -447,6 +452,56 @@ export default function DistributorsManagement() {
         variant: 'destructive',
       });
     }
+  };
+
+  const handleEditUser = (user: DistributorUser) => {
+    setEditingUserId(user.id);
+    setEditStatus(user.status);
+  };
+
+  const handleSaveEdit = async (userId: string) => {
+    setSavingEdit(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-distributor-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          status: editStatus,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to update user');
+      }
+
+      toast({
+        title: 'Success',
+        description: 'User updated successfully',
+      });
+
+      setEditingUserId(null);
+
+      // Refresh users for this distributor
+      await handleManageUsers(selectedDistributorId!);
+    } catch (error: any) {
+      console.error('❌ Update user error:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update user',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingUserId(null);
   };
 
   const handleToggleUserStatus = async (userId: string) => {
@@ -1190,25 +1245,70 @@ export default function DistributorsManagement() {
                           </TableCell>
                           <TableCell className="text-[13px]">{user.email}</TableCell>
                           <TableCell>
-                            <Badge
-                              className={
-                                user.status === 'active'
-                                  ? 'bg-green-100 text-green-700 hover:bg-green-100'
-                                  : 'bg-slate-100 text-slate-700 hover:bg-slate-100'
-                              }
-                            >
-                              {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
-                            </Badge>
+                            {editingUserId === user.id ? (
+                              <Select
+                                value={editStatus}
+                                onValueChange={(value: 'active' | 'pending' | 'inactive') =>
+                                  setEditStatus(value)
+                                }
+                                disabled={savingEdit}
+                              >
+                                <SelectTrigger className="w-[120px]">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="active">Active</SelectItem>
+                                  <SelectItem value="pending">Pending</SelectItem>
+                                  <SelectItem value="inactive">Inactive</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <Badge
+                                className={
+                                  user.status === 'active'
+                                    ? 'bg-green-100 text-green-700 hover:bg-green-100'
+                                    : 'bg-slate-100 text-slate-700 hover:bg-slate-100'
+                                }
+                              >
+                                {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+                              </Badge>
+                            )}
                           </TableCell>
                           <TableCell className="text-right">
-                            <DropdownMenu>
+                            {editingUserId === user.id ? (
+                              <div className="flex gap-1 justify-end">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleSaveEdit(user.id)}
+                                  disabled={savingEdit}
+                                  className="bg-[#00a8b5] hover:bg-[#008a95]"
+                                >
+                                  {savingEdit ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    'Save'
+                                  )}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={handleCancelEdit}
+                                  disabled={savingEdit}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            ) : (
+                              <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="sm">
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleEditUser(user)}
+                                >
                                   <Edit className="mr-2 h-4 w-4" />
                                   Edit User
                                 </DropdownMenuItem>
@@ -1234,6 +1334,7 @@ export default function DistributorsManagement() {
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))

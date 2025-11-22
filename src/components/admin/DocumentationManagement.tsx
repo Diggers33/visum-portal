@@ -58,6 +58,8 @@ import {
   type CreateDocumentationInput,
 } from '../../lib/api/documentation';
 import { supabase } from '../../lib/supabase';
+import { DistributorSelector } from './DistributorSelector';
+import { saveContentSharing, getContentDistributors } from '../../lib/api/sharing';
 
 interface Product {
   id: string;
@@ -109,6 +111,7 @@ export default function DocumentationManagement() {
   });
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedDistributorIds, setSelectedDistributorIds] = useState<string[]>([]);
 
   // Sidebar filter states
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -189,8 +192,13 @@ export default function DocumentationManagement() {
         format: selectedFile.name.split('.').pop()?.toUpperCase() || 'UNKNOWN',
       };
 
-      await createDocumentation(documentData);
-      
+      const newDocument = await createDocumentation(documentData);
+
+      // Save distributor sharing
+      if (newDocument) {
+        await saveContentSharing('documentation', newDocument.id, selectedDistributorIds);
+      }
+
       toast.success('Document uploaded successfully');
       setIsAddDialogOpen(false);
       resetForm();
@@ -232,6 +240,9 @@ export default function DocumentationManagement() {
         format: format,
       });
 
+      // Save distributor sharing
+      await saveContentSharing('documentation', selectedDocument.id, selectedDistributorIds);
+
       toast.success('Document updated successfully');
       setIsEditDialogOpen(false);
       resetForm();
@@ -259,7 +270,7 @@ export default function DocumentationManagement() {
     }
   };
 
-  const openEditDialog = (doc: Documentation) => {
+  const openEditDialog = async (doc: Documentation) => {
     setSelectedDocument(doc);
     setFormData({
       title: doc.title,
@@ -271,12 +282,16 @@ export default function DocumentationManagement() {
       internal_notes: doc.internal_notes || '',
     });
     setSelectedFile(null);
-    
+
+    // Load existing sharing
+    const distributorIds = await getContentDistributors('documentation', doc.id);
+    setSelectedDistributorIds(distributorIds);
+
     // Ensure products are loaded before opening dialog
     if (products.length === 0) {
       loadProducts();
     }
-    
+
     setIsEditDialogOpen(true);
   };
 
@@ -307,6 +322,7 @@ export default function DocumentationManagement() {
     });
     setSelectedFile(null);
     setSelectedDocument(null);
+    setSelectedDistributorIds([]);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -678,6 +694,16 @@ export default function DocumentationManagement() {
                   placeholder="Add any internal notes about this document..."
                 />
               </div>
+
+              {/* Distributor Sharing */}
+              <div className="border-t pt-4">
+                <DistributorSelector
+                  selectedDistributorIds={selectedDistributorIds}
+                  onChange={setSelectedDistributorIds}
+                  label="Share with"
+                  description="Select which distributors can access this document"
+                />
+              </div>
             </div>
 
             <DialogFooter>
@@ -843,6 +869,16 @@ export default function DocumentationManagement() {
                   onChange={(e) => setFormData({ ...formData, internal_notes: e.target.value })}
                   rows={3}
                   placeholder="Add any internal notes about this document..."
+                />
+              </div>
+
+              {/* Distributor Sharing */}
+              <div className="border-t pt-4">
+                <DistributorSelector
+                  selectedDistributorIds={selectedDistributorIds}
+                  onChange={setSelectedDistributorIds}
+                  label="Share with"
+                  description="Select which distributors can access this document"
                 />
               </div>
             </div>
