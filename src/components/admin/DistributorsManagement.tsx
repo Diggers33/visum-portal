@@ -210,7 +210,7 @@ export default function DistributorsManagement() {
 
     try {
       // Call Edge Function to create distributor
-      const response = await fetch('/functions/v1/create-distributor', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-distributor`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -321,7 +321,7 @@ export default function DistributorsManagement() {
 
     try {
       // Call Edge Function to delete distributor
-      const response = await fetch('/functions/v1/delete-distributor', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-distributor`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -405,7 +405,7 @@ export default function DistributorsManagement() {
 
     try {
       // Call Edge Function to add user
-      const response = await fetch('/functions/v1/create-distributor-user', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-distributor-user`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -471,7 +471,7 @@ export default function DistributorsManagement() {
 
     try {
       // Update user via API (would need updateDistributorUser function)
-      const response = await fetch('/functions/v1/update-distributor-user', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-distributor-user`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -521,7 +521,7 @@ export default function DistributorsManagement() {
     setDeletingUser(true);
     try {
       // Call Edge Function to delete user (uses service role to bypass RLS)
-      const response = await fetch('/functions/v1/delete-distributor-user', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-distributor-user`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

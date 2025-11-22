@@ -189,7 +189,7 @@ export default function ManageUsersModal({
     setDeletingUser(true);
     try {
       // Call Edge Function to delete user (uses service role to bypass RLS)
-      const response = await fetch('/functions/v1/delete-distributor-user', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-distributor-user`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
