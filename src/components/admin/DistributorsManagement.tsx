@@ -1289,23 +1289,6 @@ export default function DistributorsManagement() {
                 placeholder="john.smith@company.com"
               />
             </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="userRole">Role *</Label>
-              <Select
-                value={newUser.role}
-                onValueChange={(value) => setNewUser({ ...newUser, role: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="manager">Manager</SelectItem>
-                  <SelectItem value="user">User</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
           <DialogFooter>
