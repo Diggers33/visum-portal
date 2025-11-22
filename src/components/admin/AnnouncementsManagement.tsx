@@ -6,6 +6,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Checkbox } from '../ui/checkbox';
+import { ScrollArea } from '../ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
@@ -481,13 +482,15 @@ export default function AnnouncementsManagement() {
 
       {/* Add Announcement Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Create Announcement</DialogTitle>
             <DialogDescription>Create a new announcement for distributors</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit}>
-            <div className="space-y-4 py-4">
+
+          <ScrollArea className="flex-1 -mx-6 px-6">
+            <form onSubmit={handleSubmit} className="pr-4">
+              <div className="space-y-6 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Category *</Label>
@@ -646,37 +649,44 @@ export default function AnnouncementsManagement() {
                   description="Select which distributors can see this announcement"
                 />
               </div>
-            </div>
+              </div>
+            </form>
+          </ScrollArea>
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setIsAddDialogOpen(false);
-                  resetForm();
-                }}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={submitting} className="bg-[#00a8b5] hover:bg-[#008a95]">
-                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create Announcement
-              </Button>
-            </DialogFooter>
-          </form>
+          <DialogFooter className="mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsAddDialogOpen(false);
+                resetForm();
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="bg-[#00a8b5] hover:bg-[#008a95]"
+            >
+              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Create Announcement
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Edit Announcement Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Edit Announcement</DialogTitle>
             <DialogDescription>Update announcement information</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleUpdate}>
-            <div className="space-y-4 py-4">
+
+          <ScrollArea className="flex-1 -mx-6 px-6">
+            <form onSubmit={handleUpdate} className="pr-4">
+              <div className="space-y-6 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Category *</Label>
@@ -835,25 +845,30 @@ export default function AnnouncementsManagement() {
                   description="Select which distributors can see this announcement"
                 />
               </div>
-            </div>
+              </div>
+            </form>
+          </ScrollArea>
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setIsEditDialogOpen(false);
-                  resetForm();
-                }}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={submitting} className="bg-[#00a8b5] hover:bg-[#008a95]">
-                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Update Announcement
-              </Button>
-            </DialogFooter>
-          </form>
+          <DialogFooter className="mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsEditDialogOpen(false);
+                resetForm();
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpdate}
+              disabled={submitting}
+              className="bg-[#00a8b5] hover:bg-[#008a95]"
+            >
+              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Update Announcement
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

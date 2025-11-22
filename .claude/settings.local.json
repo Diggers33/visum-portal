@@ -12,7 +12,9 @@
       "Bash(git rm:*)",
       "Bash(dir:*)",
       "Bash(findstr:*)",
-      "Bash(npx supabase:*)"
+      "Bash(npx supabase:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []

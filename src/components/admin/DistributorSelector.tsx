@@ -114,7 +114,7 @@ export function DistributorSelector({
       />
 
       {/* Distributor list */}
-      <ScrollArea className="h-[300px] border rounded-md p-4">
+      <ScrollArea className="h-[180px] border rounded-md p-4">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="h-6 w-6 animate-spin text-[#00a8b5]" />
