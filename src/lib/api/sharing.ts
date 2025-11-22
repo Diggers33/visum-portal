@@ -35,25 +35,14 @@ export async function saveContentSharing(
   const config = CONTENT_CONFIG[contentType];
 
   try {
-    console.log(`💾 Saving ${contentType} sharing:`, {
-      contentId,
-      distributorIds,
-      isPublic: distributorIds.length === 0,
-      table: config.table,
-      idColumn: config.idColumn,
-    });
-
     // Step 1: Delete existing sharing records
-    const { data: deleteData, error: deleteError } = await supabase
+    const { error: deleteError } = await supabase
       .from(config.table)
       .delete()
       .eq(config.idColumn, contentId)
       .select();
 
-    console.log(`🔍 [Sharing Debug] Delete result:`, { data: deleteData, error: deleteError });
-
     if (deleteError) {
-      console.error('❌ Delete error details:', deleteError);
       throw deleteError;
     }
 
@@ -64,37 +53,26 @@ export async function saveContentSharing(
         distributor_id: distributorId,
       }));
 
-      console.log(`🔍 [Sharing Debug] Attempting to insert:`, records);
-      console.log(`🔍 [Sharing Debug] Into table:`, config.table);
-
       const { data: insertData, error: insertError } = await supabase
         .from(config.table)
         .insert(records)
         .select();
 
-      console.log(`🔍 [Sharing Debug] Insert result:`, { data: insertData, error: insertError });
-
       if (insertError) {
-        console.error('❌ Insert error details:', insertError);
         throw insertError;
       }
 
       // Check if insert actually succeeded (RLS can silently fail)
       if (!insertData || insertData.length === 0) {
         const rlsError = new Error('Insert succeeded but returned no data - likely blocked by RLS policy');
-        console.error('❌ RLS Policy Issue:', rlsError.message);
-        console.error('💡 Solution: Check RLS policies on', config.table);
+        console.error('RLS Policy Issue:', rlsError.message);
         throw rlsError;
       }
-
-      console.log(`✅ Saved ${records.length} sharing records`, insertData);
-    } else {
-      console.log('✅ Cleared sharing records (public/all)');
     }
 
     return { success: true, error: null };
   } catch (error: any) {
-    console.error('❌ Error saving content sharing:', error);
+    console.error('Error saving content sharing:', error);
     return { success: false, error };
   }
 }
@@ -117,13 +95,9 @@ export async function getContentDistributors(
 
     if (error) throw error;
 
-    const distributorIds = data?.map((row) => row.distributor_id) || [];
-
-    console.log(`📥 Loaded ${distributorIds.length} sharing records for ${contentType}:${contentId}`);
-
-    return distributorIds;
+    return data?.map((row) => row.distributor_id) || [];
   } catch (error) {
-    console.error('❌ Error fetching content distributors:', error);
+    console.error('Error fetching content distributors:', error);
     return [];
   }
 }

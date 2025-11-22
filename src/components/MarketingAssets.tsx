@@ -120,12 +120,6 @@ export default function MarketingAssets() {
         return dateB - dateA;
       });
 
-      console.log('Loaded accessible marketing assets:', sortedData.length);
-      if (sortedData.length > 0) {
-        console.log('Sample asset:', sortedData[0]);
-        console.log('Has file_url?', !!sortedData[0].file_url);
-      }
-
       setAssets(sortedData);
 
       // Load translations after assets are loaded

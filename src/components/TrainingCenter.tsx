@@ -144,7 +144,6 @@ export default function TrainingCenter() {
         return 0;
       });
 
-      console.log('Loaded accessible training materials:', transformedMaterials.length);
       setTrainingMaterials(transformedMaterials);
     } catch (error) {
       console.error('Error loading materials:', error);

@@ -74,7 +74,6 @@ export default function WhatsNew() {
         return dateB - dateA;
       });
 
-      console.log('Loaded accessible announcements:', sortedData.length);
       setAnnouncements(sortedData);
     } catch (error) {
       console.error('Error in loadAnnouncements:', error);

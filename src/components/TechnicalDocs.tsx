@@ -127,7 +127,6 @@ export default function TechnicalDocs() {
         return dateB - dateA;
       });
 
-      console.log('Loaded accessible documents:', sortedData.length);
       setDocuments(sortedData);
     } catch (error) {
       console.error('Error loading documents:', error);
