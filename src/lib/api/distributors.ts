@@ -351,15 +351,36 @@ export async function deleteDistributorUser(
   try {
     console.log('🗑️ Deleting distributor user:', userId);
 
-    const { error } = await supabase
+    // First check if user exists
+    const { data: beforeDelete, error: checkError } = await supabase
+      .from('user_profiles')
+      .select('id, email, full_name')
+      .eq('id', userId)
+      .single();
+
+    console.log('🔍 User before delete:', beforeDelete);
+
+    const { data, error, count } = await supabase
       .from('user_profiles')
       .delete()
-      .eq('id', userId);
+      .eq('id', userId)
+      .select();
+
+    console.log('🔍 Delete response - data:', data, 'count:', count, 'error:', error);
 
     if (error) {
       console.error('❌ Delete user error:', error);
       return { success: false, error };
     }
+
+    // Verify deletion
+    const { data: afterDelete, error: verifyError } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('id', userId)
+      .maybeSingle();
+
+    console.log('🔍 User after delete (should be null):', afterDelete);
 
     console.log('✅ User deleted successfully');
     return { success: true, error: null };
