@@ -23,6 +23,7 @@ import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 import { toast } from 'sonner@2.0.3';
 import { supabase } from '../lib/supabase';
 import { trackDownload } from '../lib/activityTracker';
+import { fetchAccessibleMarketingAssets } from '../lib/api/distributor-content';
 
 interface MarketingAsset {
   id: string;
@@ -108,25 +109,28 @@ export default function MarketingAssets() {
   const loadAssets = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('marketing_assets')
-        .select('*')
-        .eq('status', 'published')
-        .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      
-      console.log('Loaded assets:', data);
-      if (data && data.length > 0) {
-        console.log('Sample asset:', data[0]);
-        console.log('Has file_url?', !!data[0].file_url);
+      // Fetch only marketing assets accessible to this distributor
+      const data = await fetchAccessibleMarketingAssets();
+
+      // Sort by created_at descending
+      const sortedData = data.sort((a: any, b: any) => {
+        const dateA = new Date(a.created_at).getTime();
+        const dateB = new Date(b.created_at).getTime();
+        return dateB - dateA;
+      });
+
+      console.log('Loaded accessible marketing assets:', sortedData.length);
+      if (sortedData.length > 0) {
+        console.log('Sample asset:', sortedData[0]);
+        console.log('Has file_url?', !!sortedData[0].file_url);
       }
-      
-      setAssets(data || []);
-      
+
+      setAssets(sortedData);
+
       // Load translations after assets are loaded
-      if (data && data.length > 0) {
-        await loadTranslations(data);
+      if (sortedData.length > 0) {
+        await loadTranslations(sortedData);
       }
     } catch (error) {
       console.error('Error loading assets:', error);

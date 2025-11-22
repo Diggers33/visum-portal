@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { fetchAccessibleAnnouncements } from '../lib/api/distributor-content';
 
 const categoryColors: Record<string, string> = {
   'New Product': 'bg-[#10b981] text-white',
@@ -62,18 +63,19 @@ export default function WhatsNew() {
   const loadAnnouncements = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('announcements')
-        .select('*')
-        .eq('status', 'published')
-        .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error loading announcements:', error);
-        return;
-      }
+      // Fetch only announcements accessible to this distributor
+      const data = await fetchAccessibleAnnouncements();
 
-      setAnnouncements(data || []);
+      // Sort by created_at descending
+      const sortedData = data.sort((a: any, b: any) => {
+        const dateA = new Date(a.created_at).getTime();
+        const dateB = new Date(b.created_at).getTime();
+        return dateB - dateA;
+      });
+
+      console.log('Loaded accessible announcements:', sortedData.length);
+      setAnnouncements(sortedData);
     } catch (error) {
       console.error('Error in loadAnnouncements:', error);
     } finally {

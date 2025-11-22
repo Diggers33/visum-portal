@@ -45,6 +45,7 @@ import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 import { toast } from 'sonner@2.0.3';
 import { supabase } from '../lib/supabase';
 import { trackDownload } from '../lib/activityTracker';
+import { fetchAccessibleDocumentation } from '../lib/api/distributor-content';
 
 // Category definitions with icons and colors
 const categoryDefinitions = [
@@ -115,16 +116,19 @@ export default function TechnicalDocs() {
   const loadDocuments = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('documentation')
-        .select('*')
-        .eq('status', 'published')
-        .order('updated_at', { ascending: false });
 
-      if (error) throw error;
-      
-      console.log('Loaded documents:', data?.length);
-      setDocuments(data || []);
+      // Fetch only documents accessible to this distributor
+      const data = await fetchAccessibleDocumentation();
+
+      // Sort by updated_at descending
+      const sortedData = data.sort((a: any, b: any) => {
+        const dateA = new Date(a.updated_at || a.created_at).getTime();
+        const dateB = new Date(b.updated_at || b.created_at).getTime();
+        return dateB - dateA;
+      });
+
+      console.log('Loaded accessible documents:', sortedData.length);
+      setDocuments(sortedData);
     } catch (error) {
       console.error('Error loading documents:', error);
       toast.error('Failed to load documentation');
