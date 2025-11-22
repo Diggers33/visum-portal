@@ -125,7 +125,6 @@ export default function DistributorsManagement() {
   const [newUser, setNewUser] = useState({
     name: '',
     email: '',
-    role: 'user',
   });
 
   // Delete User Confirmation Dialog
@@ -226,7 +225,7 @@ export default function DistributorsManagement() {
           create_first_user: true,
           user_email: newDistributor.email,
           user_full_name: newDistributor.contactName || null,
-          user_company_role: 'admin',
+          user_company_role: 'user',
           send_invitation: newDistributor.sendWelcome,
         }),
       });
@@ -415,7 +414,7 @@ export default function DistributorsManagement() {
           distributor_id: selectedDistributorId,
           email: newUser.email,
           full_name: newUser.name,
-          company_role: newUser.role,
+          company_role: 'user',
           send_invitation: true,
         }),
       });
@@ -1101,9 +1100,6 @@ export default function DistributorsManagement() {
                                     <p className="text-[13px] text-slate-700">
                                       {user.full_name || 'No name'}
                                     </p>
-                                    <Badge variant="outline" className="text-[10px] mt-0.5">
-                                      {user.company_role}
-                                    </Badge>
                                   </div>
                                 </div>
                               </TableCell>
@@ -1181,7 +1177,6 @@ export default function DistributorsManagement() {
                     <TableRow>
                       <TableHead>Name</TableHead>
                       <TableHead>Email</TableHead>
-                      <TableHead>Role</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -1194,11 +1189,6 @@ export default function DistributorsManagement() {
                             {user.full_name || 'No name'}
                           </TableCell>
                           <TableCell className="text-[13px]">{user.email}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="text-[11px]">
-                              {user.company_role}
-                            </Badge>
-                          </TableCell>
                           <TableCell>
                             <Badge
                               className={

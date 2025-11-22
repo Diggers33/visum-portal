@@ -67,7 +67,6 @@ export default function ManageUsersModal({
 
   // Edit user state
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
-  const [editRole, setEditRole] = useState<'admin' | 'manager' | 'user'>('user');
   const [editStatus, setEditStatus] = useState<'active' | 'pending' | 'inactive'>('active');
   const [savingEdit, setSavingEdit] = useState(false);
 
@@ -114,7 +113,6 @@ export default function ManageUsersModal({
 
   const handleEditUser = (user: DistributorUser) => {
     setEditingUserId(user.id);
-    setEditRole(user.company_role);
     setEditStatus(user.status);
   };
 
@@ -122,7 +120,6 @@ export default function ManageUsersModal({
     setSavingEdit(true);
     try {
       const { data, error } = await updateDistributorUser(userId, {
-        company_role: editRole,
         status: editStatus,
       });
 
@@ -320,7 +317,6 @@ export default function ManageUsersModal({
                   <TableRow>
                     <TableHead>Email</TableHead>
                     <TableHead>Name</TableHead>
-                    <TableHead>Role</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Invited</TableHead>
                     <TableHead>Actions</TableHead>
@@ -331,30 +327,6 @@ export default function ManageUsersModal({
                     <TableRow key={user.id}>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>{user.full_name || '-'}</TableCell>
-                      <TableCell>
-                        {editingUserId === user.id ? (
-                          <Select
-                            value={editRole}
-                            onValueChange={(value: 'admin' | 'manager' | 'user') =>
-                              setEditRole(value)
-                            }
-                            disabled={savingEdit}
-                          >
-                            <SelectTrigger className="w-[120px]">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="admin">Admin</SelectItem>
-                              <SelectItem value="manager">Manager</SelectItem>
-                              <SelectItem value="user">User</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <Badge variant="outline" className="capitalize">
-                            {user.company_role}
-                          </Badge>
-                        )}
-                      </TableCell>
                       <TableCell>
                         {editingUserId === user.id ? (
                           <Select

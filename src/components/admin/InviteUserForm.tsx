@@ -65,7 +65,7 @@ export default function InviteUserForm({
       });
 
       // Call Edge Function to create user
-      const response = await fetch('/functions/v1/create-distributor-user', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-distributor-user`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -155,29 +155,8 @@ export default function InviteUserForm({
           />
         </div>
 
-        {/* Company Role */}
-        <div className="space-y-2">
-          <Label htmlFor="user_company_role">Role</Label>
-          <Select
-            value={formData.company_role}
-            onValueChange={(value: 'admin' | 'manager' | 'user') =>
-              setFormData({ ...formData, company_role: value })
-            }
-            disabled={loading}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="admin">Admin</SelectItem>
-              <SelectItem value="manager">Manager</SelectItem>
-              <SelectItem value="user">User</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
         {/* Send Invitation Checkbox */}
-        <div className="space-y-2 flex items-end">
+        <div className="space-y-2 flex items-end col-span-1 md:col-span-2">
           <div className="flex items-center gap-2">
             <Checkbox
               id="send_invitation"
