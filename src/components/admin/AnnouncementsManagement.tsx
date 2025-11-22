@@ -5,18 +5,20 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
+import { Checkbox } from '../ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
-import { Search, Plus, Megaphone, Edit2, Trash2, MoreVertical, Loader2, Eye, MousePointer } from 'lucide-react';
+import { Search, Plus, Megaphone, Edit2, Trash2, MoreVertical, Loader2, Eye, MousePointer, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   fetchAnnouncements,
   createAnnouncement,
   updateAnnouncement,
   deleteAnnouncement,
+  sendAnnouncementNotification,
   type Announcement,
   type CreateAnnouncementInput,
 } from '../../lib/api/announcements';
@@ -56,6 +58,7 @@ export default function AnnouncementsManagement() {
     link_text: '',
     link_url: '',
     internal_notes: '',
+    send_notification: false,
   });
   const [selectedDistributorIds, setSelectedDistributorIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -131,9 +134,21 @@ export default function AnnouncementsManagement() {
       // Save distributor sharing
       if (newAnnouncement) {
         await saveContentSharing('announcements', newAnnouncement.id, selectedDistributorIds);
+
+        // Send email notification if checkbox is checked and status is published
+        if (formData.send_notification && formData.status === 'published') {
+          try {
+            await sendAnnouncementNotification(newAnnouncement.id);
+            toast.success('Announcement created and notifications sent!');
+          } catch (notificationError) {
+            console.error('Error sending notification:', notificationError);
+            toast.warning('Announcement created but failed to send email notifications');
+          }
+        } else {
+          toast.success('Announcement created successfully');
+        }
       }
 
-      toast.success('Announcement created successfully');
       setIsAddDialogOpen(false);
       resetForm();
       loadAnnouncements();
@@ -171,7 +186,19 @@ export default function AnnouncementsManagement() {
       // Save distributor sharing
       await saveContentSharing('announcements', selectedAnnouncement.id, selectedDistributorIds);
 
-      toast.success('Announcement updated successfully');
+      // Send email notification if checkbox is checked and status is published
+      if (formData.send_notification && formData.status === 'published') {
+        try {
+          await sendAnnouncementNotification(selectedAnnouncement.id);
+          toast.success('Announcement updated and notifications sent!');
+        } catch (notificationError) {
+          console.error('Error sending notification:', notificationError);
+          toast.warning('Announcement updated but failed to send email notifications');
+        }
+      } else {
+        toast.success('Announcement updated successfully');
+      }
+
       setIsEditDialogOpen(false);
       resetForm();
       loadAnnouncements();
@@ -209,6 +236,7 @@ export default function AnnouncementsManagement() {
       link_text: announcement.link_text || '',
       link_url: announcement.link_url || '',
       internal_notes: announcement.internal_notes || '',
+      send_notification: false, // Reset to unchecked for editing
     });
 
     // Load existing sharing
@@ -229,6 +257,7 @@ export default function AnnouncementsManagement() {
       link_text: '',
       link_url: '',
       internal_notes: '',
+      send_notification: false,
     });
     setSelectedAnnouncement(null);
     setSelectedDistributorIds([]);
@@ -584,6 +613,34 @@ export default function AnnouncementsManagement() {
                 />
               </div>
 
+              {/* Email Notification */}
+              <div className="flex items-center space-x-2 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <Checkbox
+                  id="send-notification"
+                  checked={formData.send_notification || false}
+                  onCheckedChange={(checked) =>
+                    setFormData({...formData, send_notification: checked as boolean})
+                  }
+                  disabled={formData.status !== 'published'}
+                />
+                <div className="flex-1">
+                  <Label
+                    htmlFor="send-notification"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-blue-600" />
+                      <span>Send email notification to all distributors</span>
+                    </div>
+                  </Label>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {formData.status !== 'published'
+                      ? 'Only available when status is "Published"'
+                      : 'Distributors will receive an email about this announcement'}
+                  </p>
+                </div>
+              </div>
+
               {/* Distributor Sharing */}
               <div className="border-t pt-4">
                 <DistributorSelector
@@ -743,6 +800,34 @@ export default function AnnouncementsManagement() {
                   onChange={(e) => setFormData({ ...formData, internal_notes: e.target.value })}
                   rows={2}
                 />
+              </div>
+
+              {/* Email Notification */}
+              <div className="flex items-center space-x-2 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <Checkbox
+                  id="send-notification-edit"
+                  checked={formData.send_notification || false}
+                  onCheckedChange={(checked) =>
+                    setFormData({...formData, send_notification: checked as boolean})
+                  }
+                  disabled={formData.status !== 'published'}
+                />
+                <div className="flex-1">
+                  <Label
+                    htmlFor="send-notification-edit"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-blue-600" />
+                      <span>Send email notification to all distributors</span>
+                    </div>
+                  </Label>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {formData.status !== 'published'
+                      ? 'Only available when status is "Published"'
+                      : 'Distributors will receive an email about this announcement'}
+                  </p>
+                </div>
               </div>
 
               {/* Distributor Sharing */}

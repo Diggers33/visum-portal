@@ -18,6 +18,7 @@ export interface Announcement {
   link_text?: string;
   link_url?: string;
   internal_notes?: string;
+  send_notification?: boolean;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -35,6 +36,7 @@ export interface CreateAnnouncementInput {
   link_text?: string;
   link_url?: string;
   internal_notes?: string;
+  send_notification?: boolean;
 }
 
 export interface UpdateAnnouncementInput extends Partial<CreateAnnouncementInput> {}
@@ -209,7 +211,7 @@ export async function incrementAnnouncementViews(id: string): Promise<void> {
  */
 export async function incrementAnnouncementClicks(id: string): Promise<void> {
   const { data: { session } } = await supabase.auth.getSession();
-  
+
   if (!session) {
     throw new Error('Not authenticated');
   }
@@ -227,4 +229,35 @@ export async function incrementAnnouncementClicks(id: string): Promise<void> {
     const error = await response.json();
     throw new Error(error.error || 'Failed to increment clicks');
   }
+}
+
+/**
+ * Send email notification to all distributors about an announcement
+ */
+export async function sendAnnouncementNotification(announcementId: string): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session) {
+    throw new Error('Not authenticated');
+  }
+
+  const notificationUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-announcement-notification`;
+
+  const response = await fetch(notificationUrl, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${session.access_token}`,
+      'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ announcement_id: announcementId }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to send notification');
+  }
+
+  const result = await response.json();
+  return result;
 }
