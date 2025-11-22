@@ -22,7 +22,7 @@ import {
   type Announcement,
   type CreateAnnouncementInput,
 } from '../../lib/api/announcements';
-import { DistributorSelector } from './DistributorSelector';
+import { DistributorSelector, filterDistributorIds } from './DistributorSelector';
 import { saveContentSharing, getContentDistributors } from '../../lib/api/sharing';
 
 const CATEGORIES = [
@@ -131,7 +131,7 @@ export default function AnnouncementsManagement() {
 
       // Save distributor sharing
       if (newAnnouncement) {
-        await saveContentSharing('announcements', newAnnouncement.id, selectedDistributorIds);
+        await saveContentSharing('announcements', newAnnouncement.id, filterDistributorIds(selectedDistributorIds));
 
         // Send email notification if checkbox is checked and status is published
         if (formData.send_notification && formData.status === 'published') {
@@ -182,7 +182,7 @@ export default function AnnouncementsManagement() {
       await updateAnnouncement(selectedAnnouncement.id, formData);
 
       // Save distributor sharing
-      await saveContentSharing('announcements', selectedAnnouncement.id, selectedDistributorIds);
+      await saveContentSharing('announcements', selectedAnnouncement.id, filterDistributorIds(selectedDistributorIds));
 
       // Send email notification if checkbox is checked and status is published
       if (formData.send_notification && formData.status === 'published') {

@@ -13,6 +13,17 @@ interface DistributorSelectorProps {
   description?: string;
 }
 
+// Sentinel value to represent "none selected" vs "all selected" (empty array)
+const NONE_SELECTED = '__NONE__';
+
+/**
+ * Helper function to filter out the sentinel value before saving distributor IDs
+ * Use this before passing selectedDistributorIds to any save/API functions
+ */
+export function filterDistributorIds(ids: string[]): string[] {
+  return ids.filter(id => id !== NONE_SELECTED);
+}
+
 export function DistributorSelector({
   selectedDistributorIds,
   onChange,
@@ -25,6 +36,9 @@ export function DistributorSelector({
 
   // Empty array = "All Distributors"
   const isAllSelected = selectedDistributorIds.length === 0;
+
+  // Sentinel value = "None selected" (user unchecked "All")
+  const isNoneSelected = selectedDistributorIds.length === 1 && selectedDistributorIds[0] === NONE_SELECTED;
 
   useEffect(() => {
     loadDistributors();
@@ -51,14 +65,15 @@ export function DistributorSelector({
       // Select all (public) = empty array
       onChange([]);
     } else {
-      // Uncheck all = select all distributors explicitly
-      onChange(distributors.map(d => d.id));
+      // Uncheck all = clear all individual selections
+      // Use sentinel value to indicate "none selected" (different from empty array which means "all")
+      onChange([NONE_SELECTED]);
     }
   };
 
   const handleDistributorToggle = (distributorId: string) => {
-    if (isAllSelected) {
-      // If "All" was selected, start with just this one
+    if (isAllSelected || isNoneSelected) {
+      // If "All" was selected or "None" selected, start with just this one
       onChange([distributorId]);
     } else {
       // Toggle individual distributor
@@ -89,7 +104,7 @@ export function DistributorSelector({
         <div className="flex items-center space-x-2 p-3 bg-slate-50 rounded-md border border-slate-200">
           <Checkbox
             id="all-distributors"
-            checked={isAllSelected}
+            checked={isAllSelected && !isNoneSelected}
             onCheckedChange={handleAllChange}
           />
           <div className="flex-1">
@@ -131,7 +146,7 @@ export function DistributorSelector({
               >
                 <Checkbox
                   id={`dist-${distributor.id}`}
-                  checked={isAllSelected || selectedDistributorIds.includes(distributor.id)}
+                  checked={(isAllSelected && !isNoneSelected) || selectedDistributorIds.includes(distributor.id)}
                   onCheckedChange={() => handleDistributorToggle(distributor.id)}
                 />
                 <Label
@@ -154,8 +169,10 @@ export function DistributorSelector({
       {/* Summary */}
       <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-md">
         <p className="text-sm font-medium text-blue-900">
-          {isAllSelected
+          {isAllSelected && !isNoneSelected
             ? '✓ Shared with all distributors'
+            : isNoneSelected
+            ? 'Select distributors to share with'
             : `✓ Shared with ${selectedDistributorIds.length} distributor(s)`}
         </p>
       </div>

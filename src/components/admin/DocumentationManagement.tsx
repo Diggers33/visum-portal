@@ -58,7 +58,7 @@ import {
   type CreateDocumentationInput,
 } from '../../lib/api/documentation';
 import { supabase } from '../../lib/supabase';
-import { DistributorSelector } from './DistributorSelector';
+import { DistributorSelector, filterDistributorIds } from './DistributorSelector';
 import { saveContentSharing, getContentDistributors } from '../../lib/api/sharing';
 import '../../lib/debug-sharing'; // Load debug helper
 
@@ -197,7 +197,7 @@ export default function DocumentationManagement() {
 
       // Save distributor sharing
       if (newDocument) {
-        await saveContentSharing('documentation', newDocument.id, selectedDistributorIds);
+        await saveContentSharing('documentation', newDocument.id, filterDistributorIds(selectedDistributorIds));
       }
 
       toast.success('Document uploaded successfully');
@@ -242,7 +242,7 @@ export default function DocumentationManagement() {
       });
 
       // Save distributor sharing
-      await saveContentSharing('documentation', selectedDocument.id, selectedDistributorIds);
+      await saveContentSharing('documentation', selectedDocument.id, filterDistributorIds(selectedDistributorIds));
 
       toast.success('Document updated successfully');
       setIsEditDialogOpen(false);

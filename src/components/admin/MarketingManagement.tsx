@@ -51,7 +51,7 @@ import {
 } from '../../lib/api/marketing-assets';
 import { supabase } from '../../lib/supabase';
 import TranslateButton from '../TranslateButton';
-import { DistributorSelector } from './DistributorSelector';
+import { DistributorSelector, filterDistributorIds } from './DistributorSelector';
 import { saveContentSharing, getContentDistributors } from '../../lib/api/sharing';
 
 interface Product {
@@ -202,7 +202,7 @@ export default function MarketingManagement() {
       await updateMarketingAsset(createdAsset.id, { file_url: fileUrl });
 
       // Save distributor sharing
-      await saveContentSharing('marketing_assets', createdAsset.id, selectedDistributorIds);
+      await saveContentSharing('marketing_assets', createdAsset.id, filterDistributorIds(selectedDistributorIds));
 
       toast.success('Marketing asset added successfully');
       setIsAddDialogOpen(false);
@@ -242,7 +242,7 @@ export default function MarketingManagement() {
       });
 
       // Save distributor sharing
-      await saveContentSharing('marketing_assets', selectedAsset.id, selectedDistributorIds);
+      await saveContentSharing('marketing_assets', selectedAsset.id, filterDistributorIds(selectedDistributorIds));
 
       toast.success('Marketing asset updated successfully');
       setIsEditDialogOpen(false);

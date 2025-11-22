@@ -50,7 +50,7 @@ import {
   type CreateTrainingMaterialInput,
 } from '../../lib/api/training-materials';
 import { supabase } from '../../lib/supabase';
-import { DistributorSelector } from './DistributorSelector';
+import { DistributorSelector, filterDistributorIds } from './DistributorSelector';
 import { saveContentSharing, getContentDistributors } from '../../lib/api/sharing';
 
 interface Product {
@@ -180,7 +180,7 @@ export default function TrainingManagement() {
 
       // Save distributor sharing
       if (newMaterial) {
-        await saveContentSharing('training_materials', newMaterial.id, selectedDistributorIds);
+        await saveContentSharing('training_materials', newMaterial.id, filterDistributorIds(selectedDistributorIds));
       }
 
       toast.success('Training material added successfully');
@@ -222,7 +222,7 @@ export default function TrainingManagement() {
       });
 
       // Save distributor sharing
-      await saveContentSharing('training_materials', selectedMaterial.id, selectedDistributorIds);
+      await saveContentSharing('training_materials', selectedMaterial.id, filterDistributorIds(selectedDistributorIds));
 
       toast.success('Training material updated successfully');
       setIsEditDialogOpen(false);
