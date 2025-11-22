@@ -26,12 +26,10 @@ import { DistributorSelector } from './DistributorSelector';
 import { saveContentSharing, getContentDistributors } from '../../lib/api/sharing';
 
 const CATEGORIES = [
-  'New Product',
-  'Marketing',
-  'Documentation',
-  'System Update',
-  'Training',
-  'Policy',
+  { value: 'communication', label: 'Communication' },
+  { value: 'events', label: 'Events' },
+  { value: 'sales', label: 'Sales' },
+  { value: 'others', label: 'Others' },
 ];
 
 export default function AnnouncementsManagement() {
@@ -274,13 +272,11 @@ export default function AnnouncementsManagement() {
   };
 
   const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'New Product': return 'bg-green-500 text-white';
-      case 'Marketing': return 'bg-purple-500 text-white';
-      case 'Documentation': return 'bg-blue-500 text-white';
-      case 'System Update': return 'bg-orange-500 text-white';
-      case 'Training': return 'bg-cyan-500 text-white';
-      case 'Policy': return 'bg-red-500 text-white';
+    switch (category.toLowerCase()) {
+      case 'communication': return 'bg-blue-500 text-white';
+      case 'events': return 'bg-purple-500 text-white';
+      case 'sales': return 'bg-green-500 text-white';
+      case 'others': return 'bg-slate-500 text-white';
       default: return 'bg-slate-500 text-white';
     }
   };
@@ -381,7 +377,7 @@ export default function AnnouncementsManagement() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-3">
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getCategoryColor(announcement.category)}`}>
-                      {announcement.category}
+                      {announcement.category.charAt(0).toUpperCase() + announcement.category.slice(1)}
                     </span>
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(announcement.status)}`}>
                       {announcement.status.charAt(0).toUpperCase() + announcement.status.slice(1)}
@@ -504,8 +500,8 @@ export default function AnnouncementsManagement() {
                     </SelectTrigger>
                     <SelectContent>
                       {CATEGORIES.map((cat) => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat}
+                        <SelectItem key={cat.value} value={cat.value}>
+                          {cat.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -694,8 +690,8 @@ export default function AnnouncementsManagement() {
                     </SelectTrigger>
                     <SelectContent>
                       {CATEGORIES.map((cat) => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat}
+                        <SelectItem key={cat.value} value={cat.value}>
+                          {cat.label}
                         </SelectItem>
                       ))}
                     </SelectContent>

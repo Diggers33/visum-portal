@@ -22,12 +22,10 @@ import { supabase } from '../lib/supabase';
 import { fetchAccessibleAnnouncements } from '../lib/api/distributor-content';
 
 const categoryColors: Record<string, string> = {
-  'New Product': 'bg-[#10b981] text-white',
-  'Marketing': 'bg-[#8b5cf6] text-white',
-  'Documentation': 'bg-[#3b82f6] text-white',
-  'Training': 'bg-[#06b6d4] text-white',
-  'Policy': 'bg-[#f59e0b] text-white',
-  'General': 'bg-[#6b7280] text-white',
+  'communication': 'bg-[#3b82f6] text-white',
+  'events': 'bg-[#8b5cf6] text-white',
+  'sales': 'bg-[#10b981] text-white',
+  'others': 'bg-[#6b7280] text-white',
 };
 
 interface Announcement {
@@ -151,12 +149,10 @@ export default function WhatsNew() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t('whatsNew.allUpdates')}</SelectItem>
-              <SelectItem value="new product">{t('whatsNew.newProducts')}</SelectItem>
-              <SelectItem value="marketing">{t('whatsNew.marketing')}</SelectItem>
-              <SelectItem value="documentation">{t('navigation.documentation')}</SelectItem>
-              <SelectItem value="training">{t('whatsNew.training')}</SelectItem>
-              <SelectItem value="policy">{t('whatsNew.policies')}</SelectItem>
-              <SelectItem value="general">{t('whatsNew.general')}</SelectItem>
+              <SelectItem value="communication">Communication</SelectItem>
+              <SelectItem value="events">Events</SelectItem>
+              <SelectItem value="sales">Sales</SelectItem>
+              <SelectItem value="others">Others</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -186,8 +182,8 @@ export default function WhatsNew() {
               <Card key={announcement.id} className="border-slate-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-3">
-                    <Badge className={`${categoryColors[announcement.category] || 'bg-[#6b7280] text-white'} rounded text-[12px] px-3 py-1`}>
-                      {announcement.category}
+                    <Badge className={`${categoryColors[announcement.category.toLowerCase()] || 'bg-[#6b7280] text-white'} rounded text-[12px] px-3 py-1`}>
+                      {announcement.category.charAt(0).toUpperCase() + announcement.category.slice(1)}
                     </Badge>
                     <span className="text-[13px] text-[#9ca3af]">{formatDate(announcement.created_at)}</span>
                   </div>
