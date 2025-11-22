@@ -46,6 +46,16 @@ export function DistributorSelector({
     }
   };
 
+  const handleAllChange = (checked: boolean) => {
+    if (checked) {
+      // Select all (public) = empty array
+      onChange([]);
+    } else {
+      // Uncheck all = select all distributors explicitly
+      onChange(distributors.map(d => d.id));
+    }
+  };
+
   const handleDistributorToggle = (distributorId: string) => {
     if (isAllSelected) {
       // If "All" was selected, start with just this one
@@ -74,24 +84,23 @@ export function DistributorSelector({
         )}
       </div>
 
-      {/* "All Distributors" checkbox - Read-only status indicator */}
+      {/* "All Distributors" checkbox */}
       <div className="space-y-2">
         <div className="flex items-center space-x-2 p-3 bg-slate-50 rounded-md border border-slate-200">
           <Checkbox
             id="all-distributors"
             checked={isAllSelected}
-            onCheckedChange={() => {}} // Read-only - controlled by selections below
-            className="cursor-default"
+            onCheckedChange={handleAllChange}
           />
           <div className="flex-1">
-            <Label htmlFor="all-distributors" className="font-semibold flex items-center gap-2">
+            <Label htmlFor="all-distributors" className="font-semibold cursor-pointer flex items-center gap-2">
               <Users className="h-4 w-4" />
               All Distributors (Public)
             </Label>
             <p className="text-xs text-slate-500 mt-1">
               {isAllSelected
-                ? 'To share with specific distributors, select them below'
-                : 'Deselect all distributors to share with everyone'}
+                ? 'Uncheck to select specific distributors'
+                : 'Check to share with all distributors'}
             </p>
           </div>
         </div>
@@ -102,8 +111,6 @@ export function DistributorSelector({
         placeholder="Search distributors..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        disabled={isAllSelected}
-        className={isAllSelected ? 'opacity-50 cursor-not-allowed' : ''}
       />
 
       {/* Distributor list */}
@@ -120,15 +127,12 @@ export function DistributorSelector({
             {filteredDistributors.map((distributor) => (
               <div
                 key={distributor.id}
-                className={`flex items-start space-x-2 p-2 rounded-md hover:bg-slate-50 transition-colors ${
-                  isAllSelected ? 'opacity-50' : ''
-                }`}
+                className="flex items-start space-x-2 p-2 rounded-md hover:bg-slate-50 transition-colors"
               >
                 <Checkbox
                   id={`dist-${distributor.id}`}
                   checked={isAllSelected || selectedDistributorIds.includes(distributor.id)}
                   onCheckedChange={() => handleDistributorToggle(distributor.id)}
-                  disabled={isAllSelected}
                 />
                 <Label
                   htmlFor={`dist-${distributor.id}`}
