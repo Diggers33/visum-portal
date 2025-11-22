@@ -537,14 +537,21 @@ export default function DistributorsManagement() {
         description: `User ${user?.full_name || user?.email} deleted`,
       });
 
-      // Update state
-      setDistributors((prev) =>
-        prev.map((d) =>
-          d.id === selectedDistributorId
-            ? { ...d, users: d.users?.filter((u) => u.id !== userId) }
-            : d
-        )
-      );
+      // Refetch users from database to get fresh data
+      const { data: freshUsers, error: fetchError } = await getDistributorUsers(selectedDistributorId);
+
+      if (fetchError) {
+        console.error('❌ Failed to refresh users after deletion:', fetchError);
+      } else {
+        // Update state with fresh data from database
+        setDistributors((prev) =>
+          prev.map((d) =>
+            d.id === selectedDistributorId
+              ? { ...d, users: freshUsers || [] }
+              : d
+          )
+        );
+      }
     } catch (error: any) {
       console.error('❌ Delete user error:', error);
       toast({

@@ -49,12 +49,14 @@ interface ManageUsersModalProps {
   open: boolean;
   onClose: () => void;
   distributor: Distributor | null;
+  onDataChange?: () => void; // Optional callback to notify parent of data changes
 }
 
 export default function ManageUsersModal({
   open,
   onClose,
   distributor,
+  onDataChange,
 }: ManageUsersModalProps) {
   const { toast } = useToast();
   const [users, setUsers] = useState<DistributorUser[]>([]);
@@ -134,6 +136,11 @@ export default function ManageUsersModal({
 
       setEditingUserId(null);
       await loadUsers();
+
+      // Notify parent component of data change
+      if (onDataChange) {
+        onDataChange();
+      }
     } catch (error: any) {
       console.error('❌ Update user error:', error);
       toast({
@@ -195,6 +202,11 @@ export default function ManageUsersModal({
 
       setDeleteUserId(null);
       await loadUsers();
+
+      // Notify parent component of data change
+      if (onDataChange) {
+        onDataChange();
+      }
     } catch (error: any) {
       console.error('❌ Delete user error:', error);
       toast({
@@ -210,6 +222,11 @@ export default function ManageUsersModal({
   const handleInviteSuccess = () => {
     setShowInviteForm(false);
     loadUsers();
+
+    // Notify parent component of data change
+    if (onDataChange) {
+      onDataChange();
+    }
   };
 
   return (
