@@ -6,6 +6,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
@@ -38,16 +39,19 @@ export default function AnnouncementsManagement() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  
+
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
-  
+  const [activeLanguageTab, setActiveLanguageTab] = useState<'en' | 'es'>('en');
+
   const [formData, setFormData] = useState<CreateAnnouncementInput>({
     category: '',
-    title: '',
-    content: '',
+    title_en: '',
+    title_es: '',
+    content_en: '',
+    content_es: '',
     status: 'draft',
     link_text: '',
     link_url: '',
@@ -74,8 +78,12 @@ export default function AnnouncementsManagement() {
     let filtered = announcements;
     if (searchQuery) {
       filtered = filtered.filter((a) =>
-        a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        a.content.toLowerCase().includes(searchQuery.toLowerCase())
+        a.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        a.title_en?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        a.title_es?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        a.content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        a.content_en?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        a.content_es?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
     if (statusFilter !== 'all') {
@@ -100,10 +108,22 @@ export default function AnnouncementsManagement() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title || !formData.category || !formData.content) {
-      toast.error('Please fill in all required fields');
+
+    // Validate category
+    if (!formData.category) {
+      toast.error('Please select a category');
       return;
     }
+
+    // Validate that at least one language has both title and content
+    const hasEnglish = formData.title_en && formData.content_en;
+    const hasSpanish = formData.title_es && formData.content_es;
+
+    if (!hasEnglish && !hasSpanish) {
+      toast.error('Please fill in title and content for at least one language');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const newAnnouncement = await createAnnouncement(formData);
@@ -128,10 +148,22 @@ export default function AnnouncementsManagement() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedAnnouncement) return;
-    if (!formData.title || !formData.category || !formData.content) {
-      toast.error('Please fill in all required fields');
+
+    // Validate category
+    if (!formData.category) {
+      toast.error('Please select a category');
       return;
     }
+
+    // Validate that at least one language has both title and content
+    const hasEnglish = formData.title_en && formData.content_en;
+    const hasSpanish = formData.title_es && formData.content_es;
+
+    if (!hasEnglish && !hasSpanish) {
+      toast.error('Please fill in title and content for at least one language');
+      return;
+    }
+
     setSubmitting(true);
     try {
       await updateAnnouncement(selectedAnnouncement.id, formData);
@@ -169,8 +201,10 @@ export default function AnnouncementsManagement() {
     setSelectedAnnouncement(announcement);
     setFormData({
       category: announcement.category,
-      title: announcement.title,
-      content: announcement.content,
+      title_en: announcement.title_en || '',
+      title_es: announcement.title_es || '',
+      content_en: announcement.content_en || '',
+      content_es: announcement.content_es || '',
       status: announcement.status,
       link_text: announcement.link_text || '',
       link_url: announcement.link_url || '',
@@ -187,8 +221,10 @@ export default function AnnouncementsManagement() {
   const resetForm = () => {
     setFormData({
       category: '',
-      title: '',
-      content: '',
+      title_en: '',
+      title_es: '',
+      content_en: '',
+      content_es: '',
       status: 'draft',
       link_text: '',
       link_url: '',
@@ -196,6 +232,7 @@ export default function AnnouncementsManagement() {
     });
     setSelectedAnnouncement(null);
     setSelectedDistributorIds([]);
+    setActiveLanguageTab('en');
   };
 
   const getStatusColor = (status: string) => {
@@ -326,11 +363,20 @@ export default function AnnouncementsManagement() {
                   </div>
                   
                   <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                    {announcement.title}
+                    {announcement.title_en || announcement.title_es || announcement.title}
+                    {announcement.title_en && announcement.title_es && (
+                      <span className="ml-2 text-xs text-slate-500">(EN + ES)</span>
+                    )}
+                    {announcement.title_en && !announcement.title_es && (
+                      <span className="ml-2 text-xs text-slate-500">(EN only)</span>
+                    )}
+                    {!announcement.title_en && announcement.title_es && (
+                      <span className="ml-2 text-xs text-slate-500">(ES only)</span>
+                    )}
                   </h3>
-                  
+
                   <p className="text-sm text-slate-600 mb-4 line-clamp-2">
-                    {announcement.content}
+                    {announcement.content_en || announcement.content_es || announcement.content}
                   </p>
                   
                   {/* CTA Button */}
@@ -417,16 +463,6 @@ export default function AnnouncementsManagement() {
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Title *</Label>
-                <Input
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="e.g., New Product Launch: Visum Pro Series"
-                  required
-                />
-              </div>
-              
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Category *</Label>
@@ -446,7 +482,7 @@ export default function AnnouncementsManagement() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label>Status *</Label>
                   <Select
@@ -464,16 +500,56 @@ export default function AnnouncementsManagement() {
                   </Select>
                 </div>
               </div>
-              
+
+              {/* Multi-language tabs */}
               <div className="space-y-2">
-                <Label>Content *</Label>
-                <Textarea
-                  value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  rows={5}
-                  placeholder="Write your announcement content..."
-                  required
-                />
+                <Label>Title & Content * (at least one language required)</Label>
+                <Tabs value={activeLanguageTab} onValueChange={(value) => setActiveLanguageTab(value as 'en' | 'es')}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="en">English</TabsTrigger>
+                    <TabsTrigger value="es">Español</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="en" className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Title (English)</Label>
+                      <Input
+                        value={formData.title_en || ''}
+                        onChange={(e) => setFormData({ ...formData, title_en: e.target.value })}
+                        placeholder="e.g., New Product Launch: Visum Pro Series"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Content (English)</Label>
+                      <Textarea
+                        value={formData.content_en || ''}
+                        onChange={(e) => setFormData({ ...formData, content_en: e.target.value })}
+                        rows={5}
+                        placeholder="Write your announcement content in English..."
+                      />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="es" className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Título (Español)</Label>
+                      <Input
+                        value={formData.title_es || ''}
+                        onChange={(e) => setFormData({ ...formData, title_es: e.target.value })}
+                        placeholder="ej., Nuevo Lanzamiento de Producto: Visum Pro Series"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Contenido (Español)</Label>
+                      <Textarea
+                        value={formData.content_es || ''}
+                        onChange={(e) => setFormData({ ...formData, content_es: e.target.value })}
+                        rows={5}
+                        placeholder="Escribe el contenido de tu anuncio en español..."
+                      />
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
@@ -548,15 +624,6 @@ export default function AnnouncementsManagement() {
           </DialogHeader>
           <form onSubmit={handleUpdate}>
             <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Title *</Label>
-                <Input
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  required
-                />
-              </div>
-              
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Category *</Label>
@@ -577,7 +644,7 @@ export default function AnnouncementsManagement() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label>Status *</Label>
                   <Select
@@ -596,15 +663,56 @@ export default function AnnouncementsManagement() {
                   </Select>
                 </div>
               </div>
-              
+
+              {/* Multi-language tabs */}
               <div className="space-y-2">
-                <Label>Content *</Label>
-                <Textarea
-                  value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  rows={5}
-                  required
-                />
+                <Label>Title & Content * (at least one language required)</Label>
+                <Tabs value={activeLanguageTab} onValueChange={(value) => setActiveLanguageTab(value as 'en' | 'es')}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="en">English</TabsTrigger>
+                    <TabsTrigger value="es">Español</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="en" className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Title (English)</Label>
+                      <Input
+                        value={formData.title_en || ''}
+                        onChange={(e) => setFormData({ ...formData, title_en: e.target.value })}
+                        placeholder="e.g., New Product Launch: Visum Pro Series"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Content (English)</Label>
+                      <Textarea
+                        value={formData.content_en || ''}
+                        onChange={(e) => setFormData({ ...formData, content_en: e.target.value })}
+                        rows={5}
+                        placeholder="Write your announcement content in English..."
+                      />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="es" className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Título (Español)</Label>
+                      <Input
+                        value={formData.title_es || ''}
+                        onChange={(e) => setFormData({ ...formData, title_es: e.target.value })}
+                        placeholder="ej., Nuevo Lanzamiento de Producto: Visum Pro Series"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Contenido (Español)</Label>
+                      <Textarea
+                        value={formData.content_es || ''}
+                        onChange={(e) => setFormData({ ...formData, content_es: e.target.value })}
+                        rows={5}
+                        placeholder="Escribe el contenido de tu anuncio en español..."
+                      />
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </div>
               
               <div className="grid grid-cols-2 gap-4">

@@ -6,8 +6,12 @@ import { supabase } from '../supabase';
 export interface Announcement {
   id: string;
   category: string;
-  title: string;
-  content: string;
+  title: string;  // Kept for backward compatibility
+  content: string;  // Kept for backward compatibility
+  title_en?: string;
+  title_es?: string;
+  content_en?: string;
+  content_es?: string;
   status: 'draft' | 'published' | 'archived';
   views: number;
   clicks: number;
@@ -21,8 +25,12 @@ export interface Announcement {
 
 export interface CreateAnnouncementInput {
   category: string;
-  title: string;
-  content: string;
+  title?: string;  // Legacy field, optional now
+  content?: string;  // Legacy field, optional now
+  title_en?: string;
+  title_es?: string;
+  content_en?: string;
+  content_es?: string;
   status: 'draft' | 'published' | 'archived';
   link_text?: string;
   link_url?: string;

@@ -33,20 +33,42 @@ const categoryColors: Record<string, string> = {
 interface Announcement {
   id: string;
   category: string;
-  title: string;
-  content: string;
+  title: string;  // Legacy field
+  content: string;  // Legacy field
+  title_en?: string;
+  title_es?: string;
+  content_en?: string;
+  content_es?: string;
   link_text: string | null;
   link_url: string | null;
   created_at: string;
 }
 
 export default function WhatsNew() {
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [filteredAnnouncements, setFilteredAnnouncements] = useState<Announcement[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+
+  // Get display title based on current language with fallback
+  const getDisplayTitle = (announcement: Announcement): string => {
+    const currentLang = i18n.language;
+    if (currentLang === 'es') {
+      return announcement.title_es || announcement.title_en || announcement.title;
+    }
+    return announcement.title_en || announcement.title_es || announcement.title;
+  };
+
+  // Get display content based on current language with fallback
+  const getDisplayContent = (announcement: Announcement): string => {
+    const currentLang = i18n.language;
+    if (currentLang === 'es') {
+      return announcement.content_es || announcement.content_en || announcement.content;
+    }
+    return announcement.content_en || announcement.content_es || announcement.content;
+  };
 
   useEffect(() => {
     document.title = `${t('navigation.whatsNew')} - Visum Portal`;
@@ -92,11 +114,14 @@ export default function WhatsNew() {
     }
 
     if (searchQuery) {
-      filtered = filtered.filter(
-        (ann) =>
-          ann.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          ann.content.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      filtered = filtered.filter((ann) => {
+        const title = getDisplayTitle(ann);
+        const content = getDisplayContent(ann);
+        return (
+          title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          content.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      });
     }
 
     setFilteredAnnouncements(filtered);
@@ -168,11 +193,11 @@ export default function WhatsNew() {
                   </div>
 
                   <h3 className="text-[18px] font-semibold text-slate-900 mb-2">
-                    {announcement.title}
+                    {getDisplayTitle(announcement)}
                   </h3>
 
                   <p className="text-[15px] text-[#6b7280] leading-relaxed mb-4">
-                    {announcement.content}
+                    {getDisplayContent(announcement)}
                   </p>
 
                   {announcement.link_url && (
