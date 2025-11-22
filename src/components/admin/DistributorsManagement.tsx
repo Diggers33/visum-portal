@@ -127,6 +127,10 @@ export default function DistributorsManagement() {
     role: 'user',
   });
 
+  // Delete User Confirmation Dialog
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [deletingUser, setDeletingUser] = useState(false);
+
   // Delete confirmation
   const [deleteDistributorId, setDeleteDistributorId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -509,24 +513,15 @@ export default function DistributorsManagement() {
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!selectedDistributorId) return;
+  const handleDeleteUser = async () => {
+    if (!selectedDistributorId || !deleteUserId) return;
 
-    const user = selectedDistributor?.users?.find((u) => u.id === userId);
+    const user = selectedDistributor?.users?.find((u) => u.id === deleteUserId);
 
-    // Don't allow deleting the last user
-    if (selectedDistributor && selectedDistributor.users && selectedDistributor.users.length === 1) {
-      toast({
-        title: 'Error',
-        description: 'Cannot delete the last user. Each distributor must have at least one user.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
+    setDeletingUser(true);
     try {
       // Delete user from user_profiles table
-      const { success, error } = await deleteDistributorUser(userId);
+      const { success, error } = await deleteDistributorUser(deleteUserId);
 
       if (!success || error) {
         throw new Error(error?.message || 'Failed to delete user');
@@ -552,6 +547,9 @@ export default function DistributorsManagement() {
           )
         );
       }
+
+      // Close the confirmation dialog
+      setDeleteUserId(null);
     } catch (error: any) {
       console.error('❌ Delete user error:', error);
       toast({
@@ -559,6 +557,8 @@ export default function DistributorsManagement() {
         description: error.message || 'Failed to delete user',
         variant: 'destructive',
       });
+    } finally {
+      setDeletingUser(false);
     }
   };
 
@@ -1219,7 +1219,7 @@ export default function DistributorsManagement() {
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                   className="text-red-600"
-                                  onClick={() => handleDeleteUser(user.id)}
+                                  onClick={() => setDeleteUserId(user.id)}
                                   disabled={selectedDistributor?.users?.length === 1}
                                 >
                                   <Trash2 className="mr-2 h-4 w-4" />
@@ -1342,6 +1342,36 @@ export default function DistributorsManagement() {
                 </>
               ) : (
                 'Delete Company'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete User Confirmation Dialog */}
+      <AlertDialog open={!!deleteUserId} onOpenChange={() => setDeleteUserId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove User</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this user from the company? This will delete their account
+              and they will no longer have access to the portal. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingUser}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteUser}
+              disabled={deletingUser}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deletingUser ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Removing...
+                </>
+              ) : (
+                'Remove User'
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
