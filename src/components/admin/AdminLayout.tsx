@@ -27,7 +27,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
-import { Toaster } from '../ui/sonner';
 import { supabase } from '../../lib/supabase';
 
 const navigation = [
@@ -231,9 +230,6 @@ export default function AdminLayout({ children, onLogout }: AdminLayoutProps) {
           {children}
         </main>
       </div>
-
-      {/* Toast notifications */}
-      <Toaster />
     </div>
   );
 }
