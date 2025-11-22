@@ -39,15 +39,23 @@ export async function saveContentSharing(
       contentId,
       distributorIds,
       isPublic: distributorIds.length === 0,
+      table: config.table,
+      idColumn: config.idColumn,
     });
 
     // Step 1: Delete existing sharing records
-    const { error: deleteError } = await supabase
+    const { data: deleteData, error: deleteError } = await supabase
       .from(config.table)
       .delete()
-      .eq(config.idColumn, contentId);
+      .eq(config.idColumn, contentId)
+      .select();
 
-    if (deleteError) throw deleteError;
+    console.log(`🔍 [Sharing Debug] Delete result:`, { data: deleteData, error: deleteError });
+
+    if (deleteError) {
+      console.error('❌ Delete error details:', deleteError);
+      throw deleteError;
+    }
 
     // Step 2: If specific distributors selected, insert new records
     if (distributorIds.length > 0) {
@@ -56,11 +64,30 @@ export async function saveContentSharing(
         distributor_id: distributorId,
       }));
 
-      const { error: insertError } = await supabase.from(config.table).insert(records);
+      console.log(`🔍 [Sharing Debug] Attempting to insert:`, records);
+      console.log(`🔍 [Sharing Debug] Into table:`, config.table);
 
-      if (insertError) throw insertError;
+      const { data: insertData, error: insertError } = await supabase
+        .from(config.table)
+        .insert(records)
+        .select();
 
-      console.log(`✅ Saved ${records.length} sharing records`);
+      console.log(`🔍 [Sharing Debug] Insert result:`, { data: insertData, error: insertError });
+
+      if (insertError) {
+        console.error('❌ Insert error details:', insertError);
+        throw insertError;
+      }
+
+      // Check if insert actually succeeded (RLS can silently fail)
+      if (!insertData || insertData.length === 0) {
+        const rlsError = new Error('Insert succeeded but returned no data - likely blocked by RLS policy');
+        console.error('❌ RLS Policy Issue:', rlsError.message);
+        console.error('💡 Solution: Check RLS policies on', config.table);
+        throw rlsError;
+      }
+
+      console.log(`✅ Saved ${records.length} sharing records`, insertData);
     } else {
       console.log('✅ Cleared sharing records (public/all)');
     }
