@@ -188,11 +188,18 @@ export default function ManageUsersModal({
 
     setDeletingUser(true);
     try {
-      // Delete user from user_profiles table
-      const { success, error } = await deleteDistributorUser(deleteUserId);
+      // Call Edge Function to delete user (uses service role to bypass RLS)
+      const response = await fetch('/functions/v1/delete-distributor-user', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: deleteUserId }),
+      });
 
-      if (!success || error) {
-        throw new Error(error?.message || 'Failed to delete user');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete user');
       }
 
       toast({

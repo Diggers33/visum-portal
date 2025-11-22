@@ -514,29 +514,24 @@ export default function DistributorsManagement() {
   };
 
   const handleDeleteUser = async () => {
-    console.log('🔵 handleDeleteUser called');
-    console.log('🔵 selectedDistributorId:', selectedDistributorId);
-    console.log('🔵 deleteUserId:', deleteUserId);
-
-    if (!selectedDistributorId || !deleteUserId) {
-      console.log('❌ Early return - missing IDs');
-      return;
-    }
+    if (!selectedDistributorId || !deleteUserId) return;
 
     const user = selectedDistributor?.users?.find((u) => u.id === deleteUserId);
-    console.log('🔵 Found user:', user);
 
     setDeletingUser(true);
     try {
-      console.log('🔵 Calling deleteDistributorUser with userId:', deleteUserId);
+      // Call Edge Function to delete user (uses service role to bypass RLS)
+      const response = await fetch('/functions/v1/delete-distributor-user', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: deleteUserId }),
+      });
 
-      // Delete user from user_profiles table
-      const { success, error } = await deleteDistributorUser(deleteUserId);
-
-      console.log('🔵 Delete result - success:', success, 'error:', error);
-
-      if (!success || error) {
-        throw new Error(error?.message || 'Failed to delete user');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete user');
       }
 
       toast({
@@ -544,12 +539,8 @@ export default function DistributorsManagement() {
         description: `User ${user?.full_name || user?.email} deleted`,
       });
 
-      console.log('🔵 Refetching users for distributor:', selectedDistributorId);
-
       // Refetch users from database to get fresh data
       const { data: freshUsers, error: fetchError } = await getDistributorUsers(selectedDistributorId);
-
-      console.log('🔵 Refetch result - users:', freshUsers, 'error:', fetchError);
 
       if (fetchError) {
         console.error('❌ Failed to refresh users after deletion:', fetchError);
@@ -562,7 +553,6 @@ export default function DistributorsManagement() {
               : d
           )
         );
-        console.log('✅ State updated with fresh users');
       }
 
       // Close the confirmation dialog
