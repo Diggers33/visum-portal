@@ -46,16 +46,6 @@ export function DistributorSelector({
     }
   };
 
-  const handleAllChange = (checked: boolean) => {
-    if (checked) {
-      // "All" selected = empty array
-      onChange([]);
-    } else {
-      // Uncheck "All" = select none (also empty, but user can then select specific)
-      onChange([]);
-    }
-  };
-
   const handleDistributorToggle = (distributorId: string) => {
     if (isAllSelected) {
       // If "All" was selected, start with just this one
@@ -84,17 +74,27 @@ export function DistributorSelector({
         )}
       </div>
 
-      {/* "All Distributors" checkbox */}
-      <div className="flex items-center space-x-2 p-3 bg-slate-50 rounded-md border border-slate-200">
-        <Checkbox
-          id="all-distributors"
-          checked={isAllSelected}
-          onCheckedChange={handleAllChange}
-        />
-        <Label htmlFor="all-distributors" className="font-semibold cursor-pointer flex items-center gap-2">
-          <Users className="h-4 w-4" />
-          All Distributors (Public)
-        </Label>
+      {/* "All Distributors" checkbox - Read-only status indicator */}
+      <div className="space-y-2">
+        <div className="flex items-center space-x-2 p-3 bg-slate-50 rounded-md border border-slate-200">
+          <Checkbox
+            id="all-distributors"
+            checked={isAllSelected}
+            onCheckedChange={() => {}} // Read-only - controlled by selections below
+            className="cursor-default"
+          />
+          <div className="flex-1">
+            <Label htmlFor="all-distributors" className="font-semibold flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              All Distributors (Public)
+            </Label>
+            <p className="text-xs text-slate-500 mt-1">
+              {isAllSelected
+                ? 'To share with specific distributors, select them below'
+                : 'Deselect all distributors to share with everyone'}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Search */}
