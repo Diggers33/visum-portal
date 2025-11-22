@@ -6,7 +6,6 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Checkbox } from '../ui/checkbox';
-import { ScrollArea } from '../ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
@@ -482,18 +481,22 @@ export default function AnnouncementsManagement() {
 
       {/* Add Announcement Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
-          <DialogHeader>
+        <DialogContent className="max-w-4xl h-[90vh] p-0 flex flex-col">
+          {/* Fixed header */}
+          <DialogHeader className="px-6 pt-6 pb-4 border-b">
             <DialogTitle>Create Announcement</DialogTitle>
             <DialogDescription>Create a new announcement for distributors</DialogDescription>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 -mx-6 px-6">
-            <form onSubmit={handleSubmit} className="pr-4">
-              <div className="space-y-6 py-4">
+          {/* Scrollable content */}
+          <div className="flex-1 overflow-y-auto px-6 py-4">
+            <form className="space-y-6">
+              {/* Category and Status in one row */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Category *</Label>
+                  <Label className="text-base font-semibold">
+                    Category <span className="text-red-500">*</span>
+                  </Label>
                   <Select
                     value={formData.category}
                     onValueChange={(value) => setFormData({ ...formData, category: value })}
@@ -512,13 +515,15 @@ export default function AnnouncementsManagement() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Status *</Label>
+                  <Label className="text-base font-semibold">
+                    Status <span className="text-red-500">*</span>
+                  </Label>
                   <Select
                     value={formData.status}
                     onValueChange={(value: any) => setFormData({ ...formData, status: value })}
                   >
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="draft">Draft</SelectItem>
@@ -529,110 +534,112 @@ export default function AnnouncementsManagement() {
                 </div>
               </div>
 
-              {/* Multi-language tabs */}
+              {/* Language tabs */}
               <div className="space-y-2">
-                <Label>Title & Content * (at least one language required)</Label>
+                <Label className="text-base font-semibold">
+                  Title & Content <span className="text-red-500">*</span> (at least one language required)
+                </Label>
+
                 <Tabs value={activeLanguageTab} onValueChange={(value) => setActiveLanguageTab(value as 'en' | 'es')}>
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="en">English</TabsTrigger>
                     <TabsTrigger value="es">Español</TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="en" className="space-y-4">
+                  <TabsContent value="en" className="space-y-4 mt-4">
                     <div className="space-y-2">
                       <Label>Title (English)</Label>
                       <Input
+                        placeholder="e.g., New Product Launch: Visum Pro Series"
                         value={formData.title_en || ''}
                         onChange={(e) => setFormData({ ...formData, title_en: e.target.value })}
-                        placeholder="e.g., New Product Launch: Visum Pro Series"
                       />
                     </div>
+
                     <div className="space-y-2">
                       <Label>Content (English)</Label>
                       <Textarea
+                        placeholder="Write your announcement content in English..."
                         value={formData.content_en || ''}
                         onChange={(e) => setFormData({ ...formData, content_en: e.target.value })}
-                        rows={5}
-                        placeholder="Write your announcement content in English..."
+                        rows={4}
                       />
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="es" className="space-y-4">
+                  <TabsContent value="es" className="space-y-4 mt-4">
                     <div className="space-y-2">
                       <Label>Título (Español)</Label>
                       <Input
+                        placeholder="ej., Nuevo Lanzamiento de Producto: Serie Visum Pro"
                         value={formData.title_es || ''}
                         onChange={(e) => setFormData({ ...formData, title_es: e.target.value })}
-                        placeholder="ej., Nuevo Lanzamiento de Producto: Visum Pro Series"
                       />
                     </div>
+
                     <div className="space-y-2">
                       <Label>Contenido (Español)</Label>
                       <Textarea
+                        placeholder="Escribe el contenido del anuncio en español..."
                         value={formData.content_es || ''}
                         onChange={(e) => setFormData({ ...formData, content_es: e.target.value })}
-                        rows={5}
-                        placeholder="Escribe el contenido de tu anuncio en español..."
+                        rows={4}
                       />
                     </div>
                   </TabsContent>
                 </Tabs>
               </div>
-              
+
+              {/* Link fields in one row */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Link Text (optional)</Label>
                   <Input
+                    placeholder="e.g., Learn More"
                     value={formData.link_text || ''}
                     onChange={(e) => setFormData({ ...formData, link_text: e.target.value })}
-                    placeholder="e.g., Learn More"
                   />
                 </div>
+
                 <div className="space-y-2">
                   <Label>Link URL (optional)</Label>
                   <Input
+                    placeholder="https://example.com or example.com"
                     value={formData.link_url || ''}
                     onChange={(e) => setFormData({ ...formData, link_url: e.target.value })}
-                    placeholder="https://example.com or example.com"
                   />
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted-foreground">
                     Enter full URL (https:// will be added automatically if missing)
                   </p>
                 </div>
               </div>
-              
+
+              {/* Internal notes */}
               <div className="space-y-2">
                 <Label>Internal Notes</Label>
                 <Textarea
+                  placeholder="Add any internal notes..."
                   value={formData.internal_notes || ''}
                   onChange={(e) => setFormData({ ...formData, internal_notes: e.target.value })}
                   rows={2}
-                  placeholder="Add any internal notes..."
                 />
               </div>
 
-              {/* Email Notification */}
-              <div className="flex items-center space-x-2 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              {/* Email notification */}
+              <div className="flex items-start space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <Checkbox
                   id="send-notification"
                   checked={formData.send_notification || false}
                   onCheckedChange={(checked) =>
-                    setFormData({...formData, send_notification: checked as boolean})
+                    setFormData({ ...formData, send_notification: !!checked })
                   }
                   disabled={formData.status !== 'published'}
                 />
                 <div className="flex-1">
-                  <Label
-                    htmlFor="send-notification"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-blue-600" />
-                      <span>Send email notification to all distributors</span>
-                    </div>
+                  <Label htmlFor="send-notification" className="cursor-pointer font-medium text-blue-900">
+                    Send email notification to all distributors
                   </Label>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-blue-700 mt-1">
                     {formData.status !== 'published'
                       ? 'Only available when status is "Published"'
                       : 'Distributors will receive an email about this announcement'}
@@ -640,22 +647,24 @@ export default function AnnouncementsManagement() {
                 </div>
               </div>
 
-              {/* Distributor Sharing */}
-              <div className="border-t pt-4">
+              {/* Share with - more compact */}
+              <div className="space-y-3">
+                <Label className="text-base font-semibold">Share with</Label>
+                <p className="text-sm text-muted-foreground">
+                  Select which distributors can see this announcement
+                </p>
+
                 <DistributorSelector
                   selectedDistributorIds={selectedDistributorIds}
                   onChange={setSelectedDistributorIds}
-                  label="Share with"
-                  description="Select which distributors can see this announcement"
                 />
               </div>
-              </div>
             </form>
-          </ScrollArea>
+          </div>
 
-          <DialogFooter className="mt-4">
+          {/* Fixed footer */}
+          <DialogFooter className="px-6 py-4 border-t bg-muted/50">
             <Button
-              type="button"
               variant="outline"
               onClick={() => {
                 setIsAddDialogOpen(false);
@@ -678,18 +687,22 @@ export default function AnnouncementsManagement() {
 
       {/* Edit Announcement Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
-          <DialogHeader>
+        <DialogContent className="max-w-4xl h-[90vh] p-0 flex flex-col">
+          {/* Fixed header */}
+          <DialogHeader className="px-6 pt-6 pb-4 border-b">
             <DialogTitle>Edit Announcement</DialogTitle>
             <DialogDescription>Update announcement information</DialogDescription>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 -mx-6 px-6">
-            <form onSubmit={handleUpdate} className="pr-4">
-              <div className="space-y-6 py-4">
+          {/* Scrollable content */}
+          <div className="flex-1 overflow-y-auto px-6 py-4">
+            <form className="space-y-6">
+              {/* Category and Status in one row */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Category *</Label>
+                  <Label className="text-base font-semibold">
+                    Category <span className="text-red-500">*</span>
+                  </Label>
                   <Select
                     key={`category-${formData.category}`}
                     value={formData.category}
@@ -709,7 +722,9 @@ export default function AnnouncementsManagement() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Status *</Label>
+                  <Label className="text-base font-semibold">
+                    Status <span className="text-red-500">*</span>
+                  </Label>
                   <Select
                     key={`status-${formData.status}`}
                     value={formData.status}
@@ -727,108 +742,112 @@ export default function AnnouncementsManagement() {
                 </div>
               </div>
 
-              {/* Multi-language tabs */}
+              {/* Language tabs */}
               <div className="space-y-2">
-                <Label>Title & Content * (at least one language required)</Label>
+                <Label className="text-base font-semibold">
+                  Title & Content <span className="text-red-500">*</span> (at least one language required)
+                </Label>
+
                 <Tabs value={activeLanguageTab} onValueChange={(value) => setActiveLanguageTab(value as 'en' | 'es')}>
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="en">English</TabsTrigger>
                     <TabsTrigger value="es">Español</TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="en" className="space-y-4">
+                  <TabsContent value="en" className="space-y-4 mt-4">
                     <div className="space-y-2">
                       <Label>Title (English)</Label>
                       <Input
+                        placeholder="e.g., New Product Launch: Visum Pro Series"
                         value={formData.title_en || ''}
                         onChange={(e) => setFormData({ ...formData, title_en: e.target.value })}
-                        placeholder="e.g., New Product Launch: Visum Pro Series"
                       />
                     </div>
+
                     <div className="space-y-2">
                       <Label>Content (English)</Label>
                       <Textarea
+                        placeholder="Write your announcement content in English..."
                         value={formData.content_en || ''}
                         onChange={(e) => setFormData({ ...formData, content_en: e.target.value })}
-                        rows={5}
-                        placeholder="Write your announcement content in English..."
+                        rows={4}
                       />
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="es" className="space-y-4">
+                  <TabsContent value="es" className="space-y-4 mt-4">
                     <div className="space-y-2">
                       <Label>Título (Español)</Label>
                       <Input
+                        placeholder="ej., Nuevo Lanzamiento de Producto: Serie Visum Pro"
                         value={formData.title_es || ''}
                         onChange={(e) => setFormData({ ...formData, title_es: e.target.value })}
-                        placeholder="ej., Nuevo Lanzamiento de Producto: Visum Pro Series"
                       />
                     </div>
+
                     <div className="space-y-2">
                       <Label>Contenido (Español)</Label>
                       <Textarea
+                        placeholder="Escribe el contenido del anuncio en español..."
                         value={formData.content_es || ''}
                         onChange={(e) => setFormData({ ...formData, content_es: e.target.value })}
-                        rows={5}
-                        placeholder="Escribe el contenido de tu anuncio en español..."
+                        rows={4}
                       />
                     </div>
                   </TabsContent>
                 </Tabs>
               </div>
-              
+
+              {/* Link fields in one row */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Link Text</Label>
+                  <Label>Link Text (optional)</Label>
                   <Input
+                    placeholder="e.g., Learn More"
                     value={formData.link_text || ''}
                     onChange={(e) => setFormData({ ...formData, link_text: e.target.value })}
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label>Link URL</Label>
+                  <Label>Link URL (optional)</Label>
                   <Input
+                    placeholder="https://example.com or example.com"
                     value={formData.link_url || ''}
                     onChange={(e) => setFormData({ ...formData, link_url: e.target.value })}
-                    placeholder="https://example.com or example.com"
                   />
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted-foreground">
                     Enter full URL (https:// will be added automatically if missing)
                   </p>
                 </div>
               </div>
-              
+
+              {/* Internal notes */}
               <div className="space-y-2">
                 <Label>Internal Notes</Label>
                 <Textarea
+                  placeholder="Add any internal notes..."
                   value={formData.internal_notes || ''}
                   onChange={(e) => setFormData({ ...formData, internal_notes: e.target.value })}
                   rows={2}
                 />
               </div>
 
-              {/* Email Notification */}
-              <div className="flex items-center space-x-2 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              {/* Email notification */}
+              <div className="flex items-start space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <Checkbox
                   id="send-notification-edit"
                   checked={formData.send_notification || false}
                   onCheckedChange={(checked) =>
-                    setFormData({...formData, send_notification: checked as boolean})
+                    setFormData({ ...formData, send_notification: !!checked })
                   }
                   disabled={formData.status !== 'published'}
                 />
                 <div className="flex-1">
-                  <Label
-                    htmlFor="send-notification-edit"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-blue-600" />
-                      <span>Send email notification to all distributors</span>
-                    </div>
+                  <Label htmlFor="send-notification-edit" className="cursor-pointer font-medium text-blue-900">
+                    Send email notification to all distributors
                   </Label>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-blue-700 mt-1">
                     {formData.status !== 'published'
                       ? 'Only available when status is "Published"'
                       : 'Distributors will receive an email about this announcement'}
@@ -836,22 +855,24 @@ export default function AnnouncementsManagement() {
                 </div>
               </div>
 
-              {/* Distributor Sharing */}
-              <div className="border-t pt-4">
+              {/* Share with - more compact */}
+              <div className="space-y-3">
+                <Label className="text-base font-semibold">Share with</Label>
+                <p className="text-sm text-muted-foreground">
+                  Select which distributors can see this announcement
+                </p>
+
                 <DistributorSelector
                   selectedDistributorIds={selectedDistributorIds}
                   onChange={setSelectedDistributorIds}
-                  label="Share with"
-                  description="Select which distributors can see this announcement"
                 />
               </div>
-              </div>
             </form>
-          </ScrollArea>
+          </div>
 
-          <DialogFooter className="mt-4">
+          {/* Fixed footer */}
+          <DialogFooter className="px-6 py-4 border-t bg-muted/50">
             <Button
-              type="button"
               variant="outline"
               onClick={() => {
                 setIsEditDialogOpen(false);
