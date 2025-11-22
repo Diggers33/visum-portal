@@ -60,6 +60,7 @@ import {
 import { supabase } from '../../lib/supabase';
 import { DistributorSelector } from './DistributorSelector';
 import { saveContentSharing, getContentDistributors } from '../../lib/api/sharing';
+import '../../lib/debug-sharing'; // Load debug helper
 
 interface Product {
   id: string;
