@@ -8,3 +8,18 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+// Add auth state listener that clears storage on token refresh failure
+supabase.auth.onAuthStateChange((event, session) => {
+  // Clear corrupted session on refresh failure
+  if (event === 'TOKEN_REFRESHED' && !session) {
+    console.warn('Token refresh failed, clearing corrupted session...')
+    localStorage.removeItem('sb-fssjmqgolghfwmikydhy-auth-token')
+    window.location.href = '/'
+  }
+
+  if (event === 'SIGNED_OUT') {
+    console.log('User signed out, clearing auth token...')
+    localStorage.removeItem('sb-fssjmqgolghfwmikydhy-auth-token')
+  }
+})

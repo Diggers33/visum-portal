@@ -163,12 +163,24 @@ function App() {
 
   useEffect(() => {
     console.log('🚀 App mounted - checking session...');
-    
-    // Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('🔐 Session check:', session ? '✅ Has session' : '❌ No session');
-      
-      if (session) {
+
+    const initAuth = async () => {
+      try {
+        // Check active session
+        const { data, error } = await supabase.auth.getSession();
+
+        if (error) {
+          console.warn('⚠️ Session invalid, clearing auth state...', error);
+          localStorage.clear();
+          await supabase.auth.signOut();
+          setLoading(false);
+          return;
+        }
+
+        const { session } = data;
+        console.log('🔐 Session check:', session ? '✅ Has session' : '❌ No session');
+
+        if (session) {
         // Try admin_users first (for admin portal users)
         supabase
           .from('admin_users')
@@ -321,10 +333,18 @@ function App() {
             });
             setLoading(false);
           });
-      } else {
-        setLoading(false);
+        } else {
+          setLoading(false);
+        }
+      } catch (e) {
+        // Network/CORS error - clear tokens and reset
+        console.warn('❌ Auth init failed (network/CORS error):', e);
+        localStorage.clear();
+        window.location.href = '/';
       }
-    });
+    };
+
+    initAuth();
 
     // Listen for auth changes (but ignore silent token refreshes to prevent auto-reload)
     const {
