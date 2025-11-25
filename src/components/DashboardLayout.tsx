@@ -253,9 +253,6 @@ export default function DashboardLayout({ children, onLogout }: DashboardLayoutP
 
           {/* Right side */}
           <div className="flex items-center gap-4">
-            {/* Language Switcher */}
-            <LanguageSwitcher />
-
             {/* Notifications */}
             <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
               <PopoverTrigger asChild>
@@ -366,6 +363,9 @@ export default function DashboardLayout({ children, onLogout }: DashboardLayoutP
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Language Switcher */}
+            <LanguageSwitcher />
           </div>
         </header>
 
