@@ -41,6 +41,7 @@ import {
   formatFileSize,
   type SoftwareRelease,
 } from '../lib/api/software-releases';
+import { getCurrentDistributorId } from '../lib/api/distributor-content';
 
 export default function SoftwareUpdates() {
   const [releases, setReleases] = useState<SoftwareRelease[]>([]);
@@ -58,8 +59,17 @@ export default function SoftwareUpdates() {
   const loadData = async () => {
     setLoading(true);
     try {
+      // Get current distributor ID
+      const distributorId = await getCurrentDistributorId();
+      if (!distributorId) {
+        console.error('No distributor ID found for current user');
+        toast.error('Unable to identify your distributor account');
+        setLoading(false);
+        return;
+      }
+
       // Load available releases for this distributor
-      const { data, error } = await fetchAvailableReleases();
+      const { data, error } = await fetchAvailableReleases(distributorId);
       if (error) {
         console.error('Error loading releases:', error);
         toast.error('Failed to load software releases');
@@ -68,8 +78,8 @@ export default function SoftwareUpdates() {
       }
 
       // Load pending updates count
-      const { data: countData } = await getPendingUpdatesCount();
-      setPendingCount(countData || 0);
+      const { count } = await getPendingUpdatesCount(distributorId);
+      setPendingCount(count || 0);
     } catch (error) {
       console.error('Error loading data:', error);
       toast.error('Failed to load data');
