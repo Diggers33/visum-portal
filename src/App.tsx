@@ -284,7 +284,8 @@ function App() {
             }
           })
           .catch(async (error) => {
-            console.error('⚠️ admin_users check failed:', error);
+            // Note: 406 error is expected for non-admin users due to RLS - this is handled gracefully
+            console.log('ℹ️ admin_users check: user is not admin, checking user_profiles...');
 
             // Fallback to user_profiles check
             const { data: profile, error: profileError } = await supabase
@@ -464,7 +465,8 @@ function App() {
             }
           })
           .catch(async (error) => {
-            console.error('⚠️ admin_users check failed (auth change):', error);
+            // Note: 406 error is expected for non-admin users due to RLS - this is handled gracefully
+            console.log('ℹ️ admin_users check: user is not admin, checking user_profiles...');
 
             // Fallback to user_profiles check
             const { data: profile, error: profileError } = await supabase
