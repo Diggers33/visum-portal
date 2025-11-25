@@ -975,7 +975,10 @@ export async function fetchAvailableReleases(
       .select('id, name, version, status, target_type')
       .eq('status', 'published');
 
-    console.log('[RELEASES] DEBUG - All published releases:', allPublished);
+    console.log('[RELEASES] DEBUG - All published releases:');
+    allPublished?.forEach(r => {
+      console.log(`  - ${r.name} v${r.version} | status: ${r.status} | target_type: ${r.target_type} | id: ${r.id}`);
+    });
     console.log('[RELEASES] DEBUG - Query error:', debugError);
 
     // Get releases targeted to all
