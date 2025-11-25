@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -21,6 +21,13 @@ import {
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { createDevice, CreateDeviceInput } from '../lib/api/devices';
+import { supabase } from '../lib/supabase';
+
+interface Product {
+  id: string;
+  name: string;
+  model: string | null;
+}
 
 interface AddDeviceModalProps {
   open: boolean;
@@ -38,11 +45,12 @@ export default function AddDeviceModal({
   onSuccess
 }: AddDeviceModalProps) {
   const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [productsLoading, setProductsLoading] = useState(false);
   const [formData, setFormData] = useState({
     serial_number: '',
     device_name: '',
-    device_model: '',
-    product_name: '',
+    product_id: '',
     installation_date: '',
     warranty_expiry: '',
     location_description: '',
@@ -51,12 +59,36 @@ export default function AddDeviceModal({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Load products when modal opens
+  useEffect(() => {
+    if (open) {
+      loadProducts();
+    }
+  }, [open]);
+
+  const loadProducts = async () => {
+    setProductsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, name, model')
+        .eq('status', 'active')
+        .order('name');
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error('Error loading products:', error);
+    } finally {
+      setProductsLoading(false);
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       serial_number: '',
       device_name: '',
-      device_model: '',
-      product_name: '',
+      product_id: '',
       installation_date: '',
       warranty_expiry: '',
       location_description: '',
@@ -96,12 +128,16 @@ export default function AddDeviceModal({
 
     setLoading(true);
     try {
+      // Get product details if selected
+      const selectedProduct = products.find(p => p.id === formData.product_id);
+
       const input: CreateDeviceInput = {
         customer_id: customerId,
         serial_number: formData.serial_number.trim(),
         device_name: formData.device_name.trim(),
-        device_model: formData.device_model.trim() || undefined,
-        product_name: formData.product_name.trim() || undefined,
+        product_id: formData.product_id || undefined,
+        device_model: selectedProduct?.model || undefined,
+        product_name: selectedProduct?.name || undefined,
         installation_date: formData.installation_date || undefined,
         warranty_expiry: formData.warranty_expiry || undefined,
         location_description: formData.location_description.trim() || undefined,
@@ -182,13 +218,22 @@ export default function AddDeviceModal({
                 </div>
 
                 <div>
-                  <Label htmlFor="device_model">Device Model</Label>
-                  <Input
-                    id="device_model"
-                    value={formData.device_model}
-                    onChange={(e) => setFormData({ ...formData, device_model: e.target.value })}
-                    placeholder="e.g., VISUM Pro 3000"
-                  />
+                  <Label htmlFor="product_id">Product / Model</Label>
+                  <Select
+                    value={formData.product_id}
+                    onValueChange={(value) => setFormData({ ...formData, product_id: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={productsLoading ? "Loading products..." : "Select a product..."} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {products.map((product) => (
+                        <SelectItem key={product.id} value={product.id}>
+                          {product.name}{product.model ? ` - ${product.model}` : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
@@ -211,26 +256,13 @@ export default function AddDeviceModal({
               </div>
             </div>
 
-            {/* Product & Warranty */}
+            {/* Warranty & Installation */}
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-slate-900 border-b pb-2">
-                Product & Warranty
+                Warranty & Installation
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <Label htmlFor="product_name">VISUM Product</Label>
-                  <Input
-                    id="product_name"
-                    value={formData.product_name}
-                    onChange={(e) => setFormData({ ...formData, product_name: e.target.value })}
-                    placeholder="e.g., VISUM Enterprise Suite"
-                  />
-                  <p className="text-xs text-slate-500 mt-1">
-                    Enter the VISUM product this device is registered for
-                  </p>
-                </div>
-
                 <div>
                   <Label htmlFor="installation_date">Installation Date</Label>
                   <Input
