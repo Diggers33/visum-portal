@@ -15,7 +15,8 @@ import {
   ChevronRight,
   AlertTriangle,
   Shield,
-  Clock
+  Clock,
+  Eye
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -434,7 +435,18 @@ export default function CustomerDetail() {
                           </Badge>
                         )}
 
-                        <ChevronRight className="h-5 w-5 text-slate-400" />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeviceClick(device.id);
+                          }}
+                          className="text-[#00a8b5] hover:text-[#008a95] hover:bg-[#00a8b5]/10"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
                       </div>
                     </div>
                   ))}
