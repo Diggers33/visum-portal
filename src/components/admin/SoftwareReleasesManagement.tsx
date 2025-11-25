@@ -495,7 +495,6 @@ export default function SoftwareReleasesManagement() {
                 <TableHead>Product</TableHead>
                 <TableHead>Target</TableHead>
                 <TableHead className="text-center">Downloads</TableHead>
-                <TableHead className="text-center">Installs</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -503,7 +502,7 @@ export default function SoftwareReleasesManagement() {
             <TableBody>
               {filteredReleases.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-12 text-slate-500">
+                  <TableCell colSpan={8} className="text-center py-12 text-slate-500">
                     No releases found
                   </TableCell>
                 </TableRow>
@@ -544,9 +543,6 @@ export default function SoftwareReleasesManagement() {
                     </TableCell>
                     <TableCell className="text-center">
                       <span className="text-sm">{release.download_count || 0}</span>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <span className="text-sm">{release.install_count || 0}</span>
                     </TableCell>
                     <TableCell>
                       <Badge className={getReleaseStatusColor(release.status)}>
