@@ -346,9 +346,9 @@ export default function CreateReleaseModal({
             <TabsTrigger value="targeting">Targeting</TabsTrigger>
           </TabsList>
 
-          <ScrollArea className="flex-1 mt-4 pr-4" style={{ height: 'calc(90vh - 280px)' }}>
+          <ScrollArea className="mt-4 pr-4 h-[400px]">
             {/* Basic Info Tab */}
-            <TabsContent value="basic" className="space-y-4 mt-0">
+            <TabsContent value="basic" className="space-y-4 mt-0 min-h-[380px]">
               <div className="space-y-2">
                 <Label htmlFor="name">Release Name *</Label>
                 <Input
@@ -426,7 +426,7 @@ export default function CreateReleaseModal({
             </TabsContent>
 
             {/* File Tab */}
-            <TabsContent value="file" className="space-y-4 mt-0">
+            <TabsContent value="file" className="space-y-4 mt-0 min-h-[380px]">
               <div
                 {...getRootProps()}
                 className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
@@ -473,7 +473,7 @@ export default function CreateReleaseModal({
             </TabsContent>
 
             {/* Details Tab */}
-            <TabsContent value="details" className="space-y-4 mt-0">
+            <TabsContent value="details" className="space-y-4 mt-0 min-h-[380px]">
               <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
                 <Textarea
@@ -524,7 +524,7 @@ export default function CreateReleaseModal({
             </TabsContent>
 
             {/* Targeting Tab */}
-            <TabsContent value="targeting" className="space-y-4 mt-0">
+            <TabsContent value="targeting" className="space-y-4 mt-0 min-h-[380px]">
               <div className="space-y-4">
                 <Label>Target Audience</Label>
                 <RadioGroup
