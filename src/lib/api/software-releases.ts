@@ -1203,18 +1203,38 @@ export async function fetchReleasesForDevice(
  * @returns Promise with success status or error
  */
 export async function logReleaseDownload(
-  releaseId: string
+  releaseId: string,
+  deviceId?: string
 ): Promise<{ success: boolean; error: any }> {
   try {
     console.log('📥 Logging release download:', releaseId);
 
     const { data: { user } } = await supabase.auth.getUser();
 
+    if (!user) {
+      console.error('❌ No authenticated user for download logging');
+      return { success: false, error: { message: 'No authenticated user' } };
+    }
+
+    // Get the user's distributor_id from their profile
+    const { data: profile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('distributor_id')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError) {
+      console.error('❌ Error fetching user profile:', profileError);
+      return { success: false, error: profileError };
+    }
+
     const { error } = await supabase
       .from('software_release_downloads')
       .insert({
         release_id: releaseId,
-        user_id: user?.id,
+        downloaded_by: user.id,
+        distributor_id: profile?.distributor_id,
+        device_id: deviceId || null,
         downloaded_at: new Date().toISOString()
       });
 
