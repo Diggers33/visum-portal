@@ -17,7 +17,8 @@ import {
   ChevronDown,
   Menu,
   X,
-  Building2
+  Building2,
+  Download,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -35,6 +36,7 @@ const navigation = [
   { name: 'Distributors', href: '/admin/distributors', icon: Users },
   { name: 'Customers', href: '/admin/customers', icon: Building2 },
   { name: 'Products', href: '/admin/products', icon: Package },
+  { name: 'Software Releases', href: '/admin/software-releases', icon: Download },
   { name: 'Documentation', href: '/admin/documentation', icon: FileText },
   { name: 'Marketing Assets', href: '/admin/marketing', icon: FolderOpen },
   { name: 'Training', href: '/admin/training', icon: GraduationCap },

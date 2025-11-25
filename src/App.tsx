@@ -27,6 +27,7 @@ import AdminSettings from './components/admin/AdminSettings';
 import ActivityReports from './components/admin/ActivityReports';
 import AdminCustomerOverview from './components/admin/AdminCustomerOverview';
 import AdminCustomerDetail from './components/admin/AdminCustomerDetail';
+import SoftwareReleasesManagement from './components/admin/SoftwareReleasesManagement';
 
 // Desktop Distributor Portal Components
 import DashboardLayout from './components/DashboardLayout';
@@ -769,6 +770,7 @@ function App() {
         <Route path="/admin/activity-reports" element={<ProtectedRoute routeName="admin-activity-reports" requireRole="admin" element={<AdminLayout onLogout={handleLogout}><ActivityReports /></AdminLayout>} />} />
         <Route path="/admin/customers" element={<ProtectedRoute routeName="admin-customers" requireRole="admin" element={<AdminLayout onLogout={handleLogout}><AdminCustomerOverview /></AdminLayout>} />} />
         <Route path="/admin/customers/:customerId" element={<ProtectedRoute routeName="admin-customer-detail" requireRole="admin" element={<AdminLayout onLogout={handleLogout}><AdminCustomerDetail /></AdminLayout>} />} />
+        <Route path="/admin/software-releases" element={<ProtectedRoute routeName="admin-software-releases" requireRole="admin" element={<AdminLayout onLogout={handleLogout}><SoftwareReleasesManagement /></AdminLayout>} />} />
 
         {/* ✅ Distributor Portal Routes - SMART (Desktop OR Mobile) */}
         <Route 
