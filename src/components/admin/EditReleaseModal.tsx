@@ -380,7 +380,7 @@ export default function EditReleaseModal({
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="__none__">No specific product</SelectItem>
-                          {products.map((product) => (
+                          {products.filter(p => p.id).map((product) => (
                             <SelectItem key={product.id} value={product.id}>
                               {product.name}
                             </SelectItem>

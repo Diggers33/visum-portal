@@ -449,7 +449,7 @@ export default function SoftwareReleasesManagement() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Products</SelectItem>
-                  {products.map((product) => (
+                  {products.filter(p => p.id).map((product) => (
                     <SelectItem key={product.id} value={product.id}>
                       {product.name}
                     </SelectItem>
