@@ -1022,11 +1022,49 @@ export async function fetchAvailableReleases(
       }
     }
 
-    // Combine and deduplicate
+    // Get releases targeted to specific devices belonging to this distributor's customers
+    // Query: software_release_devices → devices → customers (where distributor_id matches)
+    const { data: deviceTargets, error: deviceTargetsError } = await supabase
+      .from('software_release_devices')
+      .select(`
+        release_id,
+        device:devices!inner(
+          id,
+          customer:customers!inner(
+            distributor_id
+          )
+        )
+      `)
+      .eq('device.customer.distributor_id', distributorId);
+
+    console.log('[RELEASES] Device targets query:', { deviceTargets, deviceTargetsError });
+
+    // Extract unique release IDs from device targets
+    const deviceReleaseIds = [...new Set(deviceTargets?.map(t => t.release_id) || [])];
+    console.log('[RELEASES] Device-targeted release IDs:', deviceReleaseIds);
+
+    let deviceReleases: SoftwareRelease[] = [];
+    if (deviceReleaseIds.length > 0) {
+      const { data, error } = await supabase
+        .from('software_releases')
+        .select('*')
+        .eq('status', 'published')
+        .in('id', deviceReleaseIds)
+        .order('release_date', { ascending: false });
+
+      console.log('[RELEASES] Device-specific releases:', data?.length || 0, data);
+      if (error) {
+        console.error('[RELEASES] ❌ Fetch device-targeted releases error:', error);
+      } else {
+        deviceReleases = data || [];
+      }
+    }
+
+    // Combine and deduplicate from all three sources
     const allReleaseIds = new Set<string>();
     const combinedReleases: SoftwareRelease[] = [];
 
-    [...(allReleases || []), ...distributorReleases].forEach(release => {
+    [...(allReleases || []), ...distributorReleases, ...deviceReleases].forEach(release => {
       if (!allReleaseIds.has(release.id)) {
         allReleaseIds.add(release.id);
         combinedReleases.push(release);
