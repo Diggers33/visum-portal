@@ -26,7 +26,6 @@ import { supabase } from '../lib/supabase';
 interface Product {
   id: string;
   name: string;
-  model: string | null;
 }
 
 interface AddDeviceModalProps {
@@ -71,7 +70,7 @@ export default function AddDeviceModal({
     try {
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, model')
+        .select('id, name')
         .eq('status', 'active')
         .order('name');
 
@@ -136,7 +135,6 @@ export default function AddDeviceModal({
         serial_number: formData.serial_number.trim(),
         device_name: formData.device_name.trim(),
         product_id: formData.product_id || undefined,
-        device_model: selectedProduct?.model || undefined,
         product_name: selectedProduct?.name || undefined,
         installation_date: formData.installation_date || undefined,
         warranty_expiry: formData.warranty_expiry || undefined,
@@ -229,7 +227,7 @@ export default function AddDeviceModal({
                     <SelectContent>
                       {products.map((product) => (
                         <SelectItem key={product.id} value={product.id}>
-                          {product.name}{product.model ? ` - ${product.model}` : ''}
+                          {product.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
