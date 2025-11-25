@@ -16,8 +16,11 @@ export async function getCurrentDistributorId(): Promise<string | null> {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
+    console.error('getCurrentDistributorId: No authenticated user');
     return null;
   }
+
+  console.log('getCurrentDistributorId: Fetching for user:', user.id);
 
   const { data: profile, error } = await supabase
     .from('user_profiles')
@@ -26,10 +29,11 @@ export async function getCurrentDistributorId(): Promise<string | null> {
     .single();
 
   if (error) {
-    console.error('Error fetching user profile:', error);
+    console.error('getCurrentDistributorId: Error fetching user profile:', error);
     return null;
   }
 
+  console.log('getCurrentDistributorId: Got distributor_id:', profile?.distributor_id);
   return profile?.distributor_id || null;
 }
 
