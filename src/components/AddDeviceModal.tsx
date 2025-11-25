@@ -71,7 +71,7 @@ export default function AddDeviceModal({
       const { data, error } = await supabase
         .from('products')
         .select('id, name')
-        .eq('status', 'active')
+        .eq('status', 'published')
         .order('name');
 
       if (error) throw error;
