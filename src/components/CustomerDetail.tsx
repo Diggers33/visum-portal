@@ -51,7 +51,7 @@ const deviceStatusConfig = {
 };
 
 export default function CustomerDetail() {
-  const { id } = useParams<{ id: string }>();
+  const { customerId: id } = useParams<{ customerId: string }>();
   const navigate = useNavigate();
 
   const [customer, setCustomer] = useState<Customer | null>(null);
