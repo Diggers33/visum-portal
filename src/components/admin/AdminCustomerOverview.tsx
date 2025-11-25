@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -118,6 +119,8 @@ const deviceStatusConfig = {
 };
 
 export default function AdminCustomerOverview() {
+  const navigate = useNavigate();
+
   // Data state
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [distributors, setDistributors] = useState<Distributor[]>([]);
@@ -817,9 +820,8 @@ export default function AdminCustomerOverview() {
                                               size="sm"
                                               onClick={(e) => {
                                                 e.stopPropagation();
-                                                loadDocumentsForDevice(device);
+                                                navigate(`/admin/customers/${customer.id}/devices/${device.id}`);
                                               }}
-                                              disabled={!device.document_count}
                                             >
                                               <Eye className="h-4 w-4 mr-1" />
                                               View
