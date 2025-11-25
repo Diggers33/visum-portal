@@ -966,7 +966,17 @@ export async function fetchAvailableReleases(
   distributorId: string
 ): Promise<{ data: SoftwareRelease[] | null; error: any }> {
   try {
-    console.log('📊 Fetching available releases for distributor:', distributorId);
+    console.log('[RELEASES] ========== fetchAvailableReleases START ==========');
+    console.log('[RELEASES] Distributor ID:', distributorId);
+
+    // First, let's see ALL published releases (debug query)
+    const { data: allPublished, error: debugError } = await supabase
+      .from('software_releases')
+      .select('id, name, version, status, target_type')
+      .eq('status', 'published');
+
+    console.log('[RELEASES] DEBUG - All published releases:', allPublished);
+    console.log('[RELEASES] DEBUG - Query error:', debugError);
 
     // Get releases targeted to all
     const { data: allReleases, error: allError } = await supabase
@@ -976,18 +986,21 @@ export async function fetchAvailableReleases(
       .eq('target_type', 'all')
       .order('release_date', { ascending: false });
 
+    console.log('[RELEASES] Releases with target_type=all:', allReleases?.length || 0, allReleases);
     if (allError) {
-      console.error('❌ Fetch all-targeted releases error:', allError);
+      console.error('[RELEASES] ❌ Fetch all-targeted releases error:', allError);
       return { data: null, error: allError };
     }
 
     // Get releases targeted to this distributor
-    const { data: distTargets } = await supabase
+    const { data: distTargets, error: distTargetsError } = await supabase
       .from('software_release_distributors')
       .select('release_id')
       .eq('distributor_id', distributorId);
 
+    console.log('[RELEASES] Distributor targets query:', { distTargets, distTargetsError });
     const distReleaseIds = distTargets?.map(t => t.release_id) || [];
+    console.log('[RELEASES] Distributor release IDs:', distReleaseIds);
 
     let distributorReleases: SoftwareRelease[] = [];
     if (distReleaseIds.length > 0) {
@@ -998,8 +1011,9 @@ export async function fetchAvailableReleases(
         .in('id', distReleaseIds)
         .order('release_date', { ascending: false });
 
+      console.log('[RELEASES] Distributor-specific releases:', data?.length || 0, data);
       if (error) {
-        console.error('❌ Fetch distributor-targeted releases error:', error);
+        console.error('[RELEASES] ❌ Fetch distributor-targeted releases error:', error);
       } else {
         distributorReleases = data || [];
       }
@@ -1021,10 +1035,11 @@ export async function fetchAvailableReleases(
       new Date(b.release_date).getTime() - new Date(a.release_date).getTime()
     );
 
-    console.log(`✅ Fetched ${combinedReleases.length} available releases`);
+    console.log('[RELEASES] ✅ Final combined releases:', combinedReleases.length);
+    console.log('[RELEASES] ========== fetchAvailableReleases END ==========');
     return { data: combinedReleases, error: null };
   } catch (error) {
-    console.error('💥 Fetch available releases exception:', error);
+    console.error('[RELEASES] 💥 Fetch available releases exception:', error);
     return { data: null, error };
   }
 }
