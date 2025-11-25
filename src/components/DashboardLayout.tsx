@@ -27,12 +27,28 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { Avatar, AvatarFallback } from './ui/avatar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from './ui/popover';
+import { ScrollArea } from './ui/scroll-area';
 import LanguageSwitcher from './LanguageSwitcher';
 import { supabase } from '../lib/supabase';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
   onLogout: () => void;
+}
+
+interface Notification {
+  id: string;
+  type: 'announcement' | 'release' | 'system';
+  title: string;
+  message: string;
+  date: string;
+  read: boolean;
+  link?: string;
 }
 
 export default function DashboardLayout({ children, onLogout }: DashboardLayoutProps) {
@@ -59,10 +75,68 @@ export default function DashboardLayout({ children, onLogout }: DashboardLayoutP
     initials: 'U',
     notificationCount: 0
   });
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   useEffect(() => {
     loadUserProfile();
+    loadNotifications();
   }, []);
+
+  const loadNotifications = async () => {
+    try {
+      // Fetch recent announcements
+      const { data: announcements } = await supabase
+        .from('announcements')
+        .select('id, title, content, published_at')
+        .eq('status', 'published')
+        .order('published_at', { ascending: false })
+        .limit(5);
+
+      // Fetch recent software releases
+      const { data: releases } = await supabase
+        .from('software_releases')
+        .select('id, name, version, published_at')
+        .eq('status', 'published')
+        .order('published_at', { ascending: false })
+        .limit(3);
+
+      const notificationList: Notification[] = [];
+
+      // Add announcements
+      announcements?.forEach(a => {
+        notificationList.push({
+          id: `announcement-${a.id}`,
+          type: 'announcement',
+          title: a.title,
+          message: a.content?.substring(0, 100) + '...' || '',
+          date: a.published_at,
+          read: false,
+          link: '/portal'
+        });
+      });
+
+      // Add releases
+      releases?.forEach(r => {
+        notificationList.push({
+          id: `release-${r.id}`,
+          type: 'release',
+          title: `New Release: ${r.name}`,
+          message: `Version ${r.version} is now available`,
+          date: r.published_at,
+          read: false,
+          link: '/portal/software-updates'
+        });
+      });
+
+      // Sort by date
+      notificationList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+      setNotifications(notificationList.slice(0, 5));
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+    }
+  };
 
   const loadUserProfile = async () => {
     try {
@@ -94,7 +168,7 @@ export default function DashboardLayout({ children, onLogout }: DashboardLayoutP
             territory: profile.territory || 'No Territory',
             fullName: profile.full_name || profile.email?.split('@')[0] || 'User',
             initials: initials || 'U',
-            notificationCount: 1
+            notificationCount: 0 // Will be updated by notifications
           });
         }
       }
@@ -183,14 +257,68 @@ export default function DashboardLayout({ children, onLogout }: DashboardLayoutP
             <LanguageSwitcher />
 
             {/* Notifications */}
-            <Button variant="ghost" size="icon" className="relative hover:bg-slate-100 transition-colors">
-              <Bell className="h-5 w-5 text-slate-600" />
-              {userProfile.notificationCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-[18px] w-[18px] rounded-full bg-red-500 text-[11px] text-white flex items-center justify-center font-medium">
-                  {userProfile.notificationCount}
-                </span>
-              )}
-            </Button>
+            <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative hover:bg-slate-100 transition-colors">
+                  <Bell className="h-5 w-5 text-slate-600" />
+                  {notifications.length > 0 && (
+                    <span className="absolute -top-1 -right-1 h-[18px] w-[18px] rounded-full bg-red-500 text-[11px] text-white flex items-center justify-center font-medium">
+                      {notifications.length}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0" align="end">
+                <div className="p-3 border-b border-slate-200">
+                  <h3 className="font-semibold text-slate-900">Notifications</h3>
+                </div>
+                <ScrollArea className="h-[300px]">
+                  {notifications.length === 0 ? (
+                    <div className="p-4 text-center text-slate-500">
+                      <Bell className="h-8 w-8 mx-auto mb-2 text-slate-300" />
+                      <p className="text-sm">No notifications</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-100">
+                      {notifications.map((notification) => (
+                        <Link
+                          key={notification.id}
+                          to={notification.link || '/portal'}
+                          onClick={() => setNotificationsOpen(false)}
+                          className="block p-3 hover:bg-slate-50 transition-colors"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${
+                              notification.type === 'release' ? 'bg-green-500' : 'bg-blue-500'
+                            }`} />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-slate-900 truncate">
+                                {notification.title}
+                              </p>
+                              <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
+                                {notification.message}
+                              </p>
+                              <p className="text-xs text-slate-400 mt-1">
+                                {notification.date ? new Date(notification.date).toLocaleDateString() : ''}
+                              </p>
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+                <div className="p-2 border-t border-slate-200">
+                  <Link
+                    to="/portal"
+                    onClick={() => setNotificationsOpen(false)}
+                    className="block w-full text-center text-sm text-[#00a8b5] hover:text-[#008a95] py-1"
+                  >
+                    View all updates
+                  </Link>
+                </div>
+              </PopoverContent>
+            </Popover>
 
             {/* User menu */}
             <DropdownMenu>
