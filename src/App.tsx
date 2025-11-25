@@ -25,6 +25,7 @@ import ProductsManagement from './components/admin/ProductsManagement';
 import EditProduct from './components/admin/EditProduct';
 import AdminSettings from './components/admin/AdminSettings';
 import ActivityReports from './components/admin/ActivityReports';
+import AdminCustomerOverview from './components/admin/AdminCustomerOverview';
 
 // Desktop Distributor Portal Components
 import DashboardLayout from './components/DashboardLayout';
@@ -35,6 +36,11 @@ import MarketingAssets from './components/MarketingAssets';
 import TechnicalDocs from './components/TechnicalDocs';
 import TrainingCenter from './components/TrainingCenter';
 import MyAccount from './components/MyAccount';
+
+// Customer Management Components
+import CustomerList from './components/CustomerList';
+import CustomerDetail from './components/CustomerDetail';
+import DeviceDetail from './components/DeviceDetail';
 
 // Mobile Distributor Portal Components
 import MobileDashboardLayout from './components/mobile/MobileDashboardLayout';
@@ -760,6 +766,7 @@ function App() {
         <Route path="/admin/products/edit/:id" element={<ProtectedRoute routeName="admin-edit-product" requireRole="admin" element={<AdminLayout onLogout={handleLogout}><EditProduct /></AdminLayout>} />} />
         <Route path="/admin/settings" element={<ProtectedRoute routeName="admin-settings" requireRole="admin" element={<AdminLayout onLogout={handleLogout}><AdminSettings /></AdminLayout>} />} />
         <Route path="/admin/activity-reports" element={<ProtectedRoute routeName="admin-activity-reports" requireRole="admin" element={<AdminLayout onLogout={handleLogout}><ActivityReports /></AdminLayout>} />} />
+        <Route path="/admin/customers" element={<ProtectedRoute routeName="admin-customers" requireRole="admin" element={<AdminLayout onLogout={handleLogout}><AdminCustomerOverview /></AdminLayout>} />} />
 
         {/* ✅ Distributor Portal Routes - SMART (Desktop OR Mobile) */}
         <Route 
@@ -847,25 +854,70 @@ function App() {
             />
           } 
         />
-        <Route 
-          path="/portal/account" 
+        <Route
+          path="/portal/account"
           element={
-            <ProtectedRoute 
+            <ProtectedRoute
               routeName="account"
               requireRole="distributor"
               element={
                 <DistributorPortalLayout onLogout={handleLogout}>
-                  <SmartComponent 
+                  <SmartComponent
                     desktopComponent={MyAccount}
                     mobileComponent={MobileMyAccount}
                   />
                 </DistributorPortalLayout>
               }
             />
-          } 
+          }
         />
-        <Route 
-          path="/portal" 
+
+        {/* Customer Management Routes */}
+        <Route
+          path="/portal/customers"
+          element={
+            <ProtectedRoute
+              routeName="customers"
+              requireRole="distributor"
+              element={
+                <DistributorPortalLayout onLogout={handleLogout}>
+                  <CustomerList />
+                </DistributorPortalLayout>
+              }
+            />
+          }
+        />
+        <Route
+          path="/portal/customers/:customerId"
+          element={
+            <ProtectedRoute
+              routeName="customer-detail"
+              requireRole="distributor"
+              element={
+                <DistributorPortalLayout onLogout={handleLogout}>
+                  <CustomerDetail />
+                </DistributorPortalLayout>
+              }
+            />
+          }
+        />
+        <Route
+          path="/portal/customers/:customerId/devices/:deviceId"
+          element={
+            <ProtectedRoute
+              routeName="device-detail"
+              requireRole="distributor"
+              element={
+                <DistributorPortalLayout onLogout={handleLogout}>
+                  <DeviceDetail />
+                </DistributorPortalLayout>
+              }
+            />
+          }
+        />
+
+        <Route
+          path="/portal"
           element={
             <ProtectedRoute 
               routeName="whats-new"

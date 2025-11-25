@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { 
-  Package, 
-  FolderOpen, 
-  FileText, 
-  GraduationCap, 
-  Settings, 
+import {
+  Package,
+  FolderOpen,
+  FileText,
+  GraduationCap,
+  Settings,
   Bell,
   LogOut,
   HelpCircle,
   Globe,
   Search,
-  ChevronDown
+  ChevronDown,
+  Users
 } from 'lucide-react';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
@@ -44,6 +45,7 @@ export default function DashboardLayout({ children, onLogout }: DashboardLayoutP
     { name: t('navigation.marketingAssets'), href: '/portal/marketing', icon: FolderOpen },
     { name: t('navigation.documentation'), href: '/portal/docs', icon: FileText },
     { name: t('navigation.trainingCenter'), href: '/portal/training', icon: GraduationCap },
+    { name: t('navigation.customers', 'Customers'), href: '/portal/customers', icon: Users },
     { name: t('navigation.myAccount'), href: '/portal/account', icon: Settings },
   ];
   
@@ -116,7 +118,10 @@ export default function DashboardLayout({ children, onLogout }: DashboardLayoutP
           {/* Navigation */}
           <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
             {navigation.map((item) => {
-              const isActive = location.pathname === item.href;
+              // For customers section, check if we're in any nested route
+              const isActive = item.href === '/portal/customers'
+                ? location.pathname.startsWith('/portal/customers')
+                : location.pathname === item.href;
               return (
                 <Link
                   key={item.name}
