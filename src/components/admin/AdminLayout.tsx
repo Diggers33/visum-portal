@@ -33,6 +33,7 @@ import { supabase } from '../../lib/supabase';
 const navigation = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
   { name: 'Distributors', href: '/admin/distributors', icon: Users },
+  { name: 'Customers', href: '/admin/customers', icon: Building2 },
   { name: 'Products', href: '/admin/products', icon: Package },
   { name: 'Documentation', href: '/admin/documentation', icon: FileText },
   { name: 'Marketing Assets', href: '/admin/marketing', icon: FolderOpen },

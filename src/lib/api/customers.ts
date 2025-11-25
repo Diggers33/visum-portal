@@ -470,3 +470,229 @@ export async function fetchCustomersWithDevices(
     return { data: null, error };
   }
 }
+
+// ============================================================================
+// ADMIN-SPECIFIC FUNCTIONS
+// ============================================================================
+
+export interface AdminCustomer extends Customer {
+  distributor?: {
+    id: string;
+    company_name: string;
+    territory?: string;
+  };
+}
+
+export interface GlobalCustomerStats {
+  total_customers: number;
+  active_customers: number;
+  inactive_customers: number;
+  prospect_customers: number;
+  total_devices: number;
+  total_documents: number;
+  documents_this_month: number;
+  by_country: Record<string, number>;
+  by_distributor: { id: string; name: string; count: number }[];
+}
+
+/**
+ * Fetch all customers for admin (includes distributor info)
+ * Admin-only function - no distributor filter
+ *
+ * @returns Promise with all customers including distributor details
+ */
+export async function fetchAllCustomersAdmin(): Promise<{ data: AdminCustomer[] | null; error: any }> {
+  try {
+    console.log('📊 [ADMIN] Fetching all customers...');
+
+    const { data, error } = await supabase
+      .from('customers')
+      .select(`
+        *,
+        distributor:distributors(
+          id,
+          company_name,
+          territory
+        ),
+        devices:devices(count)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('❌ [ADMIN] Fetch customers error:', error);
+      return { data: null, error };
+    }
+
+    // Transform data to include device_count
+    const customersWithCounts = data?.map((customer: any) => ({
+      ...customer,
+      device_count: customer.devices?.[0]?.count || 0,
+      devices: undefined
+    })) || [];
+
+    console.log(`✅ [ADMIN] Fetched ${customersWithCounts.length} customers`);
+    return { data: customersWithCounts, error: null };
+  } catch (error) {
+    console.error('💥 [ADMIN] Fetch customers exception:', error);
+    return { data: null, error };
+  }
+}
+
+/**
+ * Get global customer statistics for admin dashboard
+ *
+ * @returns Promise with global statistics
+ */
+export async function getGlobalCustomerStats(): Promise<{ data: GlobalCustomerStats | null; error: any }> {
+  try {
+    console.log('📊 [ADMIN] Calculating global customer statistics...');
+
+    // Fetch all customers with distributor info
+    const { data: customers, error: customersError } = await supabase
+      .from('customers')
+      .select(`
+        id,
+        status,
+        country,
+        distributor_id,
+        distributor:distributors(id, company_name)
+      `);
+
+    if (customersError) {
+      console.error('❌ [ADMIN] Fetch customers for stats error:', customersError);
+      return { data: null, error: customersError };
+    }
+
+    // Fetch all devices count
+    const { count: totalDevices, error: devicesError } = await supabase
+      .from('devices')
+      .select('id', { count: 'exact', head: true });
+
+    if (devicesError) {
+      console.error('❌ [ADMIN] Fetch devices count error:', devicesError);
+      return { data: null, error: devicesError };
+    }
+
+    // Fetch all documents count
+    const { count: totalDocuments, error: docsError } = await supabase
+      .from('device_documents')
+      .select('id', { count: 'exact', head: true });
+
+    if (docsError) {
+      console.error('❌ [ADMIN] Fetch documents count error:', docsError);
+      return { data: null, error: docsError };
+    }
+
+    // Fetch documents this month
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const { count: documentsThisMonth, error: monthDocsError } = await supabase
+      .from('device_documents')
+      .select('id', { count: 'exact', head: true })
+      .gte('created_at', startOfMonth.toISOString());
+
+    if (monthDocsError) {
+      console.error('❌ [ADMIN] Fetch monthly documents error:', monthDocsError);
+    }
+
+    // Calculate statistics
+    const stats: GlobalCustomerStats = {
+      total_customers: customers?.length || 0,
+      active_customers: customers?.filter(c => c.status === 'active').length || 0,
+      inactive_customers: customers?.filter(c => c.status === 'inactive').length || 0,
+      prospect_customers: customers?.filter(c => c.status === 'prospect').length || 0,
+      total_devices: totalDevices || 0,
+      total_documents: totalDocuments || 0,
+      documents_this_month: documentsThisMonth || 0,
+      by_country: {},
+      by_distributor: []
+    };
+
+    // Count by country
+    customers?.forEach(customer => {
+      if (customer.country) {
+        stats.by_country[customer.country] = (stats.by_country[customer.country] || 0) + 1;
+      }
+    });
+
+    // Count by distributor
+    const distributorCounts: Record<string, { name: string; count: number }> = {};
+    customers?.forEach(customer => {
+      const distId = customer.distributor_id;
+      const distName = (customer.distributor as any)?.company_name || 'Unknown';
+      if (distId) {
+        if (!distributorCounts[distId]) {
+          distributorCounts[distId] = { name: distName, count: 0 };
+        }
+        distributorCounts[distId].count++;
+      }
+    });
+
+    stats.by_distributor = Object.entries(distributorCounts)
+      .map(([id, data]) => ({ id, name: data.name, count: data.count }))
+      .sort((a, b) => b.count - a.count);
+
+    console.log('✅ [ADMIN] Global customer statistics calculated:', stats);
+    return { data: stats, error: null };
+  } catch (error) {
+    console.error('💥 [ADMIN] Get global stats exception:', error);
+    return { data: null, error };
+  }
+}
+
+/**
+ * Fetch a single customer by ID for admin (includes distributor info)
+ *
+ * @param id - Customer UUID
+ * @returns Promise with customer data including distributor
+ */
+export async function fetchCustomerByIdAdmin(
+  id: string
+): Promise<{ data: AdminCustomer | null; error: any }> {
+  try {
+    console.log('🔍 [ADMIN] Fetching customer by ID:', id);
+
+    const { data, error } = await supabase
+      .from('customers')
+      .select(`
+        *,
+        distributor:distributors(
+          id,
+          company_name,
+          territory
+        ),
+        devices:devices(
+          id,
+          device_documents:device_documents(count)
+        )
+      `)
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('❌ [ADMIN] Fetch customer error:', error);
+      return { data: null, error };
+    }
+
+    // Calculate counts
+    const deviceCount = data?.devices?.length || 0;
+    const documentCount = data?.devices?.reduce((acc: number, device: any) => {
+      return acc + (device.device_documents?.[0]?.count || 0);
+    }, 0) || 0;
+
+    const customer: AdminCustomer = {
+      ...data,
+      device_count: deviceCount,
+      document_count: documentCount,
+      devices: undefined
+    };
+
+    console.log('✅ [ADMIN] Fetched customer:', customer.company_name);
+    return { data: customer, error: null };
+  } catch (error) {
+    console.error('💥 [ADMIN] Fetch customer exception:', error);
+    return { data: null, error };
+  }
+}
