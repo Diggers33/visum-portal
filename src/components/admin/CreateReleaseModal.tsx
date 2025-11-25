@@ -395,12 +395,15 @@ export default function CreateReleaseModal({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="product">Product</Label>
-                  <Select value={formData.product_id} onValueChange={handleProductChange}>
+                  <Select
+                    value={formData.product_id || '__none__'}
+                    onValueChange={(value) => handleProductChange(value === '__none__' ? '' : value)}
+                  >
                     <SelectTrigger id="product">
                       <SelectValue placeholder="Select product (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No specific product</SelectItem>
+                      <SelectItem value="__none__">No specific product</SelectItem>
                       {products.map((product) => (
                         <SelectItem key={product.id} value={product.id}>
                           {product.name}
