@@ -89,11 +89,26 @@ export default function SoftwareUpdates() {
   };
 
   const handleDownload = async (release: SoftwareRelease) => {
-    // Log the download
-    await logReleaseDownload(release.id);
-    // Open download in new tab
-    window.open(release.file_url, '_blank');
-    toast.success(`Downloading ${release.name} v${release.version}`);
+    try {
+      // 1. Log the download FIRST
+      console.log('[RELEASES] Logging download for release:', release.id);
+      const { success, error } = await logReleaseDownload(release.id);
+
+      if (error) {
+        console.error('[RELEASES] Failed to log download:', error);
+      } else {
+        console.log('[RELEASES] Download logged successfully');
+      }
+
+      // 2. Then trigger the actual download
+      window.open(release.file_url, '_blank');
+      toast.success(`Downloading ${release.name} v${release.version}`);
+    } catch (error) {
+      console.error('[RELEASES] Download error:', error);
+      // Still allow download even if logging fails
+      window.open(release.file_url, '_blank');
+      toast.success(`Downloading ${release.name} v${release.version}`);
+    }
   };
 
   // Filter releases
