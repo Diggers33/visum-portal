@@ -608,7 +608,24 @@ export async function publishRelease(
       return { data: null, error };
     }
 
-    // TODO: If notify_on_publish is true, send notifications
+    // Send notification if enabled
+    if (data?.notify_on_publish) {
+      try {
+        console.log('[RELEASES] Sending notification for release:', id);
+        const { error: notifyError } = await supabase.functions.invoke('send-release-notification', {
+          body: { release_id: id }
+        });
+
+        if (notifyError) {
+          console.error('[RELEASES] Notification error:', notifyError);
+        } else {
+          console.log('[RELEASES] Notification sent successfully');
+        }
+      } catch (notifyError) {
+        console.error('[RELEASES] Failed to send notification:', notifyError);
+        // Don't fail the publish, just log the error
+      }
+    }
 
     console.log('✅ [ADMIN] Release published successfully');
     return { data, error: null };
