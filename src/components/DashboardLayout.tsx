@@ -13,7 +13,8 @@ import {
   Globe,
   Search,
   ChevronDown,
-  Users
+  Users,
+  Download,
 } from 'lucide-react';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
@@ -45,6 +46,7 @@ export default function DashboardLayout({ children, onLogout }: DashboardLayoutP
     { name: t('navigation.marketingAssets'), href: '/portal/marketing', icon: FolderOpen },
     { name: t('navigation.documentation'), href: '/portal/docs', icon: FileText },
     { name: t('navigation.trainingCenter'), href: '/portal/training', icon: GraduationCap },
+    { name: t('navigation.softwareUpdates', 'Software Updates'), href: '/portal/software-updates', icon: Download },
     { name: t('navigation.customers', 'Customers'), href: '/portal/customers', icon: Users },
     { name: t('navigation.myAccount'), href: '/portal/account', icon: Settings },
   ];

@@ -41,6 +41,8 @@ import {
   Loader2,
   ExternalLink,
   Archive,
+  RefreshCw,
+  Info,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { fetchDeviceById, deleteDevice, Device } from '../lib/api/devices';
@@ -55,6 +57,16 @@ import {
 import EditDeviceModal from './EditDeviceModal';
 import UploadDocumentModal from './UploadDocumentModal';
 import DocumentHistoryModal from './DocumentHistoryModal';
+import {
+  fetchReleasesForDevice,
+  markDeviceUpdated,
+  getDeviceUpdateHistory,
+  logReleaseDownload,
+  getReleaseTypeLabel,
+  formatFileSize as formatReleaseFileSize,
+  type SoftwareRelease,
+  type DeviceUpdateHistory,
+} from '../lib/api/software-releases';
 
 const statusConfig = {
   active: { label: 'Active', color: 'bg-green-100 text-green-800', icon: CheckCircle },
@@ -95,6 +107,12 @@ export default function DeviceDetail() {
   // Selected documents for bulk actions
   const [selectedDocs, setSelectedDocs] = useState<Set<string>>(new Set());
 
+  // Software updates state
+  const [availableReleases, setAvailableReleases] = useState<SoftwareRelease[]>([]);
+  const [updateHistory, setUpdateHistory] = useState<DeviceUpdateHistory[]>([]);
+  const [updatesLoading, setUpdatesLoading] = useState(true);
+  const [markingAsInstalled, setMarkingAsInstalled] = useState<string | null>(null);
+
   const loadDevice = async () => {
     if (!deviceId) return;
     setLoading(true);
@@ -120,9 +138,65 @@ export default function DeviceDetail() {
     setDocumentsLoading(false);
   };
 
+  const loadSoftwareUpdates = async () => {
+    if (!deviceId) return;
+    setUpdatesLoading(true);
+    try {
+      // Load available releases for this device
+      const { data: releases, error: releasesError } = await fetchReleasesForDevice(deviceId);
+      if (releasesError) {
+        console.error('Error loading releases:', releasesError);
+      } else {
+        setAvailableReleases(releases || []);
+      }
+
+      // Load update history (last 5)
+      const { data: history, error: historyError } = await getDeviceUpdateHistory(deviceId);
+      if (historyError) {
+        console.error('Error loading update history:', historyError);
+      } else {
+        setUpdateHistory((history || []).slice(0, 5));
+      }
+    } catch (error) {
+      console.error('Error loading software updates:', error);
+    } finally {
+      setUpdatesLoading(false);
+    }
+  };
+
+  const handleDownloadRelease = async (release: SoftwareRelease) => {
+    if (!deviceId) return;
+    // Log the download
+    await logReleaseDownload(release.id, deviceId);
+    // Open download in new tab
+    window.open(release.file_url, '_blank');
+    toast.success(`Downloading ${release.name} v${release.version}`);
+  };
+
+  const handleMarkAsInstalled = async (release: SoftwareRelease) => {
+    if (!deviceId) return;
+    setMarkingAsInstalled(release.id);
+    try {
+      const { error } = await markDeviceUpdated(deviceId, release.id);
+      if (error) {
+        toast.error('Failed to mark as installed', { description: error.message });
+      } else {
+        toast.success(`${release.name} marked as installed`);
+        // Reload device to get updated version info
+        loadDevice();
+        loadSoftwareUpdates();
+      }
+    } catch (error: any) {
+      toast.error('Failed to mark as installed', { description: error.message });
+    } finally {
+      setMarkingAsInstalled(null);
+    }
+  };
+
   useEffect(() => {
     loadDevice();
     loadDocuments();
+    loadSoftwareUpdates();
   }, [deviceId]);
 
   const handleDeleteDevice = async () => {
@@ -509,6 +583,181 @@ export default function DeviceDetail() {
                 </div>
               ))}
             </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Software Updates Section */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <RefreshCw className="h-5 w-5" />
+              Software Updates
+            </CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadSoftwareUpdates}
+              disabled={updatesLoading}
+            >
+              {updatesLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              <span className="ml-2">Refresh</span>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Current Version Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg">
+            <div>
+              <p className="text-sm text-slate-500">Current Firmware</p>
+              <p className="text-lg font-semibold text-slate-900">
+                {device.current_firmware_version || 'Not set'}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-500">Last Updated</p>
+              <p className="text-lg font-semibold text-slate-900">
+                {device.last_update_date
+                  ? new Date(device.last_update_date).toLocaleDateString()
+                  : 'Never'}
+              </p>
+            </div>
+          </div>
+
+          {updatesLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-[#00a8b5]" />
+            </div>
+          ) : (
+            <>
+              {/* Available Updates */}
+              {availableReleases.length > 0 ? (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-slate-700">Available Updates</h4>
+                  {availableReleases.map((release) => (
+                    <div
+                      key={release.id}
+                      className="flex items-center justify-between p-4 border border-orange-200 bg-orange-50 rounded-lg"
+                    >
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5" />
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-slate-900">{release.name}</span>
+                            <Badge variant="outline" className="text-xs">
+                              v{release.version}
+                            </Badge>
+                            <Badge className="bg-blue-100 text-blue-800 text-xs">
+                              {getReleaseTypeLabel(release.release_type)}
+                            </Badge>
+                            {release.is_mandatory && (
+                              <Badge className="bg-red-100 text-red-800 text-xs">
+                                Mandatory
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-slate-600 mt-1">
+                            {release.description || 'No description available'}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-1">
+                            Size: {formatReleaseFileSize(release.file_size)}
+                            {release.release_date && (
+                              <> &bull; Released: {new Date(release.release_date).toLocaleDateString()}</>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownloadRelease(release)}
+                        >
+                          <Download className="h-4 w-4 mr-1" />
+                          Download
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="bg-[#00a8b5] hover:bg-[#008a95]"
+                          onClick={() => handleMarkAsInstalled(release)}
+                          disabled={markingAsInstalled === release.id}
+                        >
+                          {markingAsInstalled === release.id ? (
+                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                          ) : (
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                          )}
+                          Mark as Installed
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 p-4 border border-green-200 bg-green-50 rounded-lg">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <div>
+                    <p className="font-medium text-green-800">Device is up to date</p>
+                    <p className="text-sm text-green-600">
+                      No pending software updates available
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Update History */}
+              {updateHistory.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                    <History className="h-4 w-4" />
+                    Update History
+                  </h4>
+                  <div className="border rounded-lg divide-y">
+                    {updateHistory.map((update) => (
+                      <div key={update.id} className="flex items-center justify-between p-3">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-2 h-2 rounded-full ${
+                              update.status === 'success'
+                                ? 'bg-green-500'
+                                : update.status === 'failed'
+                                ? 'bg-red-500'
+                                : 'bg-yellow-500'
+                            }`}
+                          />
+                          <div>
+                            <p className="font-medium text-slate-900 text-sm">
+                              {update.release?.name || 'Unknown Release'} v{update.release?.version || '?'}
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {update.installed_at
+                                ? new Date(update.installed_at).toLocaleString()
+                                : 'Unknown date'}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge
+                          className={
+                            update.status === 'success'
+                              ? 'bg-green-100 text-green-800'
+                              : update.status === 'failed'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }
+                        >
+                          {update.status.charAt(0).toUpperCase() + update.status.slice(1)}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
