@@ -43,6 +43,7 @@ import MyAccount from './components/MyAccount';
 import CustomerList from './components/CustomerList';
 import CustomerDetail from './components/CustomerDetail';
 import DeviceDetail from './components/DeviceDetail';
+import SoftwareUpdates from './components/SoftwareUpdates';
 
 // Mobile Distributor Portal Components
 import MobileDashboardLayout from './components/mobile/MobileDashboardLayout';
@@ -841,22 +842,36 @@ function App() {
             />
           } 
         />
-        <Route 
-          path="/portal/training" 
+        <Route
+          path="/portal/training"
           element={
-            <ProtectedRoute 
+            <ProtectedRoute
               routeName="training"
               requireRole="distributor"
               element={
                 <DistributorPortalLayout onLogout={handleLogout}>
-                  <SmartComponent 
+                  <SmartComponent
                     desktopComponent={TrainingCenter}
                     mobileComponent={MobileTrainingCenter}
                   />
                 </DistributorPortalLayout>
               }
             />
-          } 
+          }
+        />
+        <Route
+          path="/portal/software-updates"
+          element={
+            <ProtectedRoute
+              routeName="software-updates"
+              requireRole="distributor"
+              element={
+                <DistributorPortalLayout onLogout={handleLogout}>
+                  <SoftwareUpdates />
+                </DistributorPortalLayout>
+              }
+            />
+          }
         />
         <Route
           path="/portal/account"
