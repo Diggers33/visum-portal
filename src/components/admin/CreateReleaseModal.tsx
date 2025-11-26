@@ -414,8 +414,9 @@ export default function CreateReleaseModal({
       const { data: existing } = await query.maybeSingle();
 
       if (existing) {
-        const productName = formData.product_name || 'this product';
-        toast.error(`Version ${formData.version} already exists for ${productName}`, {
+        const productName = formData.product_name ? `for ${formData.product_name}` : '';
+        const releaseType = formData.release_type!.charAt(0).toUpperCase() + formData.release_type!.slice(1);
+        toast.error(`${releaseType} v${formData.version} already exists ${productName}`.trim(), {
           description: `Release "${existing.name}" already uses this version.`,
         });
         setLoading(false);
