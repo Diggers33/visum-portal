@@ -326,16 +326,25 @@ export async function createRelease(
   try {
     console.log('➕ [ADMIN] Creating software release:', input.name);
 
-    // Check for duplicate version
-    const { data: existing } = await supabase
+    // Check for duplicate version (per product + release_type combination)
+    let duplicateQuery = supabase
       .from('software_releases')
       .select('id')
       .eq('version', input.version)
-      .eq('release_type', input.release_type)
-      .maybeSingle();
+      .eq('release_type', input.release_type);
+
+    // Scope duplicate check to same product (or no product)
+    if (input.product_id) {
+      duplicateQuery = duplicateQuery.eq('product_id', input.product_id);
+    } else {
+      duplicateQuery = duplicateQuery.is('product_id', null);
+    }
+
+    const { data: existing } = await duplicateQuery.maybeSingle();
 
     if (existing) {
-      const error = { message: `A ${input.release_type} release with version "${input.version}" already exists` };
+      const productContext = input.product_name ? ` for ${input.product_name}` : '';
+      const error = { message: `A ${input.release_type} release with version "${input.version}"${productContext} already exists` };
       console.error('❌ Duplicate version:', error);
       return { data: null, error };
     }
@@ -389,25 +398,36 @@ export async function updateRelease(
   try {
     console.log('🔧 [ADMIN] Updating release:', id);
 
-    // Check version uniqueness if updating version
+    // Check version uniqueness if updating version (per product)
     if (input.version) {
       const { data: current } = await supabase
         .from('software_releases')
-        .select('release_type')
+        .select('release_type, product_id, product_name')
         .eq('id', id)
         .single();
 
       if (current) {
-        const { data: existing } = await supabase
+        const productId = input.product_id !== undefined ? input.product_id : current.product_id;
+
+        let duplicateQuery = supabase
           .from('software_releases')
           .select('id')
           .eq('version', input.version)
           .eq('release_type', input.release_type || current.release_type)
-          .neq('id', id)
-          .maybeSingle();
+          .neq('id', id);
+
+        // Scope duplicate check to same product (or no product)
+        if (productId) {
+          duplicateQuery = duplicateQuery.eq('product_id', productId);
+        } else {
+          duplicateQuery = duplicateQuery.is('product_id', null);
+        }
+
+        const { data: existing } = await duplicateQuery.maybeSingle();
 
         if (existing) {
-          const error = { message: `A release with version "${input.version}" already exists` };
+          const productContext = (input.product_name || current.product_name) ? ` for ${input.product_name || current.product_name}` : '';
+          const error = { message: `A release with version "${input.version}"${productContext} already exists` };
           console.error('❌ Duplicate version:', error);
           return { data: null, error };
         }

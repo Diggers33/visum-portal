@@ -371,8 +371,40 @@ export default function CreateReleaseModal({
       return;
     }
 
-    console.log('[Submit] Starting submission, setting isUploading to true');
+    // Check for duplicate version BEFORE uploading (per product)
     setLoading(true);
+    try {
+      let query = supabase
+        .from('software_releases')
+        .select('id, name')
+        .eq('version', formData.version!.trim())
+        .eq('release_type', formData.release_type!);
+
+      // If product is selected, check within that product only
+      if (formData.product_id) {
+        query = query.eq('product_id', formData.product_id);
+      } else {
+        // If no product, check for releases without a product
+        query = query.is('product_id', null);
+      }
+
+      const { data: existing } = await query.maybeSingle();
+
+      if (existing) {
+        const productName = formData.product_name || 'this product';
+        toast.error(`Version ${formData.version} already exists for ${productName}`, {
+          description: `Release "${existing.name}" already uses this version.`,
+        });
+        setLoading(false);
+        setActiveTab('basic');
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking duplicate version:', error);
+      // Continue anyway - the backend will catch duplicates
+    }
+
+    console.log('[Submit] Starting submission, setting isUploading to true');
     setIsUploading(true);
     setUploadProgress(0);
     setUploadedBytes(0);
