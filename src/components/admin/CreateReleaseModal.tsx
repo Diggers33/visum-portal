@@ -618,9 +618,9 @@ export default function CreateReleaseModal({
                 </div>
               )}
 
-              {/* Upload progress display */}
+              {/* Upload in progress indicator (simple - detailed progress shown at bottom) */}
               {isUploading && selectedFile && (
-                <div className="p-4 bg-slate-50 rounded-lg border space-y-4">
+                <div className="p-4 bg-[#00a8b5]/5 rounded-lg border border-[#00a8b5]/20">
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <File className="h-8 w-8 text-[#00a8b5]" />
@@ -628,38 +628,11 @@ export default function CreateReleaseModal({
                     </div>
                     <div className="flex-1">
                       <p className="font-medium text-slate-900">{selectedFile.name}</p>
-                      <p className="text-sm text-slate-500">Uploading...</p>
+                      <p className="text-sm text-[#00a8b5]">
+                        Upload in progress ({uploadProgress}%) - see progress below
+                      </p>
                     </div>
                   </div>
-
-                  {/* Progress bar */}
-                  <div className="space-y-2">
-                    <Progress value={uploadProgress} className="h-2" />
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-600">
-                        {formatFileSize(uploadedBytes)} of {formatFileSize(selectedFile.size)} uploaded
-                      </span>
-                      <span className="font-medium text-[#00a8b5]">{uploadProgress}%</span>
-                    </div>
-                  </div>
-
-                  {/* Time remaining */}
-                  {uploadProgress > 0 && uploadProgress < 100 && (
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-sm text-slate-600">
-                        <Clock className="h-4 w-4" />
-                        <span>{calculateRemainingTime() || 'Calculating...'}</span>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={cancelUpload}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  )}
                 </div>
               )}
 
@@ -912,6 +885,45 @@ export default function CreateReleaseModal({
             </TabsContent>
           </ScrollArea>
         </Tabs>
+
+        {/* Upload progress - visible on ALL tabs when uploading */}
+        {isUploading && selectedFile && (
+          <div className="border-t pt-4 mt-2 space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <File className="h-6 w-6 text-[#00a8b5]" />
+                <Loader2 className="h-3 w-3 animate-spin text-[#00a8b5] absolute -bottom-1 -right-1" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-slate-900 text-sm truncate">{selectedFile.name}</p>
+                <p className="text-xs text-slate-500">Uploading...</p>
+              </div>
+              <span className="font-medium text-[#00a8b5] text-sm">{uploadProgress}%</span>
+            </div>
+
+            <Progress value={uploadProgress} className="h-2" />
+
+            <div className="flex items-center justify-between text-xs text-slate-500">
+              <span>{formatFileSize(uploadedBytes)} of {formatFileSize(selectedFile.size)}</span>
+              <div className="flex items-center gap-3">
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {calculateRemainingTime() || 'Calculating...'}
+                  </span>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={cancelUpload}
+                  className="h-6 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <DialogFooter className="border-t pt-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
