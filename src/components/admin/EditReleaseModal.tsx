@@ -30,6 +30,7 @@ import {
   HardDrive,
   Globe,
   AlertCircle,
+  Mail,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -86,13 +87,23 @@ export default function EditReleaseModal({
   const [devices, setDevices] = useState<Device[]>([]);
   const [selectedDistributorIds, setSelectedDistributorIds] = useState<string[]>([]);
   const [selectedDeviceIds, setSelectedDeviceIds] = useState<string[]>([]);
+  const [originalDistributorIds, setOriginalDistributorIds] = useState<string[]>([]);
+  const [originalDeviceIds, setOriginalDeviceIds] = useState<string[]>([]);
   const [distributorSearch, setDistributorSearch] = useState('');
   const [deviceSearch, setDeviceSearch] = useState('');
   const [loadingDistributors, setLoadingDistributors] = useState(false);
   const [loadingDevices, setLoadingDevices] = useState(false);
 
+  // Notify new targets option (only for published releases)
+  const [notifyNewTargets, setNotifyNewTargets] = useState(false);
+
   const releaseTypes = getReleaseTypes();
   const isPublished = release.status === 'published';
+
+  // Check if there are new targets added
+  const hasNewDistributors = selectedDistributorIds.some(id => !originalDistributorIds.includes(id));
+  const hasNewDevices = selectedDeviceIds.some(id => !originalDeviceIds.includes(id));
+  const hasNewTargets = hasNewDistributors || hasNewDevices;
 
   // Load release details when opened
   useEffect(() => {
@@ -127,12 +138,19 @@ export default function EditReleaseModal({
       setTargetType(data!.target_type);
 
       if (data!.target_type === 'distributors') {
-        setSelectedDistributorIds(data!.target_distributors?.map((d) => d.id) || []);
+        const distIds = data!.target_distributors?.map((d) => d.id) || [];
+        setSelectedDistributorIds(distIds);
+        setOriginalDistributorIds(distIds); // Store original for comparison
         await loadDistributors();
       } else if (data!.target_type === 'devices') {
-        setSelectedDeviceIds(data!.target_devices?.map((d) => d.id) || []);
+        const devIds = data!.target_devices?.map((d) => d.id) || [];
+        setSelectedDeviceIds(devIds);
+        setOriginalDeviceIds(devIds); // Store original for comparison
         await loadDevices();
       }
+
+      // Reset notify state
+      setNotifyNewTargets(false);
     } catch (error) {
       console.error('Error loading release details:', error);
       toast.error('Failed to load release details');
@@ -259,7 +277,30 @@ export default function EditReleaseModal({
         await setReleaseTargetDevices(release.id, []);
       }
 
-      toast.success('Release updated successfully');
+      // Send notifications to new targets if requested
+      if (notifyNewTargets && isPublished && hasNewTargets) {
+        try {
+          const { error: notifyError } = await supabase.functions.invoke('send-release-notification', {
+            body: {
+              release_id: release.id,
+              only_unnotified: true,
+            },
+          });
+
+          if (notifyError) {
+            console.error('Error sending notifications:', notifyError);
+            toast.warning('Release updated but failed to send notifications');
+          } else {
+            toast.success('Release updated and notifications sent to new targets');
+          }
+        } catch (notifyErr) {
+          console.error('Error invoking notification function:', notifyErr);
+          toast.warning('Release updated but failed to send notifications');
+        }
+      } else {
+        toast.success('Release updated successfully');
+      }
+
       onOpenChange(false);
       onSuccess();
     } catch (error: any) {
@@ -654,6 +695,31 @@ export default function EditReleaseModal({
                       </Label>
                     </div>
                   </div>
+
+                  {/* Notify New Targets option - only for published releases with new targets */}
+                  {isPublished && hasNewTargets && (
+                    <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg mt-4">
+                      <Mail className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="notifyNewTargets"
+                            checked={notifyNewTargets}
+                            onCheckedChange={(checked) => setNotifyNewTargets(checked as boolean)}
+                          />
+                          <Label htmlFor="notifyNewTargets" className="cursor-pointer">
+                            <span className="font-medium text-blue-900">
+                              Notify newly added targets via email
+                            </span>
+                          </Label>
+                        </div>
+                        <p className="text-sm text-blue-700">
+                          Send email notifications only to the new {targetType === 'distributors' ? 'distributors' : 'device owners'} you've added.
+                          Previously notified targets will not receive duplicate emails.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </TabsContent>
               </ScrollArea>
             </Tabs>
