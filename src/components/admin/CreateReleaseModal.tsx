@@ -143,11 +143,17 @@ export default function CreateReleaseModal({
     return `${(remainingSeconds / 3600).toFixed(1)}h remaining`;
   };
 
+  // Track if upload was cancelled
+  const uploadCancelledRef = useRef(false);
+
   // Upload file with TUS resumable upload protocol (handles large files)
   const uploadWithProgress = async (
     file: File,
     onProgress: (loaded: number, total: number) => void
   ): Promise<{ url: string; fileName: string }> => {
+    // Reset cancelled flag
+    uploadCancelledRef.current = false;
+
     // Generate unique filename (sanitize original name)
     const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const fileName = `releases/${Date.now()}-${sanitizedName}`;
@@ -179,10 +185,18 @@ export default function CreateReleaseModal({
         },
         chunkSize: 6 * 1024 * 1024, // 6MB chunks
         onProgress: (bytesUploaded, bytesTotal) => {
+          // Check if cancelled
+          if (uploadCancelledRef.current) {
+            return;
+          }
           console.log('[Upload] Progress:', bytesUploaded, '/', bytesTotal);
           onProgress(bytesUploaded, bytesTotal);
         },
         onSuccess: () => {
+          if (uploadCancelledRef.current) {
+            reject(new Error('Upload cancelled'));
+            return;
+          }
           console.log('[Upload] Complete!');
           const { data } = supabase.storage
             .from('software-releases')
@@ -206,14 +220,22 @@ export default function CreateReleaseModal({
   // Cancel upload
   const cancelUpload = () => {
     console.log('[Upload] Cancelling upload...');
+    uploadCancelledRef.current = true;
+
     if (tusUploadRef.current) {
-      tusUploadRef.current.abort();
+      try {
+        tusUploadRef.current.abort();
+      } catch (e) {
+        console.log('[Upload] Abort error (expected):', e);
+      }
       tusUploadRef.current = null;
     }
+
     setIsUploading(false);
     setUploadProgress(0);
     setUploadedBytes(0);
     setUploadStartTime(null);
+    setLoading(false);
     toast.info('Upload cancelled');
   };
 
@@ -343,6 +365,7 @@ export default function CreateReleaseModal({
     setUploadedBytes(0);
     setUploadStartTime(null);
     tusUploadRef.current = null;
+    uploadCancelledRef.current = false;
   };
 
   const handleSubmit = async () => {
