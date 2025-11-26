@@ -36,6 +36,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useDropzone } from 'react-dropzone';
+import * as tus from 'tus-js-client';
 import {
   createRelease,
   setReleaseTargetDistributors,
@@ -47,6 +48,9 @@ import {
 } from '../../lib/api/software-releases';
 import { fetchDistributors, Distributor } from '../../lib/api/distributors';
 import { supabase } from '../../lib/supabase';
+
+// Size threshold for using TUS resumable upload (50MB)
+const TUS_THRESHOLD = 50 * 1024 * 1024;
 
 interface Product {
   id: string;
@@ -112,7 +116,7 @@ export default function CreateReleaseModal({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedBytes, setUploadedBytes] = useState(0);
   const [uploadStartTime, setUploadStartTime] = useState<number | null>(null);
-  const xhrRef = useRef<XMLHttpRequest | null>(null);
+  const tusUploadRef = useRef<tus.Upload | null>(null);
 
   const releaseTypes = getReleaseTypes();
 
@@ -139,68 +143,72 @@ export default function CreateReleaseModal({
     return `${(remainingSeconds / 3600).toFixed(1)}h remaining`;
   };
 
-  // Upload file with progress tracking using signed URL
+  // Upload file with TUS resumable upload protocol (handles large files)
   const uploadWithProgress = async (
     file: File,
-    onProgress: (percent: number, loaded: number) => void
-  ): Promise<{ url: string; path: string }> => {
+    onProgress: (loaded: number, total: number) => void
+  ): Promise<{ url: string; fileName: string }> => {
     // Generate unique filename (sanitize original name)
     const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const fileName = `releases/${Date.now()}-${sanitizedName}`;
 
-    // 1. Get signed upload URL from Supabase (this respects auth/RLS)
-    const { data: signedData, error: signedError } = await supabase.storage
-      .from('software-releases')
-      .createSignedUploadUrl(fileName);
+    console.log('[Upload] Starting TUS upload for:', fileName, 'Size:', file.size);
 
-    if (signedError || !signedData) {
-      console.error('Failed to get signed URL:', signedError);
-      throw new Error(signedError?.message || 'Failed to get upload URL');
+    // Get auth token
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw new Error('Not authenticated');
     }
 
-    // 2. Upload to signed URL with XHR for progress tracking
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+
     return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhrRef.current = xhr;
-
-      xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
-          const percent = Math.round((e.loaded / e.total) * 100);
-          onProgress(percent, e.loaded);
-        }
-      });
-
-      xhr.addEventListener('load', () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          // Get public URL after successful upload
-          const { data: urlData } = supabase.storage
+      const upload = new tus.Upload(file, {
+        endpoint: `${supabaseUrl}/storage/v1/upload/resumable`,
+        retryDelays: [0, 3000, 5000, 10000, 20000],
+        headers: {
+          authorization: `Bearer ${session.access_token}`,
+          'x-upsert': 'false',
+        },
+        uploadDataDuringCreation: true,
+        removeFingerprintOnSuccess: true,
+        metadata: {
+          bucketName: 'software-releases',
+          objectName: fileName,
+          contentType: file.type || 'application/octet-stream',
+        },
+        chunkSize: 6 * 1024 * 1024, // 6MB chunks
+        onProgress: (bytesUploaded, bytesTotal) => {
+          console.log('[Upload] Progress:', bytesUploaded, '/', bytesTotal);
+          onProgress(bytesUploaded, bytesTotal);
+        },
+        onSuccess: () => {
+          console.log('[Upload] Complete!');
+          const { data } = supabase.storage
             .from('software-releases')
             .getPublicUrl(fileName);
-          resolve({ url: urlData.publicUrl, path: fileName });
-        } else {
-          reject(new Error(`Upload failed with status ${xhr.status}: ${xhr.responseText}`));
-        }
+          resolve({ url: data.publicUrl, fileName: file.name });
+        },
+        onError: (error) => {
+          console.error('[Upload] Error:', error);
+          reject(error);
+        },
       });
 
-      xhr.addEventListener('error', () => {
-        reject(new Error('Upload failed due to network error'));
-      });
+      // Store reference for cancel functionality
+      tusUploadRef.current = upload;
 
-      xhr.addEventListener('abort', () => {
-        reject(new Error('Upload cancelled'));
-      });
-
-      xhr.open('PUT', signedData.signedUrl);
-      xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-      xhr.send(file);
+      console.log('[Upload] Starting TUS upload...');
+      upload.start();
     });
   };
 
   // Cancel upload
   const cancelUpload = () => {
-    if (xhrRef.current) {
-      xhrRef.current.abort();
-      xhrRef.current = null;
+    console.log('[Upload] Cancelling upload...');
+    if (tusUploadRef.current) {
+      tusUploadRef.current.abort();
+      tusUploadRef.current = null;
     }
     setIsUploading(false);
     setUploadProgress(0);
@@ -334,7 +342,7 @@ export default function CreateReleaseModal({
     setUploadProgress(0);
     setUploadedBytes(0);
     setUploadStartTime(null);
-    xhrRef.current = null;
+    tusUploadRef.current = null;
   };
 
   const handleSubmit = async () => {
@@ -363,6 +371,7 @@ export default function CreateReleaseModal({
       return;
     }
 
+    console.log('[Submit] Starting submission, setting isUploading to true');
     setLoading(true);
     setIsUploading(true);
     setUploadProgress(0);
@@ -370,12 +379,16 @@ export default function CreateReleaseModal({
     setUploadStartTime(Date.now());
 
     try {
-      // 1. Upload file with progress tracking
-      const uploadData = await uploadWithProgress(selectedFile, (percent, loaded) => {
+      // 1. Upload file with TUS resumable upload (progress tracking)
+      console.log('[Submit] Starting file upload...');
+      const uploadData = await uploadWithProgress(selectedFile, (loaded, total) => {
+        const percent = Math.round((loaded / total) * 100);
+        console.log('[Submit] Progress update:', percent, '%', loaded, '/', total);
         setUploadProgress(percent);
         setUploadedBytes(loaded);
       });
 
+      console.log('[Submit] Upload complete, URL:', uploadData.url);
       setIsUploading(false);
 
       // 2. Create release record
@@ -386,7 +399,7 @@ export default function CreateReleaseModal({
         product_id: formData.product_id || undefined,
         product_name: formData.product_name || undefined,
         file_url: uploadData.url,
-        file_name: selectedFile.name,
+        file_name: uploadData.fileName,
         file_size: selectedFile.size,
         description: formData.description,
         release_notes: formData.release_notes,
