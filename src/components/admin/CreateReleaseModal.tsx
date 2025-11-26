@@ -139,23 +139,27 @@ export default function CreateReleaseModal({
     return `${(remainingSeconds / 3600).toFixed(1)}h remaining`;
   };
 
-  // Upload file with progress tracking
+  // Upload file with progress tracking using signed URL
   const uploadWithProgress = async (
     file: File,
     onProgress: (percent: number, loaded: number) => void
   ): Promise<{ url: string; path: string }> => {
+    // Generate unique filename (sanitize original name)
+    const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const fileName = `releases/${Date.now()}-${sanitizedName}`;
+
+    // 1. Get signed upload URL from Supabase (this respects auth/RLS)
+    const { data: signedData, error: signedError } = await supabase.storage
+      .from('software-releases')
+      .createSignedUploadUrl(fileName);
+
+    if (signedError || !signedData) {
+      console.error('Failed to get signed URL:', signedError);
+      throw new Error(signedError?.message || 'Failed to get upload URL');
+    }
+
+    // 2. Upload to signed URL with XHR for progress tracking
     return new Promise((resolve, reject) => {
-      // Generate unique filename
-      const timestamp = Date.now();
-      const randomString = Math.random().toString(36).substring(2, 9);
-      const fileExt = file.name.split('.').pop();
-      const fileName = `releases/${timestamp}-${randomString}.${fileExt}`;
-
-      // Get Supabase storage URL and auth
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      const uploadUrl = `${supabaseUrl}/storage/v1/object/software-releases/${fileName}`;
-
       const xhr = new XMLHttpRequest();
       xhrRef.current = xhr;
 
@@ -168,9 +172,11 @@ export default function CreateReleaseModal({
 
       xhr.addEventListener('load', () => {
         if (xhr.status >= 200 && xhr.status < 300) {
-          // Get public URL
-          const publicUrl = `${supabaseUrl}/storage/v1/object/public/software-releases/${fileName}`;
-          resolve({ url: publicUrl, path: fileName });
+          // Get public URL after successful upload
+          const { data: urlData } = supabase.storage
+            .from('software-releases')
+            .getPublicUrl(fileName);
+          resolve({ url: urlData.publicUrl, path: fileName });
         } else {
           reject(new Error(`Upload failed with status ${xhr.status}: ${xhr.responseText}`));
         }
@@ -184,9 +190,8 @@ export default function CreateReleaseModal({
         reject(new Error('Upload cancelled'));
       });
 
-      xhr.open('POST', uploadUrl);
-      xhr.setRequestHeader('Authorization', `Bearer ${supabaseKey}`);
-      xhr.setRequestHeader('x-upsert', 'false');
+      xhr.open('PUT', signedData.signedUrl);
+      xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
       xhr.send(file);
     });
   };
