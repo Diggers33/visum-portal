@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,7 @@ import { Textarea } from '../ui/textarea';
 import { Checkbox } from '../ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { ScrollArea } from '../ui/scroll-area';
+import { Progress } from '../ui/progress';
 import {
   Select,
   SelectContent,
@@ -31,12 +32,12 @@ import {
   HardDrive,
   Globe,
   AlertCircle,
+  Clock,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useDropzone } from 'react-dropzone';
 import {
   createRelease,
-  uploadReleaseFile,
   setReleaseTargetDistributors,
   setReleaseTargetDevices,
   publishRelease,
@@ -106,7 +107,102 @@ export default function CreateReleaseModal({
   // Publish immediately
   const [publishImmediately, setPublishImmediately] = useState(false);
 
+  // Upload progress state
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadedBytes, setUploadedBytes] = useState(0);
+  const [uploadStartTime, setUploadStartTime] = useState<number | null>(null);
+  const xhrRef = useRef<XMLHttpRequest | null>(null);
+
   const releaseTypes = getReleaseTypes();
+
+  // Format time estimate
+  const formatTimeEstimate = (bytes: number, bytesPerSecond: number = 2000000) => {
+    const seconds = bytes / bytesPerSecond;
+    if (seconds < 60) return `~${Math.ceil(seconds)} seconds`;
+    if (seconds < 3600) return `~${Math.ceil(seconds / 60)} minutes`;
+    return `~${(seconds / 3600).toFixed(1)} hours`;
+  };
+
+  // Calculate remaining time based on actual upload speed
+  const calculateRemainingTime = () => {
+    if (!uploadStartTime || uploadedBytes === 0 || !selectedFile) return null;
+
+    const elapsedMs = Date.now() - uploadStartTime;
+    const bytesPerMs = uploadedBytes / elapsedMs;
+    const remainingBytes = selectedFile.size - uploadedBytes;
+    const remainingMs = remainingBytes / bytesPerMs;
+
+    const remainingSeconds = Math.ceil(remainingMs / 1000);
+    if (remainingSeconds < 60) return `${remainingSeconds}s remaining`;
+    if (remainingSeconds < 3600) return `${Math.ceil(remainingSeconds / 60)}m remaining`;
+    return `${(remainingSeconds / 3600).toFixed(1)}h remaining`;
+  };
+
+  // Upload file with progress tracking
+  const uploadWithProgress = async (
+    file: File,
+    onProgress: (percent: number, loaded: number) => void
+  ): Promise<{ url: string; path: string }> => {
+    return new Promise((resolve, reject) => {
+      // Generate unique filename
+      const timestamp = Date.now();
+      const randomString = Math.random().toString(36).substring(2, 9);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `releases/${timestamp}-${randomString}.${fileExt}`;
+
+      // Get Supabase storage URL and auth
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      const uploadUrl = `${supabaseUrl}/storage/v1/object/software-releases/${fileName}`;
+
+      const xhr = new XMLHttpRequest();
+      xhrRef.current = xhr;
+
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          onProgress(percent, e.loaded);
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          // Get public URL
+          const publicUrl = `${supabaseUrl}/storage/v1/object/public/software-releases/${fileName}`;
+          resolve({ url: publicUrl, path: fileName });
+        } else {
+          reject(new Error(`Upload failed with status ${xhr.status}: ${xhr.responseText}`));
+        }
+      });
+
+      xhr.addEventListener('error', () => {
+        reject(new Error('Upload failed due to network error'));
+      });
+
+      xhr.addEventListener('abort', () => {
+        reject(new Error('Upload cancelled'));
+      });
+
+      xhr.open('POST', uploadUrl);
+      xhr.setRequestHeader('Authorization', `Bearer ${supabaseKey}`);
+      xhr.setRequestHeader('x-upsert', 'false');
+      xhr.send(file);
+    });
+  };
+
+  // Cancel upload
+  const cancelUpload = () => {
+    if (xhrRef.current) {
+      xhrRef.current.abort();
+      xhrRef.current = null;
+    }
+    setIsUploading(false);
+    setUploadProgress(0);
+    setUploadedBytes(0);
+    setUploadStartTime(null);
+    toast.info('Upload cancelled');
+  };
 
   // Load distributors when targeting changes
   const loadDistributors = async () => {
@@ -228,6 +324,12 @@ export default function CreateReleaseModal({
     setSelectedDeviceIds([]);
     setPublishImmediately(false);
     setActiveTab('basic');
+    // Reset upload progress state
+    setIsUploading(false);
+    setUploadProgress(0);
+    setUploadedBytes(0);
+    setUploadStartTime(null);
+    xhrRef.current = null;
   };
 
   const handleSubmit = async () => {
@@ -257,10 +359,19 @@ export default function CreateReleaseModal({
     }
 
     setLoading(true);
+    setIsUploading(true);
+    setUploadProgress(0);
+    setUploadedBytes(0);
+    setUploadStartTime(Date.now());
+
     try {
-      // 1. Upload file
-      const { data: uploadData, error: uploadError } = await uploadReleaseFile(selectedFile);
-      if (uploadError) throw uploadError;
+      // 1. Upload file with progress tracking
+      const uploadData = await uploadWithProgress(selectedFile, (percent, loaded) => {
+        setUploadProgress(percent);
+        setUploadedBytes(loaded);
+      });
+
+      setIsUploading(false);
 
       // 2. Create release record
       const releaseData: CreateReleaseInput = {
@@ -269,7 +380,7 @@ export default function CreateReleaseModal({
         release_type: formData.release_type!,
         product_id: formData.product_id || undefined,
         product_name: formData.product_name || undefined,
-        file_url: uploadData!.url,
+        file_url: uploadData.url,
         file_name: selectedFile.name,
         file_size: selectedFile.size,
         description: formData.description,
@@ -314,6 +425,10 @@ export default function CreateReleaseModal({
       toast.error(error.message || 'Failed to create release');
     } finally {
       setLoading(false);
+      setIsUploading(false);
+      setUploadProgress(0);
+      setUploadedBytes(0);
+      setUploadStartTime(null);
     }
   };
 
@@ -427,47 +542,120 @@ export default function CreateReleaseModal({
 
             {/* File Tab */}
             <TabsContent value="file" className="space-y-4 mt-0 min-h-[380px]">
-              <div
-                {...getRootProps()}
-                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                  isDragActive
-                    ? 'border-[#00a8b5] bg-[#00a8b5]/5'
-                    : 'border-slate-300 hover:border-slate-400'
-                }`}
-              >
-                <input {...getInputProps()} />
-                <Upload className="h-10 w-10 mx-auto text-slate-400 mb-4" />
-                {isDragActive ? (
-                  <p className="text-[#00a8b5]">Drop the file here...</p>
-                ) : (
-                  <>
-                    <p className="text-slate-600 mb-2">
-                      Drag & drop a release file here, or click to select
-                    </p>
-                    <p className="text-sm text-slate-500">
-                      Supported formats: .bin, .hex, .fw, .img, .zip, .tar.gz, .exe, .msi
-                    </p>
-                  </>
-                )}
-              </div>
+              {/* Show dropzone only when not uploading */}
+              {!isUploading && (
+                <div
+                  {...getRootProps()}
+                  className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                    isDragActive
+                      ? 'border-[#00a8b5] bg-[#00a8b5]/5'
+                      : 'border-slate-300 hover:border-slate-400'
+                  } ${selectedFile ? 'opacity-50' : ''}`}
+                >
+                  <input {...getInputProps()} />
+                  <Upload className="h-10 w-10 mx-auto text-slate-400 mb-4" />
+                  {isDragActive ? (
+                    <p className="text-[#00a8b5]">Drop the file here...</p>
+                  ) : (
+                    <>
+                      <p className="text-slate-600 mb-2">
+                        Drag & drop a release file here, or click to select
+                      </p>
+                      <p className="text-sm text-slate-500">
+                        Supported formats: .bin, .hex, .fw, .img, .zip, .tar.gz, .exe, .msi
+                      </p>
+                    </>
+                  )}
+                </div>
+              )}
 
-              {selectedFile && (
-                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border">
+              {/* File info display (before upload starts) */}
+              {selectedFile && !isUploading && (
+                <div className="p-4 bg-slate-50 rounded-lg border space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <File className="h-8 w-8 text-[#00a8b5]" />
+                      <div>
+                        <p className="font-medium text-slate-900">{selectedFile.name}</p>
+                        <p className="text-sm text-slate-500">{formatFileSize(selectedFile.size)}</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedFile(null)}
+                      className="text-slate-500 hover:text-red-600"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* Estimated upload time for large files (> 10MB) */}
+                  {selectedFile.size > 10 * 1024 * 1024 && (
+                    <div className="flex items-center gap-2 text-sm text-slate-600 pt-2 border-t">
+                      <Clock className="h-4 w-4" />
+                      <span>Estimated upload time: {formatTimeEstimate(selectedFile.size)}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Upload progress display */}
+              {isUploading && selectedFile && (
+                <div className="p-4 bg-slate-50 rounded-lg border space-y-4">
                   <div className="flex items-center gap-3">
-                    <File className="h-8 w-8 text-[#00a8b5]" />
-                    <div>
+                    <div className="relative">
+                      <File className="h-8 w-8 text-[#00a8b5]" />
+                      <Loader2 className="h-4 w-4 animate-spin text-[#00a8b5] absolute -bottom-1 -right-1" />
+                    </div>
+                    <div className="flex-1">
                       <p className="font-medium text-slate-900">{selectedFile.name}</p>
-                      <p className="text-sm text-slate-500">{formatFileSize(selectedFile.size)}</p>
+                      <p className="text-sm text-slate-500">Uploading...</p>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedFile(null)}
-                    className="text-slate-500 hover:text-red-600"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+
+                  {/* Progress bar */}
+                  <div className="space-y-2">
+                    <Progress value={uploadProgress} className="h-2" />
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-600">
+                        {formatFileSize(uploadedBytes)} of {formatFileSize(selectedFile.size)} uploaded
+                      </span>
+                      <span className="font-medium text-[#00a8b5]">{uploadProgress}%</span>
+                    </div>
+                  </div>
+
+                  {/* Time remaining */}
+                  {uploadProgress > 0 && uploadProgress < 100 && (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-sm text-slate-600">
+                        <Clock className="h-4 w-4" />
+                        <span>{calculateRemainingTime() || 'Calculating...'}</span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={cancelUpload}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Large file warning */}
+              {selectedFile && selectedFile.size > 100 * 1024 * 1024 && !isUploading && (
+                <div className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium text-amber-800">Large file detected</p>
+                    <p className="text-amber-700">
+                      This file is {formatFileSize(selectedFile.size)}. Upload may take several minutes.
+                      Please do not close this window during upload.
+                    </p>
+                  </div>
                 </div>
               )}
             </TabsContent>
