@@ -132,20 +132,13 @@ export default function CreateDistributorModal({
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({
-          // Company data
-          company_name: formData.company_name,
+          // Field names must match Edge Function expectations
+          email: formData.create_first_user ? formData.user_email : formData.contact_email,
+          fullName: formData.create_first_user ? formData.user_full_name : null,
+          companyName: formData.company_name,
           territory: formData.territory,
-          account_type: formData.account_type,
-          contact_email: formData.contact_email || null,
-          phone: formData.phone || null,
-          address: formData.address || null,
-
-          // First user data (if creating)
-          create_first_user: formData.create_first_user,
-          user_email: formData.create_first_user ? formData.user_email : null,
-          user_full_name: formData.create_first_user ? formData.user_full_name : null,
-          user_company_role: formData.create_first_user ? formData.user_company_role : null,
-          send_invitation: formData.create_first_user ? formData.send_invitation : false,
+          accountType: formData.account_type,
+          sendWelcome: formData.create_first_user ? formData.send_invitation : false,
         }),
       });
 

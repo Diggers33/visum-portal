@@ -230,17 +230,13 @@ export default function DistributorsManagement() {
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({
-          company_name: newDistributor.companyName,
+          // Field names must match Edge Function expectations
+          email: newDistributor.email,
+          fullName: newDistributor.contactName || null,
+          companyName: newDistributor.companyName,
           territory: selectedTerritories.join(', '),
-          account_type: newDistributor.accountType,
-          contact_email: newDistributor.email,
-          phone: newDistributor.phone || null,
-          // First user data
-          create_first_user: true,
-          user_email: newDistributor.email,
-          user_full_name: newDistributor.contactName || null,
-          user_company_role: 'user',
-          send_invitation: newDistributor.sendWelcome,
+          accountType: newDistributor.accountType,
+          sendWelcome: newDistributor.sendWelcome,
         }),
       });
 
