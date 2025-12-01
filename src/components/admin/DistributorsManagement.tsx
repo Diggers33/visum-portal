@@ -214,11 +214,20 @@ export default function DistributorsManagement() {
     setIsCreating(true);
 
     try {
+      // Get session token for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        throw new Error('No active session - please log in again');
+      }
+
       // Call Edge Function to create distributor
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-distributor`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({
           company_name: newDistributor.companyName,
@@ -325,11 +334,20 @@ export default function DistributorsManagement() {
     setIsDeleting(true);
 
     try {
+      // Get session token for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        throw new Error('No active session - please log in again');
+      }
+
       // Call Edge Function to delete distributor
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-distributor`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({ distributorId: deleteDistributorId }),
       });
@@ -409,11 +427,20 @@ export default function DistributorsManagement() {
     }
 
     try {
+      // Get session token for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        throw new Error('No active session - please log in again');
+      }
+
       // Call Edge Function to add user
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-distributor-user`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({
           distributor_id: selectedDistributorId,
@@ -462,10 +489,19 @@ export default function DistributorsManagement() {
   const handleSaveEdit = async (userId: string) => {
     setSavingEdit(true);
     try {
+      // Get session token for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        throw new Error('No active session - please log in again');
+      }
+
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-distributor-user`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({
           userId,
@@ -525,11 +561,20 @@ export default function DistributorsManagement() {
     );
 
     try {
-      // Update user via API (would need updateDistributorUser function)
+      // Get session token for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        throw new Error('No active session - please log in again');
+      }
+
+      // Update user via API
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-distributor-user`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({
           userId,

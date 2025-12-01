@@ -30,12 +30,20 @@ export const sendProductNotification = async (product: {
   try {
     console.log('📧 Sending product notification:', product.name);
 
+    // Get session token for authorization
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+      throw new Error('No active session - please log in again');
+    }
+
     const response = await fetch(
       `${SUPABASE_URL}/functions/v1/send-product-notification`,
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': SUPABASE_ANON_KEY,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -89,12 +97,20 @@ export const sendAnnouncementNotification = async (announcement: {
   try {
     console.log('📧 Sending announcement notification:', announcement.title);
 
+    // Get session token for authorization
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+      throw new Error('No active session - please log in again');
+    }
+
     const response = await fetch(
       `${SUPABASE_URL}/functions/v1/send-announcement-notification`,
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': SUPABASE_ANON_KEY,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -148,12 +164,20 @@ export const sendTrainingNotification = async (training: {
   try {
     console.log('📧 Sending training notification:', training.title);
 
+    // Get session token for authorization
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+      throw new Error('No active session - please log in again');
+    }
+
     const response = await fetch(
       `${SUPABASE_URL}/functions/v1/send-training-notification`,
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': SUPABASE_ANON_KEY,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -206,12 +230,20 @@ export const sendMarketingNotification = async (asset: {
   try {
     console.log('📧 Sending marketing notification:', asset.title);
 
+    // Get session token for authorization
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+      throw new Error('No active session - please log in again');
+    }
+
     const response = await fetch(
       `${SUPABASE_URL}/functions/v1/send-marketing-notification`,
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': SUPABASE_ANON_KEY,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({

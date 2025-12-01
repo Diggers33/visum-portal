@@ -12,6 +12,7 @@ import {
 } from '../ui/select';
 import { Loader2, Mail, UserPlus, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
 
 interface InviteUserFormProps {
   distributorId: string;
@@ -64,11 +65,20 @@ export default function InviteUserForm({
         ...formData,
       });
 
+      // Get session token for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        throw new Error('No active session - please log in again');
+      }
+
       // Call Edge Function to create user
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-distributor-user`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({
           distributor_id: distributorId,
