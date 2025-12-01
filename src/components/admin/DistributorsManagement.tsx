@@ -341,11 +341,11 @@ export default function DistributorsManagement() {
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-distributor`, {
         method: 'DELETE',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ distributorId: deleteDistributorId }),
+        body: JSON.stringify({ id: deleteDistributorId }),
       });
 
       const result = await response.json();
