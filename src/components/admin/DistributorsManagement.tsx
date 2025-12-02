@@ -349,7 +349,7 @@ export default function DistributorsManagement() {
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ id: distributorIdToDelete }),
+        body: JSON.stringify({ distributorId: distributorIdToDelete }),
       });
 
       const result = await response.json();
