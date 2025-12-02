@@ -343,7 +343,7 @@ export default function DistributorsManagement() {
 
       // Call Edge Function to delete distributor
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-distributor`, {
-        method: 'DELETE',
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
@@ -1449,7 +1449,11 @@ export default function DistributorsManagement() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteDistributorId} onOpenChange={() => setDeleteDistributorId(null)}>
+      <AlertDialog open={!!deleteDistributorId} onOpenChange={(open) => {
+        if (!open && !isDeleting) {
+          setDeleteDistributorId(null);
+        }
+      }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Distributor Company</AlertDialogTitle>
