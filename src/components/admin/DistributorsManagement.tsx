@@ -337,6 +337,10 @@ export default function DistributorsManagement() {
         throw new Error('No active session - please log in again');
       }
 
+      // Use the distributor.id directly from the found distributor object
+      const distributorIdToDelete = distributor.id;
+      console.log('🗑️ Deleting distributor:', { id: distributorIdToDelete, name: distributor.company_name });
+
       // Call Edge Function to delete distributor
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-distributor`, {
         method: 'DELETE',
@@ -345,7 +349,7 @@ export default function DistributorsManagement() {
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ id: deleteDistributorId }),
+        body: JSON.stringify({ id: distributorIdToDelete }),
       });
 
       const result = await response.json();
