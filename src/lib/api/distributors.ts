@@ -397,8 +397,8 @@ export async function deleteDistributorUser(
 /**
  * Resend invitation email to a distributor user
  *
- * NOTE: This function is safe to call from the frontend
- * It uses the regular Supabase client to trigger password reset email
+ * NOTE: This function calls the resend-invitation Edge Function
+ * which uses SendGrid to send the email
  */
 export async function resendInvitation(
   userId: string
@@ -413,26 +413,29 @@ export async function resendInvitation(
       return { success: false, error: { message: 'User not found' } };
     }
 
-    // Get distributor details for the redirect URL
+    // Get distributor details for the email
     const { data: distributor } = await fetchDistributorById(user.distributor_id);
 
     if (!distributor) {
       return { success: false, error: { message: 'Distributor company not found' } };
     }
 
-    // Send password reset email (used as invitation)
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-      user.email,
-      {
-        redirectTo: `${window.location.origin}/reset-password`,
-      }
-    );
+    // Call the resend-invitation Edge Function (uses SendGrid)
+    const { data, error: functionError } = await supabase.functions.invoke('resend-invitation', {
+      body: {
+        userId: userId,
+        email: user.email,
+        name: user.name,
+        companyName: distributor.company_name,
+        redirectUrl: `${window.location.origin}/reset-password`,
+      },
+    });
 
-    if (resetError) {
-      console.error('❌ Resend invitation error:', resetError);
+    if (functionError) {
+      console.error('❌ Resend invitation error:', functionError);
       return {
         success: false,
-        error: { message: `Failed to resend invitation: ${resetError.message}` }
+        error: { message: `Failed to resend invitation: ${functionError.message}` }
       };
     }
 
