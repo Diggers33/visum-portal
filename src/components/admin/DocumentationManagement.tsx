@@ -1046,19 +1046,63 @@ export default function DocumentationManagement() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="edit-file">Document File</Label>
-                <Input
-                  id="edit-file"
-                  type="file"
-                  onChange={handleFileChange}
-                  accept=".pdf,.doc,.docx,.txt"
-                />
-                <p className="text-[12px] text-[#6b7280]">
-                  {selectedFile 
-                    ? 'New file selected - will replace existing file' 
-                    : 'Upload a new file to replace the existing one (optional)'}
-                </p>
+              {/* File Upload Zone */}
+              <div className="space-y-3">
+                <Label>Replace Document File</Label>
+                <div
+                  className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-[#00a8b5] transition-colors cursor-pointer"
+                  onClick={() => document.getElementById('edit-doc-input')?.click()}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const files = e.dataTransfer.files;
+                    if (files && files.length > 0) {
+                      const file = files[0];
+                      setSelectedFile(file);
+                    }
+                  }}
+                >
+                  <Upload className="h-10 w-10 mx-auto text-slate-400 mb-3" />
+                  <p className="text-sm font-medium text-slate-700">
+                    Click to select file or drag and drop
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {selectedFile
+                      ? `Selected: ${selectedFile.name}`
+                      : 'Upload a new file to replace the existing one (optional)'}
+                  </p>
+                  <Input
+                    id="edit-doc-input"
+                    type="file"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    accept=".pdf,.doc,.docx,.txt"
+                  />
+                </div>
+                {selectedFile && (
+                  <div className="flex items-center gap-3 bg-slate-50 rounded-md p-2 border">
+                    <div className="h-10 w-10 bg-slate-100 rounded flex items-center justify-center">
+                      <FileText className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-slate-700 truncate">{selectedFile.name}</p>
+                      <p className="text-xs text-slate-500">Will replace existing file</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedFile(null)}
+                      className="text-slate-400 hover:text-red-500"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
