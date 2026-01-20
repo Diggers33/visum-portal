@@ -35,10 +35,32 @@ import {
 import { ChevronRight, X, Plus, Eye, Download, Upload, Loader2, Home } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
+import { uploadFile } from '../../lib/storage';
 import ImageWithFallback from '../ImageWithFallback';
 import MarketingAssetsSection from './MarketingAssetsSection';
 
-// Import fallback images
+// Interface for batch file upload
+interface PendingFile {
+  file: File;
+  name: string;
+  preview?: string;
+}
+
+// Extract title from filename
+function extractTitleFromFilename(filename: string): string {
+  const nameWithoutExt = filename.replace(/\.[^/.]+$/, '');
+  const withSpaces = nameWithoutExt
+    .replace(/[-_]/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2');
+  const titleCase = withSpaces
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+    .trim();
+  return titleCase || filename;
+}
+
+// Fallback images
 import visumPalmImage from 'figma:asset/215b8c1c8daeedb44f8accf3bbf4cccf350afc13.png';
 import ramanImage from 'figma:asset/af6775da0ad9e0b649beed01dcc3abcea85154c7.png';
 import hyperspecImage from 'figma:asset/f1bd5ef18a2205dca276525d60d195ea7415771b.png';
@@ -86,6 +108,10 @@ export default function EditProduct() {
   const [saving, setSaving] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Batch upload states
+  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
 
   // Product state
   const [product, setProduct] = useState<Product | null>(null);
@@ -182,6 +208,38 @@ export default function EditProduct() {
     setHasUnsavedChanges(true);
   };
 
+  // Batch file selection handler
+  const handleBatchFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const newFiles: PendingFile[] = Array.from(files).map(file => ({
+        file,
+        name: extractTitleFromFilename(file.name),
+        preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined
+      }));
+      setPendingFiles(prev => [...prev, ...newFiles]);
+      setHasUnsavedChanges(true);
+    }
+    // Reset input so same files can be selected again
+    e.target.value = '';
+  };
+
+  // Remove a pending file from queue
+  const removePendingFile = (index: number) => {
+    setPendingFiles(prev => {
+      const file = prev[index];
+      if (file.preview) {
+        URL.revokeObjectURL(file.preview);
+      }
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  // Update pending file name
+  const updatePendingFileName = (index: number, name: string) => {
+    setPendingFiles(prev => prev.map((f, i) => i === index ? { ...f, name } : f));
+  };
+
   const addSpecification = () => {
     const newSpec: Specification = {
       id: Date.now().toString(),
@@ -216,6 +274,31 @@ export default function EditProduct() {
     try {
       setSaving(true);
 
+      // Upload pending images first (use the first one as main image)
+      let newImageUrl = productData.image_url;
+      let newImagePath: string | undefined;
+
+      if (pendingFiles.length > 0) {
+        setUploadProgress({ current: 0, total: pendingFiles.length });
+
+        // Upload the first image as the main product image
+        const firstFile = pendingFiles[0];
+        setUploadProgress({ current: 1, total: pendingFiles.length });
+
+        const uploadResult = await uploadFile(firstFile.file, 'product-images', 'products');
+        if (uploadResult.success && uploadResult.url) {
+          newImageUrl = uploadResult.url;
+          newImagePath = uploadResult.path;
+        } else {
+          toast.error('Failed to upload image');
+          setUploadProgress(null);
+          setSaving(false);
+          return;
+        }
+
+        setUploadProgress(null);
+      }
+
       // Convert specifications array to object
       const specificationsObject = specifications.reduce((acc, spec) => {
         if (spec.label && spec.value) {
@@ -234,7 +317,7 @@ export default function EditProduct() {
         ? productData.applications.split('\n').filter(a => a.trim() !== '')
         : null;
 
-      const updateData = {
+      const updateData: any = {
         name: productData.name,
         sku: productData.sku || null,
         product_line: productData.product_line || null,
@@ -249,9 +332,14 @@ export default function EditProduct() {
         datasheet_url: productData.datasheet_url || null,
         manual_url: productData.manual_url || null,
         brochure_url: productData.brochure_url || null,
-        image_url: productData.image_url || null,
+        image_url: newImageUrl || null,
         updated_at: new Date().toISOString(),
       };
+
+      // Add image_path if a new image was uploaded
+      if (newImagePath) {
+        updateData.image_path = newImagePath;
+      }
 
       const { error } = await supabase
         .from('products')
@@ -260,7 +348,12 @@ export default function EditProduct() {
 
       if (error) throw error;
 
-      toast.success('Product updated successfully');
+      // Clean up object URLs
+      pendingFiles.forEach(f => f.preview && URL.revokeObjectURL(f.preview));
+      setPendingFiles([]);
+
+      const imageCount = pendingFiles.length;
+      toast.success(`Product updated${imageCount > 0 ? ` with ${imageCount} new image${imageCount !== 1 ? 's' : ''}` : ''}`);
       setHasUnsavedChanges(false);
       navigate('/admin/products');
     } catch (error: any) {
@@ -268,6 +361,7 @@ export default function EditProduct() {
       toast.error('Failed to update product');
     } finally {
       setSaving(false);
+      setUploadProgress(null);
     }
   };
 
@@ -439,6 +533,112 @@ export default function EditProduct() {
                   </div>
                 </div>
 
+                {/* Batch Upload Zone */}
+                <div className="space-y-3">
+                  <Label>Upload New Images</Label>
+                  <div
+                    className="border-2 border-dashed border-slate-200 rounded-lg p-6 hover:border-[#00a8b5] transition-colors cursor-pointer"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const files = e.dataTransfer.files;
+                      if (files && files.length > 0) {
+                        const newFiles: PendingFile[] = Array.from(files)
+                          .filter(f => f.type.startsWith('image/'))
+                          .map(file => ({
+                            file,
+                            name: extractTitleFromFilename(file.name),
+                            preview: URL.createObjectURL(file)
+                          }));
+                        setPendingFiles(prev => [...prev, ...newFiles]);
+                        setHasUnsavedChanges(true);
+                      }
+                    }}
+                  >
+                    <div className="flex flex-col items-center gap-3">
+                      <Upload className="h-10 w-10 text-slate-400" />
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleBatchFileChange}
+                        className="max-w-xs"
+                      />
+                      <p className="text-[13px] text-[#6b7280]">
+                        Select multiple images or drag & drop (JPG, PNG, WebP)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pending files queue */}
+                {pendingFiles.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label>{pendingFiles.length} image{pendingFiles.length !== 1 ? 's' : ''} ready to upload</Label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          pendingFiles.forEach(f => f.preview && URL.revokeObjectURL(f.preview));
+                          setPendingFiles([]);
+                        }}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        Clear All
+                      </Button>
+                    </div>
+                    <div className="max-h-48 overflow-y-auto space-y-2 border rounded-lg p-3">
+                      {pendingFiles.map((pf, idx) => (
+                        <div key={idx} className="flex items-center gap-3 p-2 bg-slate-50 rounded">
+                          {pf.preview && (
+                            <img src={pf.preview} alt="Preview" className="w-12 h-12 object-cover rounded" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <Input
+                              value={pf.name}
+                              onChange={(e) => updatePendingFileName(idx, e.target.value)}
+                              className="h-8 text-sm"
+                              placeholder="Image title"
+                            />
+                            <p className="text-xs text-slate-500 truncate mt-1">{pf.file.name}</p>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removePendingFile(idx)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Upload progress bar */}
+                {uploadProgress && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Uploading images...</span>
+                      <span>{uploadProgress.current} of {uploadProgress.total}</span>
+                    </div>
+                    <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-[#00a8b5] transition-all duration-300"
+                        style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="image-url">Product Image URL</Label>
                   <Input
@@ -449,7 +649,7 @@ export default function EditProduct() {
                     placeholder="https://example.com/product.jpg"
                   />
                   <p className="text-[12px] text-[#6b7280]">
-                    Enter a URL to an image hosted online
+                    Or enter a URL to an image hosted online
                   </p>
                 </div>
               </div>
