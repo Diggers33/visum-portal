@@ -2,7 +2,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import { useEffect } from 'react';
-import { cn } from '../../lib/utils';
+import { cn } from './utils';
 import {
   Bold,
   Italic,
