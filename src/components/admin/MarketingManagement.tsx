@@ -38,7 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../ui/alert-dialog';
-import { Plus, Search, Edit, Trash2, Loader2, MoreVertical, FileText, Image, Download } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Loader2, MoreVertical, FileText, Image, Download, X, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   fetchMarketingAssets,
@@ -57,6 +57,36 @@ import { saveContentSharing, getContentDistributors } from '../../lib/api/sharin
 interface Product {
   id: string;
   name: string;
+}
+
+interface PendingFile {
+  file: File;
+  name: string;
+  format: string;
+  preview?: string;
+}
+
+/**
+ * Extract a clean title from a filename
+ * e.g., "visum_palm_with_background_render.png" -> "Visum Palm With Background Render"
+ */
+function extractTitleFromFilename(filename: string): string {
+  // Remove extension
+  const nameWithoutExt = filename.replace(/\.[^/.]+$/, '');
+
+  // Replace common separators with spaces
+  const withSpaces = nameWithoutExt
+    .replace(/[-_]/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2'); // camelCase to spaces
+
+  // Capitalize each word
+  const titleCase = withSpaces
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+    .trim();
+
+  return titleCase || filename;
 }
 
 const TYPES = [
@@ -132,7 +162,10 @@ export default function MarketingManagement() {
   });
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [selectedDistributorIds, setSelectedDistributorIds] = useState<string[]>([]);
+  const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
 
   // Sidebar filter states
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
@@ -173,7 +206,78 @@ export default function MarketingManagement() {
   };
 
   const handleAddAsset = async () => {
-    // Product is now optional - removed from validation
+    // Batch mode: upload multiple files
+    if (pendingFiles.length > 0) {
+      if (!formData.type || !formData.language) {
+        toast.error('Please select type and language');
+        return;
+      }
+
+      try {
+        setUploading(true);
+        setUploadProgress({ current: 0, total: pendingFiles.length });
+
+        const productString = selectedProducts.length > 0 ? selectedProducts.join(', ') : '';
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (let i = 0; i < pendingFiles.length; i++) {
+          const pendingFile = pendingFiles[i];
+          setUploadProgress({ current: i + 1, total: pendingFiles.length });
+
+          try {
+            // Create the asset first to get an ID
+            const assetData: CreateMarketingAssetInput = {
+              name: pendingFile.name,
+              type: formData.type,
+              product: productString,
+              language: formData.language,
+              format: pendingFile.format,
+              size: pendingFile.file.size,
+              status: formData.status,
+              description: formData.description,
+              internal_notes: formData.internal_notes,
+            };
+
+            const createdAsset = await createMarketingAsset(assetData);
+
+            // Upload file
+            const fileUrl = await uploadMarketingAssetFile(pendingFile.file, createdAsset.id);
+
+            // Update asset with file URL
+            await updateMarketingAsset(createdAsset.id, { file_url: fileUrl });
+
+            // Save distributor sharing
+            await saveContentSharing('marketing_assets', createdAsset.id, filterDistributorIds(selectedDistributorIds));
+
+            successCount++;
+          } catch (fileError) {
+            console.error(`Error uploading ${pendingFile.file.name}:`, fileError);
+            errorCount++;
+          }
+        }
+
+        if (successCount > 0) {
+          toast.success(`Successfully uploaded ${successCount} asset${successCount > 1 ? 's' : ''}`);
+        }
+        if (errorCount > 0) {
+          toast.error(`Failed to upload ${errorCount} file${errorCount > 1 ? 's' : ''}`);
+        }
+
+        setIsAddDialogOpen(false);
+        resetForm();
+        loadAssets();
+      } catch (error) {
+        console.error('Error adding assets:', error);
+        toast.error(error instanceof Error ? error.message : 'Failed to add marketing assets');
+      } finally {
+        setUploading(false);
+        setUploadProgress({ current: 0, total: 0 });
+      }
+      return;
+    }
+
+    // Single file mode (legacy)
     if (!formData.name || !formData.type || !formData.language || !formData.format) {
       toast.error('Please fill in all required fields');
       return;
@@ -186,10 +290,13 @@ export default function MarketingManagement() {
 
     try {
       setUploading(true);
-      
+
+      const productString = selectedProducts.length > 0 ? selectedProducts.join(', ') : formData.product;
+
       // Create the asset first to get an ID
       const assetData: CreateMarketingAssetInput = {
         ...formData,
+        product: productString,
         size: selectedFile.size,
       };
 
@@ -227,16 +334,19 @@ export default function MarketingManagement() {
 
     try {
       setUploading(true);
-      
+
       let fileUrl = selectedAsset.file_url;
-      
+
       // If new file selected, upload it
       if (selectedFile) {
         fileUrl = await uploadMarketingAssetFile(selectedFile, selectedAsset.id);
       }
 
+      const productString = selectedProducts.length > 0 ? selectedProducts.join(', ') : formData.product;
+
       await updateMarketingAsset(selectedAsset.id, {
         ...formData,
+        product: productString,
         file_url: fileUrl,
         size: selectedFile ? selectedFile.size : selectedAsset.size,
       });
@@ -285,6 +395,14 @@ export default function MarketingManagement() {
     });
     setSelectedFile(null);
 
+    // Parse product string back to array (handles comma-separated values)
+    if (asset.product) {
+      const productList = asset.product.split(',').map(p => p.trim()).filter(p => PRODUCTS.includes(p));
+      setSelectedProducts(productList);
+    } else {
+      setSelectedProducts([]);
+    }
+
     // Load existing sharing
     const distributorIds = await getContentDistributors('marketing_assets', asset.id);
     setSelectedDistributorIds(distributorIds);
@@ -309,8 +427,11 @@ export default function MarketingManagement() {
       internal_notes: '',
     });
     setSelectedFile(null);
+    setPendingFiles([]);
+    setSelectedProducts([]);
     setSelectedAsset(null);
     setSelectedDistributorIds([]);
+    setUploadProgress({ current: 0, total: 0 });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -323,6 +444,61 @@ export default function MarketingManagement() {
         setFormData(prev => ({ ...prev, format: ext }));
       }
     }
+  };
+
+  const handleBatchFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const newPendingFiles: PendingFile[] = [];
+
+    Array.from(files).forEach((file) => {
+      const ext = file.name.split('.').pop()?.toUpperCase() || '';
+      const title = extractTitleFromFilename(file.name);
+
+      // Generate preview for images
+      let preview: string | undefined;
+      if (['JPG', 'JPEG', 'PNG', 'SVG', 'WEBP', 'GIF'].includes(ext)) {
+        preview = URL.createObjectURL(file);
+      }
+
+      newPendingFiles.push({
+        file,
+        name: title,
+        format: ext,
+        preview,
+      });
+    });
+
+    setPendingFiles(prev => [...prev, ...newPendingFiles]);
+  };
+
+  const removePendingFile = (index: number) => {
+    setPendingFiles(prev => {
+      const updated = [...prev];
+      // Revoke object URL to prevent memory leaks
+      if (updated[index].preview) {
+        URL.revokeObjectURL(updated[index].preview!);
+      }
+      updated.splice(index, 1);
+      return updated;
+    });
+  };
+
+  const updatePendingFileName = (index: number, newName: string) => {
+    setPendingFiles(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], name: newName };
+      return updated;
+    });
+  };
+
+  const toggleProduct = (product: string) => {
+    setSelectedProducts(prev =>
+      prev.includes(product)
+        ? prev.filter(p => p !== product)
+        : [...prev, product]
+    );
   };
 
   const toggleType = (type: string) => {
@@ -609,25 +785,94 @@ export default function MarketingManagement() {
 
       {/* Add Asset Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add Marketing Asset</DialogTitle>
+            <DialogTitle>Add Marketing Assets</DialogTitle>
             <DialogDescription>
-              Upload a new marketing asset for distributors
+              Upload one or multiple files at once. Titles are auto-generated from filenames.
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={(e) => { e.preventDefault(); handleAddAsset(); }}>
             <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Asset Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Product Brochure Q4 2025"
-                  required
-                />
+              {/* Batch File Upload Zone */}
+              <div className="space-y-3">
+                <Label>Files *</Label>
+                <div
+                  className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-[#00a8b5] transition-colors cursor-pointer"
+                  onClick={() => document.getElementById('batch-file-input')?.click()}
+                >
+                  <Upload className="h-10 w-10 mx-auto text-slate-400 mb-3" />
+                  <p className="text-sm font-medium text-slate-700">
+                    Click to select files or drag and drop
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Select multiple files at once. Supports JPG, PNG, SVG, PDF, PPT, DOC, MP4, ZIP
+                  </p>
+                  <Input
+                    id="batch-file-input"
+                    type="file"
+                    multiple
+                    onChange={handleBatchFileChange}
+                    className="hidden"
+                    accept=".jpg,.jpeg,.png,.svg,.webp,.gif,.pdf,.ppt,.pptx,.doc,.docx,.mp4,.zip"
+                  />
+                </div>
+
+                {/* Pending Files List */}
+                {pendingFiles.length > 0 && (
+                  <div className="space-y-2 max-h-[200px] overflow-y-auto border rounded-lg p-3 bg-slate-50">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium text-slate-700">
+                        {pendingFiles.length} file{pendingFiles.length > 1 ? 's' : ''} selected
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setPendingFiles([])}
+                        className="text-xs text-slate-500 hover:text-red-500"
+                      >
+                        Clear all
+                      </Button>
+                    </div>
+                    {pendingFiles.map((pf, index) => (
+                      <div key={index} className="flex items-center gap-3 bg-white rounded-md p-2 border">
+                        {pf.preview ? (
+                          <img
+                            src={pf.preview}
+                            alt={pf.name}
+                            className="h-10 w-10 object-cover rounded"
+                          />
+                        ) : (
+                          <div className="h-10 w-10 bg-slate-100 rounded flex items-center justify-center">
+                            <FileText className="h-5 w-5 text-slate-400" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <Input
+                            value={pf.name}
+                            onChange={(e) => updatePendingFileName(index, e.target.value)}
+                            className="h-8 text-sm"
+                            placeholder="Asset name"
+                          />
+                          <p className="text-xs text-slate-500 truncate mt-1">
+                            {pf.file.name} ({pf.format})
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removePendingFile(index)}
+                          className="text-slate-400 hover:text-red-500"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -651,27 +896,6 @@ export default function MarketingManagement() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="product">Product (Optional)</Label>
-                  <Select
-                    value={formData.product}
-                    onValueChange={(value) => setFormData({ ...formData, product: value })}
-                  >
-                    <SelectTrigger id="product">
-                      <SelectValue placeholder="Select product (optional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PRODUCTS.map((product) => (
-                        <SelectItem key={product} value={product}>
-                          {product}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
                   <Label htmlFor="language">Language *</Label>
                   <Select
                     value={formData.language}
@@ -689,32 +913,43 @@ export default function MarketingManagement() {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="format">Format *</Label>
-                  <Select
-                    value={formData.format}
-                    onValueChange={(value) => setFormData({ ...formData, format: value })}
-                  >
-                    <SelectTrigger id="format">
-                      <SelectValue placeholder="Select format" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {FORMATS.map((format) => (
-                        <SelectItem key={format} value={format}>
-                          {format}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              {/* Multi-Product Selection */}
+              <div className="space-y-3">
+                <Label>Products (Optional - select multiple)</Label>
+                <p className="text-xs text-slate-500">
+                  Select one or more products. Useful for shared accessories.
+                </p>
+                <div className="grid grid-cols-2 gap-2 p-3 border rounded-lg bg-slate-50">
+                  {PRODUCTS.map((product) => (
+                    <div key={product} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`product-${product}`}
+                        checked={selectedProducts.includes(product)}
+                        onCheckedChange={() => toggleProduct(product)}
+                      />
+                      <Label
+                        htmlFor={`product-${product}`}
+                        className="text-sm font-normal cursor-pointer"
+                      >
+                        {product}
+                      </Label>
+                    </div>
+                  ))}
                 </div>
+                {selectedProducts.length > 0 && (
+                  <p className="text-xs text-[#00a8b5]">
+                    Selected: {selectedProducts.join(', ')}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="status">Status *</Label>
                 <Select
                   value={formData.status}
-                  onValueChange={(value: any) => setFormData({ ...formData, status: value })}
+                  onValueChange={(value: 'draft' | 'published' | 'archived') => setFormData({ ...formData, status: value })}
                 >
                   <SelectTrigger id="status">
                     <SelectValue />
@@ -725,19 +960,6 @@ export default function MarketingManagement() {
                     <SelectItem value="archived">Archived</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="file">File Upload *</Label>
-                <Input
-                  id="file"
-                  type="file"
-                  onChange={handleFileChange}
-                  required
-                />
-                <p className="text-[12px] text-[#6b7280]">
-                  Upload your marketing asset file
-                </p>
               </div>
 
               <div className="space-y-2">
@@ -771,7 +993,20 @@ export default function MarketingManagement() {
               </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="flex items-center">
+              {uploading && uploadProgress.total > 0 && (
+                <div className="flex-1 mr-4">
+                  <div className="text-sm text-slate-600 mb-1">
+                    Uploading {uploadProgress.current} of {uploadProgress.total}...
+                  </div>
+                  <div className="w-full bg-slate-200 rounded-full h-2">
+                    <div
+                      className="bg-[#00a8b5] h-2 rounded-full transition-all"
+                      style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              )}
               <Button
                 type="button"
                 variant="outline"
@@ -779,12 +1014,21 @@ export default function MarketingManagement() {
                   setIsAddDialogOpen(false);
                   resetForm();
                 }}
+                disabled={uploading}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={uploading} className="bg-[#00a8b5] hover:bg-[#008a95]">
+              <Button
+                type="submit"
+                disabled={uploading || (pendingFiles.length === 0 && !selectedFile)}
+                className="bg-[#00a8b5] hover:bg-[#008a95]"
+              >
                 {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Add Asset
+                {pendingFiles.length > 1
+                  ? `Upload ${pendingFiles.length} Assets`
+                  : pendingFiles.length === 1
+                  ? 'Upload Asset'
+                  : 'Add Asset'}
               </Button>
             </DialogFooter>
           </form>
@@ -835,28 +1079,6 @@ export default function MarketingManagement() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="edit-product">Product (Optional)</Label>
-                  <Select
-                    key={`product-${formData.product}`}
-                    value={formData.product}
-                    onValueChange={(value) => setFormData({ ...formData, product: value })}
-                  >
-                    <SelectTrigger id="edit-product">
-                      <SelectValue placeholder="Select product (optional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PRODUCTS.map((product) => (
-                        <SelectItem key={product} value={product}>
-                          {product}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
                   <Label htmlFor="edit-language">Language *</Label>
                   <Select
                     key={`language-${formData.language}`}
@@ -875,26 +1097,56 @@ export default function MarketingManagement() {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="edit-format">Format *</Label>
-                  <Select
-                    key={`format-${formData.format}`}
-                    value={formData.format}
-                    onValueChange={(value) => setFormData({ ...formData, format: value })}
-                  >
-                    <SelectTrigger id="edit-format">
-                      <SelectValue placeholder="Select format" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {FORMATS.map((format) => (
-                        <SelectItem key={format} value={format}>
-                          {format}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              {/* Multi-Product Selection */}
+              <div className="space-y-3">
+                <Label>Products (Optional - select multiple)</Label>
+                <p className="text-xs text-slate-500">
+                  Select one or more products. Useful for shared accessories.
+                </p>
+                <div className="grid grid-cols-2 gap-2 p-3 border rounded-lg bg-slate-50">
+                  {PRODUCTS.map((product) => (
+                    <div key={product} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`edit-product-${product}`}
+                        checked={selectedProducts.includes(product)}
+                        onCheckedChange={() => toggleProduct(product)}
+                      />
+                      <Label
+                        htmlFor={`edit-product-${product}`}
+                        className="text-sm font-normal cursor-pointer"
+                      >
+                        {product}
+                      </Label>
+                    </div>
+                  ))}
                 </div>
+                {selectedProducts.length > 0 && (
+                  <p className="text-xs text-[#00a8b5]">
+                    Selected: {selectedProducts.join(', ')}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-format">Format *</Label>
+                <Select
+                  key={`format-${formData.format}`}
+                  value={formData.format}
+                  onValueChange={(value) => setFormData({ ...formData, format: value })}
+                >
+                  <SelectTrigger id="edit-format">
+                    <SelectValue placeholder="Select format" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FORMATS.map((format) => (
+                      <SelectItem key={format} value={format}>
+                        {format}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
