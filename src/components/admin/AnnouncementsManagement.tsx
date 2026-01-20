@@ -5,6 +5,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
+import { RichTextEditor } from '../ui/rich-text-editor';
 import { Checkbox } from '../ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
@@ -558,11 +559,10 @@ export default function AnnouncementsManagement() {
 
                     <div className="space-y-2">
                       <Label>Content (English)</Label>
-                      <Textarea
+                      <RichTextEditor
+                        content={formData.content_en || ''}
+                        onChange={(content) => setFormData({ ...formData, content_en: content })}
                         placeholder="Write your announcement content in English..."
-                        value={formData.content_en || ''}
-                        onChange={(e) => setFormData({ ...formData, content_en: e.target.value })}
-                        rows={4}
                       />
                     </div>
                   </TabsContent>
@@ -579,11 +579,10 @@ export default function AnnouncementsManagement() {
 
                     <div className="space-y-2">
                       <Label>Contenido (Español)</Label>
-                      <Textarea
+                      <RichTextEditor
+                        content={formData.content_es || ''}
+                        onChange={(content) => setFormData({ ...formData, content_es: content })}
                         placeholder="Escribe el contenido del anuncio en español..."
-                        value={formData.content_es || ''}
-                        onChange={(e) => setFormData({ ...formData, content_es: e.target.value })}
-                        rows={4}
                       />
                     </div>
                   </TabsContent>
@@ -766,11 +765,10 @@ export default function AnnouncementsManagement() {
 
                     <div className="space-y-2">
                       <Label>Content (English)</Label>
-                      <Textarea
+                      <RichTextEditor
+                        content={formData.content_en || ''}
+                        onChange={(content) => setFormData({ ...formData, content_en: content })}
                         placeholder="Write your announcement content in English..."
-                        value={formData.content_en || ''}
-                        onChange={(e) => setFormData({ ...formData, content_en: e.target.value })}
-                        rows={4}
                       />
                     </div>
                   </TabsContent>
@@ -787,11 +785,10 @@ export default function AnnouncementsManagement() {
 
                     <div className="space-y-2">
                       <Label>Contenido (Español)</Label>
-                      <Textarea
+                      <RichTextEditor
+                        content={formData.content_es || ''}
+                        onChange={(content) => setFormData({ ...formData, content_es: content })}
                         placeholder="Escribe el contenido del anuncio en español..."
-                        value={formData.content_es || ''}
-                        onChange={(e) => setFormData({ ...formData, content_es: e.target.value })}
-                        rows={4}
                       />
                     </div>
                   </TabsContent>
