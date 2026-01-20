@@ -46,7 +46,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../ui/alert-dialog';
-import { Upload, MoreVertical, Search, Download, Edit, Trash2, Loader2, Eye } from 'lucide-react';
+import { Upload, MoreVertical, Search, Download, Edit, Trash2, Loader2, Eye, X, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   fetchDocumentation,
@@ -65,6 +65,29 @@ import '../../lib/debug-sharing'; // Load debug helper
 interface Product {
   id: string;
   name: string;
+}
+
+interface PendingFile {
+  file: File;
+  title: string;
+  format: string;
+}
+
+/**
+ * Extract a clean title from a filename
+ * e.g., "visum_palm_user_manual_v2.pdf" -> "Visum Palm User Manual V2"
+ */
+function extractTitleFromFilename(filename: string): string {
+  const nameWithoutExt = filename.replace(/\.[^/.]+$/, '');
+  const withSpaces = nameWithoutExt
+    .replace(/[-_]/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2');
+  const titleCase = withSpaces
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+    .trim();
+  return titleCase || filename;
 }
 
 const CATEGORIES = [
@@ -112,6 +135,8 @@ export default function DocumentationManagement() {
   });
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
+  const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
   const [selectedDistributorIds, setSelectedDistributorIds] = useState<string[]>([]);
 
   // Sidebar filter states
@@ -169,6 +194,75 @@ export default function DocumentationManagement() {
   };
 
   const handleAddDocument = async () => {
+    // Batch mode: upload multiple files
+    if (pendingFiles.length > 0) {
+      if (!formData.product || !formData.category || !formData.version) {
+        toast.error('Please fill in product, category, and version');
+        return;
+      }
+
+      try {
+        setUploading(true);
+        setUploadProgress({ current: 0, total: pendingFiles.length });
+
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (let i = 0; i < pendingFiles.length; i++) {
+          const pendingFile = pendingFiles[i];
+          setUploadProgress({ current: i + 1, total: pendingFiles.length });
+
+          try {
+            const tempId = `temp-${Date.now()}-${i}`;
+            const fileUrl = await uploadDocumentationFile(pendingFile.file, tempId);
+
+            const documentData: CreateDocumentationInput = {
+              title: pendingFile.title,
+              product: formData.product,
+              category: formData.category,
+              version: formData.version,
+              status: formData.status,
+              language: formData.language,
+              internal_notes: formData.internal_notes,
+              file_url: fileUrl,
+              file_size: pendingFile.file.size,
+              format: pendingFile.format,
+            };
+
+            const newDocument = await createDocumentation(documentData);
+
+            if (newDocument) {
+              await saveContentSharing('documentation', newDocument.id, filterDistributorIds(selectedDistributorIds));
+            }
+
+            successCount++;
+          } catch (fileError) {
+            console.error(`Error uploading ${pendingFile.file.name}:`, fileError);
+            errorCount++;
+          }
+        }
+
+        if (successCount > 0) {
+          toast.success(`Successfully uploaded ${successCount} document${successCount > 1 ? 's' : ''}`);
+        }
+        if (errorCount > 0) {
+          toast.error(`Failed to upload ${errorCount} file${errorCount > 1 ? 's' : ''}`);
+        }
+
+        setIsAddDialogOpen(false);
+        resetForm();
+        loadDocuments();
+      } catch (error) {
+        console.error('Error adding documents:', error);
+        toast.error(error instanceof Error ? error.message : 'Failed to upload documents');
+      } finally {
+        setUploading(false);
+        setUploadProgress({ current: 0, total: 0 });
+      }
+      return;
+    }
+
+    // Single file mode
     if (!formData.title || !formData.product || !formData.category || !formData.version) {
       toast.error('Please fill in all required fields');
       return;
@@ -181,11 +275,11 @@ export default function DocumentationManagement() {
 
     try {
       setUploading(true);
-      
+
       // Create document first to get ID
       const tempId = `temp-${Date.now()}`;
       const fileUrl = await uploadDocumentationFile(selectedFile, tempId);
-      
+
       const documentData: CreateDocumentationInput = {
         ...formData,
         file_url: fileUrl,
@@ -322,6 +416,8 @@ export default function DocumentationManagement() {
       internal_notes: '',
     });
     setSelectedFile(null);
+    setPendingFiles([]);
+    setUploadProgress({ current: 0, total: 0 });
     setSelectedDocument(null);
     setSelectedDistributorIds([]);
   };
@@ -331,6 +427,42 @@ export default function DocumentationManagement() {
     if (file) {
       setSelectedFile(file);
     }
+  };
+
+  const handleBatchFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const newPendingFiles: PendingFile[] = [];
+
+    Array.from(files).forEach((file) => {
+      const ext = file.name.split('.').pop()?.toUpperCase() || '';
+      const title = extractTitleFromFilename(file.name);
+
+      newPendingFiles.push({
+        file,
+        title,
+        format: ext,
+      });
+    });
+
+    setPendingFiles(prev => [...prev, ...newPendingFiles]);
+  };
+
+  const removePendingFile = (index: number) => {
+    setPendingFiles(prev => {
+      const updated = [...prev];
+      updated.splice(index, 1);
+      return updated;
+    });
+  };
+
+  const updatePendingFileTitle = (index: number, newTitle: string) => {
+    setPendingFiles(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], title: newTitle };
+      return updated;
+    });
   };
 
   const toggleCategory = (category: string) => {
@@ -561,25 +693,86 @@ export default function DocumentationManagement() {
 
       {/* Add Document Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Upload Document</DialogTitle>
+            <DialogTitle>Upload Documents</DialogTitle>
             <DialogDescription>
-              Add a new technical document or manual to the system
+              Upload one or multiple documents at once. Titles are auto-generated from filenames.
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={(e) => { e.preventDefault(); handleAddDocument(); }}>
             <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Title *</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="e.g., Visum Palm User Manual"
-                  required
-                />
+              {/* Batch File Upload Zone */}
+              <div className="space-y-3">
+                <Label>Document Files *</Label>
+                <div
+                  className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-[#00a8b5] transition-colors cursor-pointer"
+                  onClick={() => document.getElementById('batch-doc-input')?.click()}
+                >
+                  <Upload className="h-10 w-10 mx-auto text-slate-400 mb-3" />
+                  <p className="text-sm font-medium text-slate-700">
+                    Click to select files or drag and drop
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Select multiple files at once. Supports PDF, DOC, DOCX, TXT
+                  </p>
+                  <Input
+                    id="batch-doc-input"
+                    type="file"
+                    multiple
+                    onChange={handleBatchFileChange}
+                    className="hidden"
+                    accept=".pdf,.doc,.docx,.txt"
+                  />
+                </div>
+
+                {/* Pending Files List */}
+                {pendingFiles.length > 0 && (
+                  <div className="space-y-2 max-h-[200px] overflow-y-auto border rounded-lg p-3 bg-slate-50">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium text-slate-700">
+                        {pendingFiles.length} file{pendingFiles.length > 1 ? 's' : ''} selected
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setPendingFiles([])}
+                        className="text-xs text-slate-500 hover:text-red-500"
+                      >
+                        Clear all
+                      </Button>
+                    </div>
+                    {pendingFiles.map((pf, index) => (
+                      <div key={index} className="flex items-center gap-3 bg-white rounded-md p-2 border">
+                        <div className="h-10 w-10 bg-slate-100 rounded flex items-center justify-center">
+                          <FileText className="h-5 w-5 text-slate-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <Input
+                            value={pf.title}
+                            onChange={(e) => updatePendingFileTitle(index, e.target.value)}
+                            className="h-8 text-sm"
+                            placeholder="Document title"
+                          />
+                          <p className="text-xs text-slate-500 truncate mt-1">
+                            {pf.file.name} ({pf.format})
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removePendingFile(index)}
+                          className="text-slate-400 hover:text-red-500"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -658,7 +851,7 @@ export default function DocumentationManagement() {
                 <Label htmlFor="status">Status *</Label>
                 <Select
                   value={formData.status}
-                  onValueChange={(value: any) => setFormData({ ...formData, status: value })}
+                  onValueChange={(value: 'draft' | 'published' | 'archived') => setFormData({ ...formData, status: value })}
                 >
                   <SelectTrigger id="status">
                     <SelectValue />
@@ -669,20 +862,6 @@ export default function DocumentationManagement() {
                     <SelectItem value="archived">Archived</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="file">Document File *</Label>
-                <Input
-                  id="file"
-                  type="file"
-                  onChange={handleFileChange}
-                  accept=".pdf,.doc,.docx,.txt"
-                  required
-                />
-                <p className="text-[12px] text-[#6b7280]">
-                  Supported formats: PDF, DOC, DOCX, TXT
-                </p>
               </div>
 
               <div className="space-y-2">
@@ -707,7 +886,20 @@ export default function DocumentationManagement() {
               </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="flex items-center">
+              {uploading && uploadProgress.total > 0 && (
+                <div className="flex-1 mr-4">
+                  <div className="text-sm text-slate-600 mb-1">
+                    Uploading {uploadProgress.current} of {uploadProgress.total}...
+                  </div>
+                  <div className="w-full bg-slate-200 rounded-full h-2">
+                    <div
+                      className="bg-[#00a8b5] h-2 rounded-full transition-all"
+                      style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              )}
               <Button
                 type="button"
                 variant="outline"
@@ -715,12 +907,19 @@ export default function DocumentationManagement() {
                   setIsAddDialogOpen(false);
                   resetForm();
                 }}
+                disabled={uploading}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={uploading} className="bg-[#00a8b5] hover:bg-[#008a95]">
+              <Button
+                type="submit"
+                disabled={uploading || pendingFiles.length === 0}
+                className="bg-[#00a8b5] hover:bg-[#008a95]"
+              >
                 {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Upload Document
+                {pendingFiles.length > 1
+                  ? `Upload ${pendingFiles.length} Documents`
+                  : 'Upload Document'}
               </Button>
             </DialogFooter>
           </form>
