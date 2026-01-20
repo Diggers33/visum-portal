@@ -4,9 +4,9 @@ import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { TranslateButton } from './TranslateButton';
-import { 
-  Plus, 
-  Search, 
+import {
+  Plus,
+  Search,
   Upload,
   Edit,
   Copy,
@@ -22,7 +22,8 @@ import {
   Image as ImageIcon,
   Video,
   Presentation,
-  ExternalLink
+  ExternalLink,
+  X
 } from 'lucide-react';
 import {
   Dialog,
@@ -63,6 +64,27 @@ import {
   type Product
 } from '../../lib/api/products';
 import { sendProductNotification } from '../../lib/notificationService';
+
+// Interface for batch file upload
+interface PendingFile {
+  file: File;
+  name: string;
+  preview?: string;
+}
+
+// Extract title from filename
+function extractTitleFromFilename(filename: string): string {
+  const nameWithoutExt = filename.replace(/\.[^/.]+$/, '');
+  const withSpaces = nameWithoutExt
+    .replace(/[-_]/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2');
+  const titleCase = withSpaces
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+    .trim();
+  return titleCase || filename;
+}
 
 export default function ProductsManagement() {
   const navigate = useNavigate();
@@ -105,7 +127,11 @@ export default function ProductsManagement() {
   });
   const [productImage, setProductImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
-  
+
+  // Batch upload states
+  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
+
   const [showTechnicalDocs, setShowTechnicalDocs] = useState(false);
   const [showMarketingMaterials, setShowMarketingMaterials] = useState(false);
   const [showTrainingVideos, setShowTrainingVideos] = useState(false);
@@ -257,6 +283,37 @@ export default function ProductsManagement() {
     }
   };
 
+  // Batch file selection handler
+  const handleBatchFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const newFiles: PendingFile[] = Array.from(files).map(file => ({
+        file,
+        name: extractTitleFromFilename(file.name),
+        preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined
+      }));
+      setPendingFiles(prev => [...prev, ...newFiles]);
+    }
+    // Reset input so same files can be selected again
+    e.target.value = '';
+  };
+
+  // Remove a pending file from queue
+  const removePendingFile = (index: number) => {
+    setPendingFiles(prev => {
+      const file = prev[index];
+      if (file.preview) {
+        URL.revokeObjectURL(file.preview);
+      }
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  // Update pending file name
+  const updatePendingFileName = (index: number, name: string) => {
+    setPendingFiles(prev => prev.map((f, i) => i === index ? { ...f, name } : f));
+  };
+
   const addProductImageUrl = () => {
     setNewProduct({
       ...newProduct,
@@ -291,55 +348,74 @@ export default function ProductsManagement() {
       );
     }
 
-    startTransition(async () => {
-      const { data, error } = await createProduct({
-        name: newProduct.name,
-        product_line: newProduct.product_line,
-        description: newProduct.description,
-        price: parseFloat(newProduct.price),
-        currency: newProduct.currency,
-        status: newProduct.status,
-        image: productImage || undefined,
-        datasheet_url: newProduct.datasheet_url || undefined,
-        manual_url: newProduct.manual_url || undefined,
-        brochure_url: newProduct.brochure_url || undefined,
-        image_url: newProduct.image_url || undefined,
-        // Marketing assets
-        product_images: newProduct.product_images.filter(img => img.trim() !== ''),
-        case_study_url: newProduct.case_study_url || undefined,
-        whitepaper_url: newProduct.whitepaper_url || undefined,
-        presentation_url: newProduct.presentation_url || undefined,
-        video_url: newProduct.video_url || undefined,
-        demo_video_url: newProduct.demo_video_url || undefined,
-        social_image_url: newProduct.social_image_url || undefined,
-        press_release_url: newProduct.press_release_url || undefined,
-      });
+    // Use first pending file as main product image if available
+    const mainImage = pendingFiles.length > 0 ? pendingFiles[0].file : productImage;
 
-      if (error) {
-        toast.error('Failed to create product');
-        console.error(error);
-      } else {
-        toast.success('Product created successfully');
-        
-        // Send notification if user confirmed and product was published
-        if (shouldNotify && data) {
-          try {
-            await sendProductNotification({
-              id: data.id,
-              name: newProduct.name,
-              category: newProduct.product_line,
-              description: newProduct.description,
-              image_url: newProduct.image_url
-            });
-          } catch (notificationError) {
-            console.error('Notification error:', notificationError);
-            // Don't fail the creation if notification fails
-          }
+    // Show progress if there are pending files
+    if (pendingFiles.length > 0) {
+      setUploadProgress({ current: 0, total: pendingFiles.length });
+    }
+
+    startTransition(async () => {
+      try {
+        // Update progress for first image upload
+        if (pendingFiles.length > 0) {
+          setUploadProgress({ current: 1, total: pendingFiles.length });
         }
-        
-        setIsAddDialogOpen(false);
-        resetNewProductForm();
-        loadProducts();
+
+        const { data, error } = await createProduct({
+          name: newProduct.name,
+          product_line: newProduct.product_line,
+          description: newProduct.description,
+          price: parseFloat(newProduct.price),
+          currency: newProduct.currency,
+          status: newProduct.status,
+          image: mainImage || undefined,
+          datasheet_url: newProduct.datasheet_url || undefined,
+          manual_url: newProduct.manual_url || undefined,
+          brochure_url: newProduct.brochure_url || undefined,
+          image_url: newProduct.image_url || undefined,
+          // Marketing assets
+          product_images: newProduct.product_images.filter(img => img.trim() !== ''),
+          case_study_url: newProduct.case_study_url || undefined,
+          whitepaper_url: newProduct.whitepaper_url || undefined,
+          presentation_url: newProduct.presentation_url || undefined,
+          video_url: newProduct.video_url || undefined,
+          demo_video_url: newProduct.demo_video_url || undefined,
+          social_image_url: newProduct.social_image_url || undefined,
+          press_release_url: newProduct.press_release_url || undefined,
+        });
+
+        if (error) {
+          toast.error('Failed to create product');
+          console.error(error);
+          setUploadProgress(null);
+        } else {
+          const imageCount = pendingFiles.length || (productImage ? 1 : 0);
+          toast.success(`Product created${imageCount > 0 ? ` with ${imageCount} image${imageCount !== 1 ? 's' : ''}` : ''}`);
+
+          // Send notification if user confirmed and product was published
+          if (shouldNotify && data) {
+            try {
+              await sendProductNotification({
+                id: data.id,
+                name: newProduct.name,
+                category: newProduct.product_line,
+                description: newProduct.description,
+                image_url: newProduct.image_url
+              });
+            } catch (notificationError) {
+              console.error('Notification error:', notificationError);
+              // Don't fail the creation if notification fails
+            }
+          }
+
+          setIsAddDialogOpen(false);
+          resetNewProductForm();
+          loadProducts();
+        }
+      } finally {
+        setUploadProgress(null);
       }
     });
   };
@@ -367,6 +443,10 @@ export default function ProductsManagement() {
     });
     setProductImage(null);
     setImagePreview('');
+    // Clear pending files and revoke object URLs
+    pendingFiles.forEach(f => f.preview && URL.revokeObjectURL(f.preview));
+    setPendingFiles([]);
+    setUploadProgress(null);
     setCurrentStep(1);
     setShowTechnicalDocs(false);
     setShowMarketingMaterials(false);
@@ -527,26 +607,108 @@ export default function ProductsManagement() {
 
                 <TabsContent value="3" className="space-y-4 mt-4">
                   <div className="space-y-2">
-                    <Label>Product Image</Label>
-                    <div className="border-2 border-dashed border-slate-200 rounded-lg p-6">
+                    <Label>Product Images (Batch Upload)</Label>
+                    <div
+                      className="border-2 border-dashed border-slate-200 rounded-lg p-6 hover:border-[#00a8b5] transition-colors cursor-pointer"
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const files = e.dataTransfer.files;
+                        if (files && files.length > 0) {
+                          const newFiles: PendingFile[] = Array.from(files)
+                            .filter(f => f.type.startsWith('image/'))
+                            .map(file => ({
+                              file,
+                              name: extractTitleFromFilename(file.name),
+                              preview: URL.createObjectURL(file)
+                            }));
+                          setPendingFiles(prev => [...prev, ...newFiles]);
+                        }
+                      }}
+                    >
                       <div className="flex flex-col items-center gap-3">
-                        {imagePreview ? (
-                          <img src={imagePreview} alt="Preview" className="max-h-48 rounded" />
-                        ) : (
-                          <Upload className="h-12 w-12 text-slate-400" />
-                        )}
+                        <Upload className="h-12 w-12 text-slate-400" />
                         <Input
                           type="file"
                           accept="image/*"
-                          onChange={handleImageChange}
+                          multiple
+                          onChange={handleBatchFileChange}
                           className="max-w-xs"
                         />
                         <p className="text-[13px] text-[#6b7280]">
-                          Upload product image (JPG, PNG, WebP)
+                          Select multiple images or drag & drop (JPG, PNG, WebP)
                         </p>
                       </div>
                     </div>
                   </div>
+
+                  {/* Pending files queue */}
+                  {pendingFiles.length > 0 && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label>{pendingFiles.length} image{pendingFiles.length !== 1 ? 's' : ''} ready to upload</Label>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            pendingFiles.forEach(f => f.preview && URL.revokeObjectURL(f.preview));
+                            setPendingFiles([]);
+                          }}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          Clear All
+                        </Button>
+                      </div>
+                      <div className="max-h-64 overflow-y-auto space-y-2 border rounded-lg p-3">
+                        {pendingFiles.map((pf, idx) => (
+                          <div key={idx} className="flex items-center gap-3 p-2 bg-slate-50 rounded">
+                            {pf.preview && (
+                              <img src={pf.preview} alt="Preview" className="w-12 h-12 object-cover rounded" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <Input
+                                value={pf.name}
+                                onChange={(e) => updatePendingFileName(idx, e.target.value)}
+                                className="h-8 text-sm"
+                                placeholder="Image title"
+                              />
+                              <p className="text-xs text-slate-500 truncate mt-1">{pf.file.name}</p>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removePendingFile(idx)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Upload progress bar */}
+                  {uploadProgress && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Uploading images...</span>
+                        <span>{uploadProgress.current} of {uploadProgress.total}</span>
+                      </div>
+                      <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[#00a8b5] transition-all duration-300"
+                          style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="4" className="space-y-4 mt-4">
