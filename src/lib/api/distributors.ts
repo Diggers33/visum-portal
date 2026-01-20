@@ -422,11 +422,14 @@ export async function resendInvitation(
 
     // Call the resend-invitation Edge Function
     // Edge function expects: { id, email }
+    const payload = {
+      id: userId,
+      email: user.email,
+    };
+    console.log('📤 Sending to resend-invitation:', payload);
+
     const { data, error: functionError } = await supabase.functions.invoke('resend-invitation', {
-      body: {
-        id: userId,
-        email: user.email,
-      },
+      body: payload,
     });
 
     if (functionError) {
