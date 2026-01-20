@@ -420,14 +420,12 @@ export async function resendInvitation(
       return { success: false, error: { message: 'Distributor company not found' } };
     }
 
-    // Call the resend-invitation Edge Function (uses SendGrid)
+    // Call the resend-invitation Edge Function
+    // Edge function expects: { id, email }
     const { data, error: functionError } = await supabase.functions.invoke('resend-invitation', {
       body: {
-        userId: userId,
+        id: userId,
         email: user.email,
-        name: user.name,
-        companyName: distributor.company_name,
-        redirectUrl: `${window.location.origin}/reset-password`,
       },
     });
 
