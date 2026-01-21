@@ -66,7 +66,7 @@ import ramanImage from 'figma:asset/af6775da0ad9e0b649beed01dcc3abcea85154c7.png
 import hyperspecImage from 'figma:asset/f1bd5ef18a2205dca276525d60d195ea7415771b.png';
 
 const defaultImages: Record<string, string> = {
-  'NIR Spectroscopy': visumPalmImage,
+  'NIR / FT-NIR Spectroscopy': visumPalmImage,
   'Raman Spectroscopy': ramanImage,
   'Hyperspectral Imaging': hyperspecImage,
 };
@@ -494,10 +494,12 @@ export default function EditProduct() {
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="NIR Spectroscopy">NIR Spectroscopy</SelectItem>
+                    <SelectItem value="NIR / FT-NIR Spectroscopy">NIR / FT-NIR Spectroscopy</SelectItem>
                     <SelectItem value="Raman Spectroscopy">Raman Spectroscopy</SelectItem>
                     <SelectItem value="Hyperspectral Imaging">Hyperspectral Imaging</SelectItem>
-                    <SelectItem value="FTIR Spectroscopy">FTIR Spectroscopy</SelectItem>
+                    <SelectItem value="UV-Vis Spectroscopy">UV-Vis Spectroscopy</SelectItem>
+                    <SelectItem value="Spare Parts">Spare Parts</SelectItem>
+                    <SelectItem value="Accessories">Accessories</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
