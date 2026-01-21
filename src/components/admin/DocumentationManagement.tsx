@@ -93,7 +93,6 @@ function extractTitleFromFilename(filename: string): string {
 const CATEGORIES = [
   'User Manual',
   'Installation Guide',
-  'Technical Datasheet',
   'Quick Start Guide',
   'API Documentation',
   'Troubleshooting Guide',

@@ -476,7 +476,7 @@ export default function ProductsManagement() {
                   <TabsTrigger value="2">Media</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="1" className="space-y-4 mt-4">
+                <TabsContent value="1" className="space-y-4 mt-4 min-h-[420px]">
                   <div className="space-y-2">
                     <Label htmlFor="product-name">Product Name *</Label>
                     <Input
@@ -557,7 +557,7 @@ export default function ProductsManagement() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="2" className="space-y-4 mt-4">
+                <TabsContent value="2" className="space-y-4 mt-4 min-h-[420px]">
                   <div className="space-y-2">
                     <Label>Product Image (optional)</Label>
                     <div
