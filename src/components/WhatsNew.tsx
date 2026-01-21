@@ -192,9 +192,10 @@ export default function WhatsNew() {
                     {getDisplayTitle(announcement)}
                   </h3>
 
-                  <p className="text-[15px] text-[#6b7280] leading-relaxed mb-4">
-                    {getDisplayContent(announcement)}
-                  </p>
+                  <div
+                    className="text-[15px] text-[#6b7280] leading-relaxed mb-4 prose prose-sm max-w-none prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-a:text-[#00a8b5]"
+                    dangerouslySetInnerHTML={{ __html: getDisplayContent(announcement) }}
+                  />
 
                   {announcement.link_url && (
                     <Link to={announcement.link_url}>

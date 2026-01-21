@@ -74,6 +74,13 @@ export default function MobileWhatsNew() {
     return text.substring(0, maxLength) + '...';
   };
 
+  // Strip HTML tags for preview text
+  const stripHtml = (html: string) => {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+  };
+
   const handleReadMore = (announcement: any) => {
     setSelectedAnnouncement(announcement);
     setDetailsOpen(true);
@@ -184,7 +191,7 @@ export default function MobileWhatsNew() {
                   <div className="flex-grow overflow-hidden mb-3">
                     {update.content && (
                       <p className="text-white/90 text-sm leading-snug line-clamp-3">
-                        {truncateText(update.content, 120)}
+                        {truncateText(stripHtml(update.content), 120)}
                       </p>
                     )}
                   </div>
@@ -241,7 +248,7 @@ export default function MobileWhatsNew() {
                     </h3>
                     {update.content && (
                       <p className="text-slate-600 text-sm leading-relaxed mb-3 line-clamp-2">
-                        {truncateText(update.content, 120)}
+                        {truncateText(stripHtml(update.content), 120)}
                       </p>
                     )}
 
@@ -306,11 +313,10 @@ export default function MobileWhatsNew() {
 
               <div className="space-y-4">
                 {selectedAnnouncement.content && (
-                  <div className="prose prose-sm max-w-none">
-                    <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">
-                      {selectedAnnouncement.content}
-                    </p>
-                  </div>
+                  <div
+                    className="prose prose-sm max-w-none text-slate-700 leading-relaxed prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-a:text-[#00a8b5]"
+                    dangerouslySetInnerHTML={{ __html: selectedAnnouncement.content }}
+                  />
                 )}
 
                 {selectedAnnouncement.link && (
