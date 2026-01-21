@@ -109,24 +109,12 @@ export default function ProductsManagement() {
 
   const [newProduct, setNewProduct] = useState({
     name: '',
+    sku: '',
+    hs_code: '',
     product_line: 'NIR / FT-NIR Spectroscopy',
     description: '',
-    price: '',
-    currency: 'EUR',
     status: 'draft' as 'draft' | 'published',
     datasheet_url: '',
-    manual_url: '',
-    brochure_url: '',
-    image_url: '',
-    // Marketing assets
-    product_images: [''],
-    case_study_url: '',
-    whitepaper_url: '',
-    presentation_url: '',
-    video_url: '',
-    demo_video_url: '',
-    social_image_url: '',
-    press_release_url: '',
   });
   const [productImage, setProductImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
@@ -336,8 +324,8 @@ export default function ProductsManagement() {
   };
 
   const handleAddProduct = async () => {
-    if (!newProduct.name || !newProduct.price) {
-      toast.error('Please fill in required fields');
+    if (!newProduct.name) {
+      toast.error('Please enter a product name');
       return;
     }
 
@@ -368,25 +356,12 @@ export default function ProductsManagement() {
 
         const { data, error } = await createProduct({
           name: newProduct.name,
+          sku: newProduct.sku || undefined,
+          hs_code: newProduct.hs_code || undefined,
           product_line: newProduct.product_line,
           description: newProduct.description,
-          price: parseFloat(newProduct.price),
-          currency: newProduct.currency,
           status: newProduct.status,
           image: mainImage || undefined,
-          datasheet_url: newProduct.datasheet_url || undefined,
-          manual_url: newProduct.manual_url || undefined,
-          brochure_url: newProduct.brochure_url || undefined,
-          image_url: newProduct.image_url || undefined,
-          // Marketing assets
-          product_images: newProduct.product_images.filter(img => img.trim() !== ''),
-          case_study_url: newProduct.case_study_url || undefined,
-          whitepaper_url: newProduct.whitepaper_url || undefined,
-          presentation_url: newProduct.presentation_url || undefined,
-          video_url: newProduct.video_url || undefined,
-          demo_video_url: newProduct.demo_video_url || undefined,
-          social_image_url: newProduct.social_image_url || undefined,
-          press_release_url: newProduct.press_release_url || undefined,
         });
 
         if (error) {
@@ -426,23 +401,12 @@ export default function ProductsManagement() {
   const resetNewProductForm = () => {
     setNewProduct({
       name: '',
-      product_line: 'NIR Spectroscopy',
+      sku: '',
+      hs_code: '',
+      product_line: 'NIR / FT-NIR Spectroscopy',
       description: '',
-      price: '',
-      currency: 'EUR',
       status: 'draft',
       datasheet_url: '',
-      manual_url: '',
-      brochure_url: '',
-      image_url: '',
-      product_images: [''],
-      case_study_url: '',
-      whitepaper_url: '',
-      presentation_url: '',
-      video_url: '',
-      demo_video_url: '',
-      social_image_url: '',
-      press_release_url: '',
     });
     setProductImage(null);
     setImagePreview('');
@@ -451,9 +415,6 @@ export default function ProductsManagement() {
     setPendingFiles([]);
     setUploadProgress(null);
     setCurrentStep(1);
-    setShowTechnicalDocs(false);
-    setShowMarketingMaterials(false);
-    setShowTrainingVideos(false);
   };
 
   const toggleStatus = (status: string) => {
@@ -501,25 +462,18 @@ export default function ProductsManagement() {
                 Add Product
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add New Product</DialogTitle>
                 <DialogDescription>
-                  Step {currentStep} of 4: {
-                    currentStep === 1 ? 'Basic Information' :
-                    currentStep === 2 ? 'Pricing & Availability' :
-                    currentStep === 3 ? 'Media & Assets' :
-                    'Related Content'
-                  }
+                  Step {currentStep} of 2: {currentStep === 1 ? 'Basic Information' : 'Media & Files'}
                 </DialogDescription>
               </DialogHeader>
 
               <Tabs value={currentStep.toString()} onValueChange={(value) => setCurrentStep(parseInt(value))} className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="1">Basic</TabsTrigger>
-                  <TabsTrigger value="2">Pricing</TabsTrigger>
-                  <TabsTrigger value="3">Media</TabsTrigger>
-                  <TabsTrigger value="4">Content</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="1">Basic Info</TabsTrigger>
+                  <TabsTrigger value="2">Media</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="1" className="space-y-4 mt-4">
@@ -532,8 +486,31 @@ export default function ProductsManagement() {
                       onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
                     />
                   </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="sku">SKU</Label>
+                      <Input
+                        id="sku"
+                        placeholder="e.g. VP-NIR-001"
+                        value={newProduct.sku}
+                        onChange={(e) => setNewProduct({ ...newProduct, sku: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="hs-code">HS Code</Label>
+                      <Input
+                        id="hs-code"
+                        placeholder="e.g. 9027.50.00"
+                        value={newProduct.hs_code}
+                        onChange={(e) => setNewProduct({ ...newProduct, hs_code: e.target.value })}
+                      />
+                      <p className="text-xs text-muted-foreground">For customs and tariff checks</p>
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="product-line">Product Line *</Label>
+                    <Label htmlFor="product-line">Technology Category *</Label>
                     <Select
                       value={newProduct.product_line}
                       onValueChange={(value) => setNewProduct({ ...newProduct, product_line: value })}
@@ -551,49 +528,20 @@ export default function ProductsManagement() {
                       </SelectContent>
                     </Select>
                   </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor="description">Short Description</Label>
                     <Textarea
                       id="description"
-                      placeholder="Detailed product description..."
-                      rows={4}
+                      placeholder="Brief product description..."
+                      rows={3}
                       value={newProduct.description}
                       onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
                     />
                   </div>
-                </TabsContent>
 
-                <TabsContent value="2" className="space-y-4 mt-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="price">Price *</Label>
-                      <Input
-                        id="price"
-                        type="number"
-                        placeholder="24500"
-                        value={newProduct.price}
-                        onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="currency">Currency</Label>
-                      <Select
-                        value={newProduct.currency}
-                        onValueChange={(value) => setNewProduct({ ...newProduct, currency: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="EUR">EUR (€)</SelectItem>
-                          <SelectItem value="USD">USD ($)</SelectItem>
-                          <SelectItem value="GBP">GBP (£)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
                   <div className="space-y-2">
-                    <Label htmlFor="status">Initial Status</Label>
+                    <Label htmlFor="status">Status</Label>
                     <Select
                       value={newProduct.status}
                       onValueChange={(value: 'draft' | 'published') => setNewProduct({ ...newProduct, status: value })}
@@ -609,9 +557,9 @@ export default function ProductsManagement() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="3" className="space-y-4 mt-4">
+                <TabsContent value="2" className="space-y-4 mt-4">
                   <div className="space-y-2">
-                    <Label>Product Images (Batch Upload)</Label>
+                    <Label>Product Image (optional)</Label>
                     <div
                       className="border-2 border-dashed border-slate-200 rounded-lg p-6 hover:border-[#00a8b5] transition-colors cursor-pointer"
                       onDragOver={(e) => {
@@ -635,7 +583,7 @@ export default function ProductsManagement() {
                       }}
                     >
                       <div className="flex flex-col items-center gap-3">
-                        <Upload className="h-12 w-12 text-slate-400" />
+                        <Upload className="h-10 w-10 text-slate-400" />
                         <Input
                           type="file"
                           accept="image/*"
@@ -644,7 +592,7 @@ export default function ProductsManagement() {
                           className="max-w-xs"
                         />
                         <p className="text-[13px] text-[#6b7280]">
-                          Select multiple images or drag & drop (JPG, PNG, WebP)
+                          Drag & drop or select images (JPG, PNG, WebP)
                         </p>
                       </div>
                     </div>
@@ -668,20 +616,14 @@ export default function ProductsManagement() {
                           Clear All
                         </Button>
                       </div>
-                      <div className="max-h-64 overflow-y-auto space-y-2 border rounded-lg p-3">
+                      <div className="max-h-48 overflow-y-auto space-y-2 border rounded-lg p-3">
                         {pendingFiles.map((pf, idx) => (
                           <div key={idx} className="flex items-center gap-3 p-2 bg-slate-50 rounded">
                             {pf.preview && (
                               <img src={pf.preview} alt="Preview" className="w-12 h-12 object-cover rounded" />
                             )}
                             <div className="flex-1 min-w-0">
-                              <Input
-                                value={pf.name}
-                                onChange={(e) => updatePendingFileName(idx, e.target.value)}
-                                className="h-8 text-sm"
-                                placeholder="Image title"
-                              />
-                              <p className="text-xs text-slate-500 truncate mt-1">{pf.file.name}</p>
+                              <p className="text-sm truncate">{pf.file.name}</p>
                             </div>
                             <Button
                               type="button"
@@ -702,7 +644,7 @@ export default function ProductsManagement() {
                   {uploadProgress && (
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span>Uploading images...</span>
+                        <span>Uploading...</span>
                         <span>{uploadProgress.current} of {uploadProgress.total}</span>
                       </div>
                       <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
@@ -713,200 +655,16 @@ export default function ProductsManagement() {
                       </div>
                     </div>
                   )}
-                </TabsContent>
 
-                <TabsContent value="4" className="space-y-4 mt-4">
-                  <p className="text-[13px] text-[#6b7280]">Link related content to this product (optional)</p>
-                  
-                  <div className="space-y-4">
-                    {/* Technical Documents */}
-                    <div className="space-y-3">
-                      <Button 
-                        variant="outline" 
-                        className="w-full justify-start"
-                        onClick={() => setShowTechnicalDocs(!showTechnicalDocs)}
-                      >
-                        <FileText className="mr-2 h-4 w-4" />
-                        Technical Documents
-                      </Button>
-                      
-                      {showTechnicalDocs && (
-                        <div className="pl-4 space-y-3 border-l-2 border-[#00a8b5]">
-                          <div className="space-y-2">
-                            <Label htmlFor="datasheet-url" className="text-sm">Datasheet URL</Label>
-                            <Input
-                              id="datasheet-url"
-                              type="url"
-                              placeholder="https://example.com/datasheet.pdf"
-                              value={newProduct.datasheet_url}
-                              onChange={(e) => setNewProduct({ ...newProduct, datasheet_url: e.target.value })}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="manual-url" className="text-sm">User Manual URL</Label>
-                            <Input
-                              id="manual-url"
-                              type="url"
-                              placeholder="https://example.com/manual.pdf"
-                              value={newProduct.manual_url}
-                              onChange={(e) => setNewProduct({ ...newProduct, manual_url: e.target.value })}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="whitepaper-url" className="text-sm">White Paper URL</Label>
-                            <Input
-                              id="whitepaper-url"
-                              type="url"
-                              placeholder="https://example.com/whitepaper.pdf"
-                              value={newProduct.whitepaper_url}
-                              onChange={(e) => setNewProduct({ ...newProduct, whitepaper_url: e.target.value })}
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Marketing Materials - EXPANDED */}
-                    <div className="space-y-3">
-                      <Button 
-                        variant="outline" 
-                        className="w-full justify-start"
-                        onClick={() => setShowMarketingMaterials(!showMarketingMaterials)}
-                      >
-                        <ImageIcon className="mr-2 h-4 w-4" />
-                        Marketing Materials
-                      </Button>
-                      
-                      {showMarketingMaterials && (
-                        <div className="pl-4 space-y-4 border-l-2 border-[#00a8b5]">
-                          <div className="space-y-2">
-                            <Label htmlFor="brochure-url" className="text-sm">Product Brochure URL</Label>
-                            <Input
-                              id="brochure-url"
-                              type="url"
-                              placeholder="https://example.com/brochure.pdf"
-                              value={newProduct.brochure_url}
-                              onChange={(e) => setNewProduct({ ...newProduct, brochure_url: e.target.value })}
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm">Product Images (Gallery)</Label>
-                            {newProduct.product_images.map((img, idx) => (
-                              <div key={idx} className="flex gap-2">
-                                <Input
-                                  type="url"
-                                  placeholder="https://example.com/product-image.jpg"
-                                  value={img}
-                                  onChange={(e) => updateProductImageUrl(idx, e.target.value)}
-                                />
-                                {newProduct.product_images.length > 1 && (
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => removeProductImageUrl(idx)}
-                                  >
-                                    <ExternalLink className="h-4 w-4" />
-                                  </Button>
-                                )}
-                              </div>
-                            ))}
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={addProductImageUrl}
-                              className="w-full"
-                            >
-                              <Plus className="mr-2 h-3 w-3" />
-                              Add Image URL
-                            </Button>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="case-study-url" className="text-sm">Case Study URL</Label>
-                            <Input
-                              id="case-study-url"
-                              type="url"
-                              placeholder="https://example.com/case-study.pdf"
-                              value={newProduct.case_study_url}
-                              onChange={(e) => setNewProduct({ ...newProduct, case_study_url: e.target.value })}
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="presentation-url" className="text-sm">Product Presentation URL</Label>
-                            <Input
-                              id="presentation-url"
-                              type="url"
-                              placeholder="https://example.com/presentation.pptx"
-                              value={newProduct.presentation_url}
-                              onChange={(e) => setNewProduct({ ...newProduct, presentation_url: e.target.value })}
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="social-image-url" className="text-sm">Social Media Image URL</Label>
-                            <Input
-                              id="social-image-url"
-                              type="url"
-                              placeholder="https://example.com/social-image.jpg"
-                              value={newProduct.social_image_url}
-                              onChange={(e) => setNewProduct({ ...newProduct, social_image_url: e.target.value })}
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="press-release-url" className="text-sm">Press Release URL</Label>
-                            <Input
-                              id="press-release-url"
-                              type="url"
-                              placeholder="https://example.com/press-release.pdf"
-                              value={newProduct.press_release_url}
-                              onChange={(e) => setNewProduct({ ...newProduct, press_release_url: e.target.value })}
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Training Videos */}
-                    <div className="space-y-3">
-                      <Button 
-                        variant="outline" 
-                        className="w-full justify-start"
-                        onClick={() => setShowTrainingVideos(!showTrainingVideos)}
-                      >
-                        <Video className="mr-2 h-4 w-4" />
-                        Training & Demo Videos
-                      </Button>
-                      
-                      {showTrainingVideos && (
-                        <div className="pl-4 space-y-3 border-l-2 border-[#00a8b5]">
-                          <div className="space-y-2">
-                            <Label htmlFor="video-url" className="text-sm">Product Video URL</Label>
-                            <Input
-                              id="video-url"
-                              type="url"
-                              placeholder="https://youtube.com/watch?v=..."
-                              value={newProduct.video_url}
-                              onChange={(e) => setNewProduct({ ...newProduct, video_url: e.target.value })}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="demo-video-url" className="text-sm">Demo Video URL</Label>
-                            <Input
-                              id="demo-video-url"
-                              type="url"
-                              placeholder="https://youtube.com/watch?v=..."
-                              value={newProduct.demo_video_url}
-                              onChange={(e) => setNewProduct({ ...newProduct, demo_video_url: e.target.value })}
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="datasheet-url">Datasheet URL (optional)</Label>
+                    <Input
+                      id="datasheet-url"
+                      type="url"
+                      placeholder="https://example.com/datasheet.pdf"
+                      value={newProduct.datasheet_url}
+                      onChange={(e) => setNewProduct({ ...newProduct, datasheet_url: e.target.value })}
+                    />
                   </div>
                 </TabsContent>
               </Tabs>
@@ -917,13 +675,13 @@ export default function ProductsManagement() {
                     Previous
                   </Button>
                 )}
-                {currentStep < 4 ? (
+                {currentStep < 2 ? (
                   <Button onClick={() => setCurrentStep(currentStep + 1)} className="bg-[#00a8b5] hover:bg-[#008a95]">
                     Next
                   </Button>
                 ) : (
                   <>
-                    <Button 
+                    <Button
                       variant="outline"
                       onClick={() => {
                         setNewProduct({ ...newProduct, status: 'draft' });
@@ -934,7 +692,7 @@ export default function ProductsManagement() {
                       {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Save as Draft
                     </Button>
-                    <Button 
+                    <Button
                       onClick={() => {
                         setNewProduct({ ...newProduct, status: 'published' });
                         handleAddProduct();

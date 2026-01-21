@@ -81,6 +81,7 @@ interface Product {
   id: string;
   name: string;
   sku: string | null;
+  hs_code: string | null;
   category: string;
   description: string | null;
   specifications: any;
@@ -120,6 +121,7 @@ export default function EditProduct() {
   const [productData, setProductData] = useState({
     name: '',
     sku: '',
+    hs_code: '',
     product_line: '',
     category: '',
     description: '',
@@ -170,6 +172,7 @@ export default function EditProduct() {
         setProductData({
           name: data.name || '',
           sku: data.sku || '',
+          hs_code: data.hs_code || '',
           product_line: data.product_line || '',
           category: data.category || '',
           description: data.description || '',
@@ -320,6 +323,7 @@ export default function EditProduct() {
       const updateData: any = {
         name: productData.name,
         sku: productData.sku || null,
+        hs_code: productData.hs_code || null,
         product_line: productData.product_line || null,
         category: productData.category,
         description: productData.description || null,
@@ -462,14 +466,26 @@ export default function EditProduct() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="sku">SKU</Label>
-                <Input
-                  id="sku"
-                  value={productData.sku}
-                  onChange={(e) => handleFieldChange('sku', e.target.value)}
-                  placeholder="Product SKU"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="sku">SKU</Label>
+                  <Input
+                    id="sku"
+                    value={productData.sku}
+                    onChange={(e) => handleFieldChange('sku', e.target.value)}
+                    placeholder="e.g. VP-NIR-001"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="hs_code">HS Code</Label>
+                  <Input
+                    id="hs_code"
+                    value={productData.hs_code}
+                    onChange={(e) => handleFieldChange('hs_code', e.target.value)}
+                    placeholder="e.g. 9027.50.00"
+                  />
+                  <p className="text-xs text-muted-foreground">For customs and tariff checks</p>
+                </div>
               </div>
 
               <div className="space-y-2">
