@@ -4,6 +4,8 @@ import { uploadFile, deleteFile } from '../storage';
 export interface Product {
   id: string;
   name: string;
+  sku?: string;
+  hs_code?: string;
   product_line: string;
   description?: string;
   price: number;
@@ -21,9 +23,11 @@ export interface Product {
 
 export interface CreateProductInput {
   name: string;
+  sku?: string;
+  hs_code?: string;
   product_line: string;
   description?: string;
-  price: number;
+  price?: number;
   currency?: string;
   status?: 'draft' | 'published';
   image?: File;
@@ -33,6 +37,8 @@ export interface CreateProductInput {
 
 export interface UpdateProductInput {
   name?: string;
+  sku?: string;
+  hs_code?: string;
   product_line?: string;
   description?: string;
   price?: number;
