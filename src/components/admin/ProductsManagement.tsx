@@ -99,14 +99,17 @@ export default function ProductsManagement() {
   
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(['published']);
   const [selectedTechnologies, setSelectedTechnologies] = useState<string[]>([
-    'NIR Spectroscopy',
+    'NIR / FT-NIR Spectroscopy',
     'Raman Spectroscopy',
-    'Hyperspectral Imaging'
+    'Hyperspectral Imaging',
+    'UV-Vis Spectroscopy',
+    'Spare Parts',
+    'Accessories'
   ]);
 
   const [newProduct, setNewProduct] = useState({
     name: '',
-    product_line: 'NIR Spectroscopy',
+    product_line: 'NIR / FT-NIR Spectroscopy',
     description: '',
     price: '',
     currency: 'EUR',
@@ -539,11 +542,12 @@ export default function ProductsManagement() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="NIR Spectroscopy">NIR Spectroscopy</SelectItem>
+                        <SelectItem value="NIR / FT-NIR Spectroscopy">NIR / FT-NIR Spectroscopy</SelectItem>
                         <SelectItem value="Raman Spectroscopy">Raman Spectroscopy</SelectItem>
                         <SelectItem value="Hyperspectral Imaging">Hyperspectral Imaging</SelectItem>
                         <SelectItem value="UV-Vis Spectroscopy">UV-Vis Spectroscopy</SelectItem>
-                        <SelectItem value="FTIR Spectroscopy">FTIR Spectroscopy</SelectItem>
+                        <SelectItem value="Spare Parts">Spare Parts</SelectItem>
+                        <SelectItem value="Accessories">Accessories</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -983,7 +987,7 @@ export default function ProductsManagement() {
             <div>
               <h3 className="text-[14px] font-semibold text-slate-900 mb-3">Technology</h3>
               <div className="space-y-2">
-                {['NIR Spectroscopy', 'Raman Spectroscopy', 'Hyperspectral Imaging'].map((tech) => (
+                {['NIR / FT-NIR Spectroscopy', 'Raman Spectroscopy', 'Hyperspectral Imaging', 'UV-Vis Spectroscopy', 'Spare Parts', 'Accessories'].map((tech) => (
                   <div key={tech} className="flex items-center space-x-2">
                     <Checkbox
                       id={`tech-${tech}`}
