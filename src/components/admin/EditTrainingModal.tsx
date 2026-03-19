@@ -305,14 +305,14 @@ export default function EditTrainingModal({ training, open, onOpenChange, onSave
                   }}
                   className={`flex-1 p-4 rounded-lg border-2 transition-all ${
                     isVideoLink
-                      ? 'border-[#00a8b5] bg-[#00a8b5]/5'
+                      ? 'border-[#01B8D1] bg-[#01B8D1]/5'
                       : 'border-slate-200 hover:border-slate-300'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <ExternalLink className={`h-5 w-5 ${isVideoLink ? 'text-[#00a8b5]' : 'text-slate-400'}`} />
+                    <ExternalLink className={`h-5 w-5 ${isVideoLink ? 'text-[#01B8D1]' : 'text-slate-400'}`} />
                     <div className="text-left">
-                      <p className={`text-[14px] font-medium ${isVideoLink ? 'text-[#00a8b5]' : 'text-slate-700'}`}>
+                      <p className={`text-[14px] font-medium ${isVideoLink ? 'text-[#01B8D1]' : 'text-slate-700'}`}>
                         Video Link
                       </p>
                       <p className="text-[12px] text-[#6b7280]">YouTube, Vimeo, Wistia</p>
@@ -329,14 +329,14 @@ export default function EditTrainingModal({ training, open, onOpenChange, onSave
                   }}
                   className={`flex-1 p-4 rounded-lg border-2 transition-all ${
                     !isVideoLink
-                      ? 'border-[#00a8b5] bg-[#00a8b5]/5'
+                      ? 'border-[#01B8D1] bg-[#01B8D1]/5'
                       : 'border-slate-200 hover:border-slate-300'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Upload className={`h-5 w-5 ${!isVideoLink ? 'text-[#00a8b5]' : 'text-slate-400'}`} />
+                    <Upload className={`h-5 w-5 ${!isVideoLink ? 'text-[#01B8D1]' : 'text-slate-400'}`} />
                     <div className="text-left">
-                      <p className={`text-[14px] font-medium ${!isVideoLink ? 'text-[#00a8b5]' : 'text-slate-700'}`}>
+                      <p className={`text-[14px] font-medium ${!isVideoLink ? 'text-[#01B8D1]' : 'text-slate-700'}`}>
                         Upload File
                       </p>
                       <p className="text-[12px] text-[#6b7280]">Video or PDF document</p>
@@ -359,14 +359,14 @@ export default function EditTrainingModal({ training, open, onOpenChange, onSave
                   <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
                     {(formData.videoUrl || training.videoUrl) && (
                       <div className="flex items-start gap-3 mb-3 pb-3 border-b border-slate-200">
-                        <ExternalLink className="h-10 w-10 text-[#00a8b5] mt-1" />
+                        <ExternalLink className="h-10 w-10 text-[#01B8D1] mt-1" />
                         <div className="flex-1 min-w-0">
                           <p className="text-[13px] font-medium text-[#6b7280] mb-1">Current Video URL</p>
                           <a 
                             href={formData.videoUrl || training.videoUrl} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-[#00a8b5] hover:underline text-[13px] break-all"
+                            className="text-[#01B8D1] hover:underline text-[13px] break-all"
                           >
                             {formData.videoUrl || training.videoUrl}
                           </a>
@@ -408,7 +408,7 @@ export default function EditTrainingModal({ training, open, onOpenChange, onSave
                               toast.error('Invalid video URL');
                             }
                           }}
-                          className="shrink-0 border-[#00a8b5] text-[#00a8b5] hover:bg-[#00a8b5] hover:text-white"
+                          className="shrink-0 border-[#01B8D1] text-[#01B8D1] hover:bg-[#01B8D1] hover:text-white"
                         >
                           <ExternalLink className="mr-1 h-3 w-3" />
                           {(formData.videoUrl || training.videoUrl) ? 'Update' : 'Load'}
@@ -647,7 +647,7 @@ export default function EditTrainingModal({ training, open, onOpenChange, onSave
                 {!thumbnailFile && !training.thumbnail && !removeThumbnail ? (
                   <div>
                     <label htmlFor="thumbnail-upload-edit" className="cursor-pointer">
-                      <div className="border-2 border-dashed border-slate-200 rounded-lg p-6 text-center hover:border-[#00a8b5] transition-colors">
+                      <div className="border-2 border-dashed border-slate-200 rounded-lg p-6 text-center hover:border-[#01B8D1] transition-colors">
                         <ImageIcon className="h-6 w-6 text-slate-400 mx-auto mb-2" />
                         <p className="text-[12px] text-[#6b7280]">Upload video thumbnail</p>
                         <p className="text-[11px] text-[#9ca3af]">JPG, PNG, WEBP • Max 5MB</p>
@@ -664,7 +664,7 @@ export default function EditTrainingModal({ training, open, onOpenChange, onSave
                 ) : (
                   <div className="border border-slate-200 rounded-lg p-3 bg-slate-50">
                     <div className="flex items-center gap-3">
-                      <ImageIcon className="h-8 w-8 text-[#00a8b5]" />
+                      <ImageIcon className="h-8 w-8 text-[#01B8D1]" />
                       <div className="flex-1 min-w-0">
                         <p className="text-[13px] font-medium text-slate-900 truncate">
                           {thumbnailFile?.name || training.thumbnail || 'thumbnail.jpg'}
@@ -726,7 +726,7 @@ export default function EditTrainingModal({ training, open, onOpenChange, onSave
                     value="published"
                     checked={formData.status === 'published'}
                     onChange={(e) => handleFieldChange('status', e.target.value)}
-                    className="w-4 h-4 text-[#00a8b5] border-slate-300 focus:ring-[#00a8b5]"
+                    className="w-4 h-4 text-[#01B8D1] border-slate-300 focus:ring-[#01B8D1]"
                   />
                   <Label htmlFor="status-published" className="font-normal cursor-pointer text-[14px]">
                     Published <span className="text-[#6b7280]">(visible to all distributors)</span>
@@ -740,7 +740,7 @@ export default function EditTrainingModal({ training, open, onOpenChange, onSave
                     value="draft"
                     checked={formData.status === 'draft'}
                     onChange={(e) => handleFieldChange('status', e.target.value)}
-                    className="w-4 h-4 text-[#00a8b5] border-slate-300 focus:ring-[#00a8b5]"
+                    className="w-4 h-4 text-[#01B8D1] border-slate-300 focus:ring-[#01B8D1]"
                   />
                   <Label htmlFor="status-draft" className="font-normal cursor-pointer text-[14px]">
                     Draft <span className="text-[#6b7280]">(only admins can see)</span>
@@ -803,7 +803,7 @@ export default function EditTrainingModal({ training, open, onOpenChange, onSave
               Cancel
             </Button>
             <Button
-              className="bg-[#00a8b5] hover:bg-[#008a95]"
+              className="bg-[#01B8D1] hover:bg-[#00a0bb]"
               onClick={handleSave}
               disabled={!isFormValid || isPending}
             >

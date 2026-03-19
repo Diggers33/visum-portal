@@ -339,7 +339,7 @@ export default function EditReleaseModal({
 
         {loadingData ? (
           <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5]" />
+            <Loader2 className="h-8 w-8 animate-spin text-[#01B8D1]" />
           </div>
         ) : (
           <>
@@ -445,7 +445,7 @@ export default function EditReleaseModal({
                   <div className="space-y-2">
                     <Label>File</Label>
                     <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border">
-                      <File className="h-6 w-6 text-[#00a8b5]" />
+                      <File className="h-6 w-6 text-[#01B8D1]" />
                       <div className="flex-1">
                         <p className="font-medium text-slate-900">{release.file_name}</p>
                         <p className="text-sm text-slate-500">{formatFileSize(release.file_size)}</p>
@@ -577,7 +577,7 @@ export default function EditReleaseModal({
                       <ScrollArea className="h-[200px] border rounded-md p-2">
                         {loadingDistributors ? (
                           <div className="flex items-center justify-center h-full">
-                            <Loader2 className="h-6 w-6 animate-spin text-[#00a8b5]" />
+                            <Loader2 className="h-6 w-6 animate-spin text-[#01B8D1]" />
                           </div>
                         ) : filteredDistributors.length === 0 ? (
                           <p className="text-center text-slate-500 py-8">No distributors found</p>
@@ -622,7 +622,7 @@ export default function EditReleaseModal({
                       <ScrollArea className="h-[200px] border rounded-md p-2">
                         {loadingDevices ? (
                           <div className="flex items-center justify-center h-full">
-                            <Loader2 className="h-6 w-6 animate-spin text-[#00a8b5]" />
+                            <Loader2 className="h-6 w-6 animate-spin text-[#01B8D1]" />
                           </div>
                         ) : filteredDevices.length === 0 ? (
                           <p className="text-center text-slate-500 py-8">No devices found</p>
@@ -736,7 +736,7 @@ export default function EditReleaseModal({
               <Button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="bg-[#00a8b5] hover:bg-[#008a95]"
+                className="bg-[#01B8D1] hover:bg-[#00a0bb]"
               >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Save Changes

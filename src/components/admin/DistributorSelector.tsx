@@ -132,7 +132,7 @@ export function DistributorSelector({
       <ScrollArea className="h-[150px] border rounded-md p-4">
         {loading ? (
           <div className="flex items-center justify-center h-full">
-            <Loader2 className="h-6 w-6 animate-spin text-[#00a8b5]" />
+            <Loader2 className="h-6 w-6 animate-spin text-[#01B8D1]" />
             <span className="ml-2 text-sm text-slate-500">Loading distributors...</span>
           </div>
         ) : filteredDistributors.length === 0 ? (

@@ -80,7 +80,7 @@ export default function AdminAuthCallback() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00a8b5] mx-auto mb-4"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#01B8D1] mx-auto mb-4"></div>
         <p className="text-slate-600">Verifying admin access...</p>
       </div>
     </div>

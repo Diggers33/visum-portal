@@ -215,7 +215,7 @@ export default function ReleaseComplianceModal({
 
         {loading ? (
           <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5]" />
+            <Loader2 className="h-8 w-8 animate-spin text-[#01B8D1]" />
           </div>
         ) : (
           <>
@@ -269,11 +269,11 @@ export default function ReleaseComplianceModal({
               <Card>
                 <CardContent className="pt-4">
                   <div className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-[#00a8b5]" />
+                    <TrendingUp className="h-4 w-4 text-[#01B8D1]" />
                     <span className="text-sm text-slate-600">Adoption</span>
                   </div>
                   <div className="mt-2">
-                    <span className="text-2xl font-bold text-[#00a8b5]">
+                    <span className="text-2xl font-bold text-[#01B8D1]">
                       {stats?.install_percentage || 0}%
                     </span>
                   </div>
@@ -312,7 +312,7 @@ export default function ReleaseComplianceModal({
                 <TabsContent value="updated" className="mt-0">
                   {loadingUpdated ? (
                     <div className="flex items-center justify-center h-32">
-                      <Loader2 className="h-6 w-6 animate-spin text-[#00a8b5]" />
+                      <Loader2 className="h-6 w-6 animate-spin text-[#01B8D1]" />
                     </div>
                   ) : updatedDevices.length === 0 ? (
                     <div className="text-center py-12 text-slate-500">
@@ -366,7 +366,7 @@ export default function ReleaseComplianceModal({
                 <TabsContent value="pending" className="mt-0">
                   {loadingOutdated ? (
                     <div className="flex items-center justify-center h-32">
-                      <Loader2 className="h-6 w-6 animate-spin text-[#00a8b5]" />
+                      <Loader2 className="h-6 w-6 animate-spin text-[#01B8D1]" />
                     </div>
                   ) : outdatedDevices.length === 0 ? (
                     <div className="text-center py-12 text-slate-500">

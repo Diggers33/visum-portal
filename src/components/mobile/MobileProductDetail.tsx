@@ -53,7 +53,7 @@ export default function MobileProductDetail() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5] mx-auto mb-4" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#01B8D1] mx-auto mb-4" />
           <p className="text-slate-600">Loading product...</p>
         </div>
       </div>
@@ -67,7 +67,7 @@ export default function MobileProductDetail() {
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="mb-2">Product not found</h2>
           <p className="text-slate-600 mb-4">{error || 'This product does not exist'}</p>
-          <Button onClick={() => navigate('/mobile/products')} className="bg-[#00a8b5] hover:bg-[#008a95]">
+          <Button onClick={() => navigate('/mobile/products')} className="bg-[#01B8D1] hover:bg-[#00a0bb]">
             Back to catalog
           </Button>
         </div>
@@ -228,7 +228,7 @@ export default function MobileProductDetail() {
         </Badge>
         <h1 className="mb-2 text-slate-900">{product.name}</h1>
         <p className="text-slate-600 mb-4">{product.tagline || product.description}</p>
-        <div className="text-2xl text-[#00a8b5]">{product.price || 'Contact for pricing'}</div>
+        <div className="text-2xl text-[#01B8D1]">{product.price || 'Contact for pricing'}</div>
       </div>
 
       {/* Tabs */}
@@ -253,7 +253,7 @@ export default function MobileProductDetail() {
                 <div className="space-y-2">
                   {features.map((feature: string, idx: number) => (
                     <div key={idx} className="flex gap-2">
-                      <div className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-[#00a8b5] mt-2" />
+                      <div className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-[#01B8D1] mt-2" />
                       <p className="text-sm text-slate-600 flex-1">{feature}</p>
                     </div>
                   ))}
@@ -277,7 +277,7 @@ export default function MobileProductDetail() {
         <TabsContent value="resources" className="p-4 space-y-3 mt-0">
           {resourcesLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-[#00a8b5]" />
+              <Loader2 className="h-6 w-6 animate-spin text-[#01B8D1]" />
             </div>
           ) : resources.length > 0 ? (
             resources.map((resource) => {

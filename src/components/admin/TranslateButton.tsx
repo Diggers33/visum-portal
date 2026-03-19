@@ -193,7 +193,7 @@ export function TranslateButton({
           <Button 
             onClick={handleTranslate}
             disabled={isTranslating || selectedLanguages.length === 0}
-            className="bg-[#00a8b5] hover:bg-[#008a95]"
+            className="bg-[#01B8D1] hover:bg-[#00a0bb]"
           >
             {isTranslating ? (
               <>

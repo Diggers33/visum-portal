@@ -179,7 +179,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 placeholder="distributor@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-11 rounded-lg border-slate-300 focus:border-[#00a8b5] focus:ring-2 focus:ring-[#00a8b5]/20 transition-all duration-200"
+                className="h-11 rounded-lg border-slate-300 focus:border-[#01B8D1] focus:ring-2 focus:ring-[#01B8D1]/20 transition-all duration-200"
                 required
                 disabled={loading}
               />
@@ -188,7 +188,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password" className="font-medium">Password</Label>
-                <Link to="/forgot-password" className="text-sm text-[#00a8b5] hover:text-[#008a95] transition-colors duration-200">
+                <Link to="/forgot-password" className="text-sm text-[#01B8D1] hover:text-[#00a0bb] transition-colors duration-200">
                   Forgot password?
                 </Link>
               </div>
@@ -199,7 +199,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-11 rounded-lg border-slate-300 focus:border-[#00a8b5] focus:ring-2 focus:ring-[#00a8b5]/20 transition-all duration-200 pr-10"
+                  className="h-11 rounded-lg border-slate-300 focus:border-[#01B8D1] focus:ring-2 focus:ring-[#01B8D1]/20 transition-all duration-200 pr-10"
                   required
                   disabled={loading}
                 />
@@ -220,7 +220,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
             <Button 
               type="submit" 
-              className="w-full h-11 bg-[#00a8b5] hover:bg-[#008a95] rounded-lg transition-all duration-200"
+              className="w-full h-11 bg-[#01B8D1] hover:bg-[#00a0bb] rounded-lg transition-all duration-200"
               style={{ boxShadow: '0 2px 8px rgba(0,168,181,0.2)' }}
               disabled={loading}
             >
@@ -234,7 +234,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             </p>
             <Button
               variant="outline"
-              className="w-full h-11 border-[#00a8b5] text-[#00a8b5] hover:bg-[#00a8b5]/5 rounded-lg transition-all duration-200"
+              className="w-full h-11 border-[#01B8D1] text-[#01B8D1] hover:bg-[#01B8D1]/5 rounded-lg transition-all duration-200"
               disabled={loading}
             >
               Request distributor access
@@ -244,7 +244,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           <div className="mt-6 text-center">
             <p className="text-[13px] text-[#6b7280]">
               Need help? Contact{' '}
-              <a href="#" className="text-[#00a8b5] hover:text-[#008c99]">
+              <a href="#" className="text-[#01B8D1] hover:text-[#00a0bb]">
                 support@iris-eng.com
               </a>
             </p>
@@ -255,7 +255,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-slate-500 hover:text-[#00a8b5] hover:bg-[#00a8b5]/5"
+                className="text-slate-500 hover:text-[#01B8D1] hover:bg-[#01B8D1]/5"
               >
                 Admin Portal
                 <svg className="w-3.5 h-3.5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -284,16 +284,12 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         <div className="relative z-10 max-w-lg text-center">
           {/* Logo and Brand */}
           <div className="mb-8">
-            <div className="mb-4">
-              <h1 className="text-3xl font-light text-white tracking-tight mb-2">
-                Visum®
-              </h1>
+            <div className="mb-4 flex flex-col items-center">
+              <img src="/assets/Logo_Visum.svg" alt="Visum" className="h-12 w-auto mb-3" />
               <p className="text-lg text-white/90 mb-1">
                 Product Distribution Portal
               </p>
-              <p className="text-sm text-white/80">
-                By IRIS Technology
-              </p>
+              <img src="/assets/IRIS_LOGO.svg" alt="IRIS Technology Solutions" className="h-6 w-auto mt-1 opacity-70" />
             </div>
           </div>
           

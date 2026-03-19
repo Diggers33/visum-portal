@@ -100,7 +100,7 @@ export default function SetPassword() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-[#00a8b5] mx-auto mb-4" />
+          <Loader2 className="h-12 w-12 animate-spin text-[#01B8D1] mx-auto mb-4" />
           <p className="text-slate-600">Verifying invitation...</p>
         </div>
       </div>
@@ -116,7 +116,7 @@ export default function SetPassword() {
           <p className="text-slate-600 mb-6">{error}</p>
           <Button
             onClick={() => navigate('/login')}
-            className="w-full bg-[#00a8b5] hover:bg-[#008a95]"
+            className="w-full bg-[#01B8D1] hover:bg-[#00a0bb]"
           >
             Return to Login
           </Button>
@@ -151,8 +151,8 @@ export default function SetPassword() {
       <div className="max-w-md w-full">
         <div className="bg-white rounded-xl shadow-lg p-8">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-[#00a8b5]/10 rounded-full mb-4">
-              <CheckCircle className="h-8 w-8 text-[#00a8b5]" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-[#01B8D1]/10 rounded-full mb-4">
+              <CheckCircle className="h-8 w-8 text-[#01B8D1]" />
             </div>
             <h1 className="text-2xl font-bold text-slate-900 mb-2">Set Your Password</h1>
             <p className="text-slate-600">Create a secure password for your distributor account</p>
@@ -206,7 +206,7 @@ export default function SetPassword() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#00a8b5] hover:bg-[#008a95] h-11 text-base"
+              className="w-full bg-[#01B8D1] hover:bg-[#00a0bb] h-11 text-base"
             >
               {loading ? (
                 <>
@@ -223,7 +223,7 @@ export default function SetPassword() {
         <div className="text-center mt-6">
           <p className="text-sm text-slate-600">
             Need help?{' '}
-            <a href="mailto:support@iris-eng.com" className="text-[#00a8b5] hover:underline">
+            <a href="mailto:support@iris-eng.com" className="text-[#01B8D1] hover:underline">
               Contact support
             </a>
           </p>

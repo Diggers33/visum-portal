@@ -127,7 +127,7 @@ export default function SoftwareUpdates() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#01B8D1]" />
       </div>
     );
   }
@@ -237,7 +237,7 @@ export default function SoftwareUpdates() {
                   setTypeFilter('all');
                   setSearchQuery('');
                 }}
-                className="text-[#00a8b5] hover:text-[#008a95]"
+                className="text-[#01B8D1] hover:text-[#00a0bb]"
               >
                 Clear Filters
               </Button>
@@ -305,7 +305,7 @@ export default function SoftwareUpdates() {
                       <Button
                         size="sm"
                         onClick={() => handleDownload(release)}
-                        className="bg-[#00a8b5] hover:bg-[#008a95]"
+                        className="bg-[#01B8D1] hover:bg-[#00a0bb]"
                       >
                         <Download className="h-4 w-4 mr-1" />
                         Download

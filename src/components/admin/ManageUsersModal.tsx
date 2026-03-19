@@ -262,7 +262,7 @@ export default function ManageUsersModal({
               <div className="flex gap-2">
                 <Button
                   onClick={() => setShowInviteForm(true)}
-                  className="bg-[#00a8b5] hover:bg-[#008a95]"
+                  className="bg-[#01B8D1] hover:bg-[#00a0bb]"
                   disabled={loading}
                 >
                   <UserPlus className="h-4 w-4 mr-2" />
@@ -298,14 +298,14 @@ export default function ManageUsersModal({
             {/* Users Table */}
             {loading ? (
               <div className="flex justify-center items-center h-48">
-                <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5]" />
+                <Loader2 className="h-8 w-8 animate-spin text-[#01B8D1]" />
               </div>
             ) : users.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-slate-600 mb-4">No users found for this company</p>
                 <Button
                   onClick={() => setShowInviteForm(true)}
-                  className="bg-[#00a8b5] hover:bg-[#008a95]"
+                  className="bg-[#01B8D1] hover:bg-[#00a0bb]"
                 >
                   <UserPlus className="h-4 w-4 mr-2" />
                   Add First User
@@ -372,7 +372,7 @@ export default function ManageUsersModal({
                                 size="sm"
                                 onClick={() => handleSaveEdit(user.id)}
                                 disabled={savingEdit}
-                                className="bg-[#00a8b5] hover:bg-[#008a95]"
+                                className="bg-[#01B8D1] hover:bg-[#00a0bb]"
                               >
                                 {savingEdit ? (
                                   <Loader2 className="h-3 w-3 animate-spin" />

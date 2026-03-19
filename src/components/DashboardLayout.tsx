@@ -180,19 +180,18 @@ export default function DashboardLayout({ children, onLogout }: DashboardLayoutP
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-slate-200 bg-white">
+      <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-[#0a1228]" style={{ background: '#0F183D' }}>
         <div className="flex h-full flex-col">
           {/* Logo */}
-          <div className="flex h-16 items-center justify-center border-b border-slate-200 px-4">
-            <div className="flex flex-col items-center">
-              <span className="text-xl text-[#00a8b5] tracking-tight leading-tight">Visum®</span>
-              <span className="text-xs text-[#666666] leading-tight">{t('footer.distributorPortal')}</span>
-              <span className="text-[10px] text-[#999999] leading-tight">{t('footer.byIRIS')}</span>
+          <div className="flex items-center justify-center border-b border-white/10 px-4 py-4">
+            <div className="flex flex-col items-center gap-1">
+              <img src="/assets/Logo_Visum.svg" alt="Visum" className="h-10 w-auto" />
+              <span className="text-[9px] font-semibold tracking-[0.18em] uppercase text-white/40 mt-1">{t('footer.distributorPortal')}</span>
             </div>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
+          <nav className="flex-1 space-y-0.5 px-3 py-4 overflow-y-auto">
             {navigation.map((item) => {
               // For customers section, check if we're in any nested route
               const isActive = item.href === '/portal/customers'
@@ -202,34 +201,40 @@ export default function DashboardLayout({ children, onLogout }: DashboardLayoutP
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-150 relative ${
+                  className={`flex items-center gap-3 rounded-md px-3 py-2.5 transition-all duration-150 relative ${
                     isActive
-                      ? 'bg-[#d1f2f7] text-cyan-900'
-                      : 'text-slate-700 hover:bg-slate-50'
+                      ? 'bg-white/10 text-white'
+                      : 'text-white/60 hover:text-white/90'
                   }`}
+                  style={isActive ? {} : {}}
+                  onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; }}
+                  onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = ''; }}
                 >
-                  {isActive && <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#00a8b5] rounded-r" />}
-                  <item.icon className={`h-5 w-5 ${isActive ? 'text-cyan-900' : 'text-slate-500'}`} />
-                  <span className="text-[15px] font-medium">{item.name}</span>
+                  {isActive && <div className="absolute left-0 top-1 bottom-1 w-[3px] bg-[#01B8D1] rounded-r" />}
+                  <item.icon className={`h-4 w-4 flex-shrink-0 ${isActive ? 'text-white' : 'text-white/50'}`} />
+                  <span className="text-[14px] font-medium">{item.name}</span>
                 </Link>
               );
             })}
           </nav>
 
           {/* Footer */}
-          <div className="border-t border-slate-200 p-4">
-            <div className="rounded-lg bg-[#f9fafb] p-3 border border-[#e5e7eb]">
+          <div className="border-t border-white/10 p-4 space-y-4">
+            <div className="rounded-md p-3" style={{ background: 'rgba(255,255,255,0.05)' }}>
               <div className="flex items-center gap-1.5 mb-2">
-                <HelpCircle className="h-3.5 w-3.5 text-slate-500" />
-                <p className="text-xs text-slate-600">{t('footer.needHelp')}</p>
+                <HelpCircle className="h-3.5 w-3.5 text-white/40" />
+                <p className="text-xs text-white/50">{t('footer.needHelp')}</p>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full text-xs bg-white border border-[#e5e7eb] hover:border-[#00a8b5] hover:text-[#00a8b5] transition-colors rounded-md py-2"
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full text-xs bg-transparent border border-white/20 text-white/60 hover:border-[#01B8D1] hover:text-[#01B8D1] transition-colors rounded-md py-2"
               >
                 {t('buttons.contactSupport')}
               </Button>
+            </div>
+            <div className="flex justify-center pb-1">
+              <img src="/assets/IRIS_LOGO.svg" alt="IRIS Technology Solutions" className="h-7 w-auto opacity-60" />
             </div>
           </div>
         </div>
@@ -246,7 +251,7 @@ export default function DashboardLayout({ children, onLogout }: DashboardLayoutP
               <Input
                 type="search"
                 placeholder={t('header.search')}
-                className="pl-10 bg-slate-50 border-slate-200 focus:border-[#00a8b5] focus:ring-2 focus:ring-[#00a8b5]/20 transition-all"
+                className="pl-10 bg-slate-50 border-slate-200 focus:border-[#01B8D1] focus:ring-2 focus:ring-[#01B8D1]/20 transition-all"
               />
             </div>
           </div>
@@ -309,7 +314,7 @@ export default function DashboardLayout({ children, onLogout }: DashboardLayoutP
                   <Link
                     to="/portal"
                     onClick={() => setNotificationsOpen(false)}
-                    className="block w-full text-center text-sm text-[#00a8b5] hover:text-[#008a95] py-1"
+                    className="block w-full text-center text-sm text-[#01B8D1] hover:text-[#00a0bb] py-1"
                   >
                     View all updates
                   </Link>
@@ -322,7 +327,7 @@ export default function DashboardLayout({ children, onLogout }: DashboardLayoutP
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-3 hover:bg-slate-100 transition-colors">
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-cyan-600 text-white text-sm">
+                    <AvatarFallback className="bg-[#01B8D1] text-white text-sm">
                       {userProfile.initials}
                     </AvatarFallback>
                   </Avatar>
@@ -339,7 +344,7 @@ export default function DashboardLayout({ children, onLogout }: DashboardLayoutP
                     <p className="text-sm font-semibold text-slate-900">{userProfile.companyName}</p>
                     <p className="text-xs text-slate-500">{userProfile.territory}</p>
                     <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-slate-200">
-                      <Globe className="h-3.5 w-3.5 text-[#00a8b5]" />
+                      <Globe className="h-3.5 w-3.5 text-[#01B8D1]" />
                       <p className="text-xs text-slate-600">Territory: {userProfile.territory}</p>
                     </div>
                     <p className="text-xs text-slate-500">Distributor</p>

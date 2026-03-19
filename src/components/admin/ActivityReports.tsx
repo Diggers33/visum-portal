@@ -106,7 +106,7 @@ interface DistributorSummary {
   last_activity: string;
 }
 
-const COLORS = ['#00a8b5', '#008a95', '#00c4d1', '#0090a0', '#00b8c5'];
+const COLORS = ['#01B8D1', '#00a0bb', '#00c4d1', '#0090a0', '#00b8c5'];
 
 const activityIcons: Record<string, any> = {
   login: LogIn,
@@ -1108,12 +1108,12 @@ export default function ActivityReports() {
 
         {/* Distributor Drill-Down Summary */}
         {selectedDistributorDetails && (
-          <Card className="mb-6 border-l-4 border-l-[#00a8b5]">
+          <Card className="mb-6 border-l-4 border-l-[#01B8D1]">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div>
                   <CardTitle className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5 text-[#00a8b5]" />
+                    <Building2 className="h-5 w-5 text-[#01B8D1]" />
                     {selectedDistributorDetails.company_name}
                   </CardTitle>
                   <CardDescription className="flex items-center gap-2 mt-1">
@@ -1150,7 +1150,7 @@ export default function ActivityReports() {
                 </div>
                 <div>
                   <div className="text-sm text-slate-600">Total Activities</div>
-                  <div className="text-2xl font-bold text-[#00a8b5]">
+                  <div className="text-2xl font-bold text-[#01B8D1]">
                     {selectedDistributorDetails.total_activities || 0}
                   </div>
                 </div>
@@ -1238,7 +1238,7 @@ export default function ActivityReports() {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="count" stroke="#00a8b5" name="Activities" />
+                    <Line type="monotone" dataKey="count" stroke="#01B8D1" name="Activities" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -1291,7 +1291,7 @@ export default function ActivityReports() {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="count" fill="#00a8b5" name="Activities" />
+                    <Bar dataKey="count" fill="#01B8D1" name="Activities" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -1310,7 +1310,7 @@ export default function ActivityReports() {
           <CardContent>
             {loading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5]" />
+                <Loader2 className="h-8 w-8 animate-spin text-[#01B8D1]" />
               </div>
             ) : (
               <Table>

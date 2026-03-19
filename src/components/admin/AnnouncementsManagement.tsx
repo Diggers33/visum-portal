@@ -298,7 +298,7 @@ export default function AnnouncementsManagement() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#01B8D1]" />
       </div>
     );
   }
@@ -315,7 +315,7 @@ export default function AnnouncementsManagement() {
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <Button
           onClick={() => setIsAddDialogOpen(true)}
-          className="bg-[#00a8b5] hover:bg-[#008a95] text-white"
+          className="bg-[#01B8D1] hover:bg-[#00a0bb] text-white"
         >
           <Plus className="mr-2 h-4 w-4" />
           Create Announcement
@@ -341,7 +341,7 @@ export default function AnnouncementsManagement() {
           onClick={() => setStatusFilter('all')}
           className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
             statusFilter === 'all'
-              ? 'border-[#00a8b5] text-[#00a8b5]'
+              ? 'border-[#01B8D1] text-[#01B8D1]'
               : 'border-transparent text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -351,7 +351,7 @@ export default function AnnouncementsManagement() {
           onClick={() => setStatusFilter('draft')}
           className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
             statusFilter === 'draft'
-              ? 'border-[#00a8b5] text-[#00a8b5]'
+              ? 'border-[#01B8D1] text-[#01B8D1]'
               : 'border-transparent text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -361,7 +361,7 @@ export default function AnnouncementsManagement() {
           onClick={() => setStatusFilter('archived')}
           className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
             statusFilter === 'archived'
-              ? 'border-[#00a8b5] text-[#00a8b5]'
+              ? 'border-[#01B8D1] text-[#01B8D1]'
               : 'border-transparent text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -412,7 +412,7 @@ export default function AnnouncementsManagement() {
                         href={ensureHttps(announcement.link_url)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center px-4 py-2 bg-[#00a8b5] text-white text-sm font-medium rounded-md hover:bg-[#008a95] transition-colors"
+                        className="inline-flex items-center px-4 py-2 bg-[#01B8D1] text-white text-sm font-medium rounded-md hover:bg-[#00a0bb] transition-colors"
                       >
                         {announcement.link_text}
                         <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -675,7 +675,7 @@ export default function AnnouncementsManagement() {
             <Button
               onClick={handleSubmit}
               disabled={submitting}
-              className="bg-[#00a8b5] hover:bg-[#008a95]"
+              className="bg-[#01B8D1] hover:bg-[#00a0bb]"
             >
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Announcement
@@ -881,7 +881,7 @@ export default function AnnouncementsManagement() {
             <Button
               onClick={handleUpdate}
               disabled={submitting}
-              className="bg-[#00a8b5] hover:bg-[#008a95]"
+              className="bg-[#01B8D1] hover:bg-[#00a0bb]"
             >
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Update Announcement

@@ -174,7 +174,7 @@ export default function CustomerList() {
             Manage your customer accounts and their devices
           </p>
         </div>
-        <Button onClick={() => setIsAddModalOpen(true)} className="bg-[#00a8b5] hover:bg-[#008a95]">
+        <Button onClick={() => setIsAddModalOpen(true)} className="bg-[#01B8D1] hover:bg-[#00a0bb]">
           <Plus className="h-4 w-4 mr-2" />
           Add Customer
         </Button>
@@ -257,7 +257,7 @@ export default function CustomerList() {
             variant={viewMode === 'grid' ? 'default' : 'ghost'}
             size="icon"
             onClick={() => setViewMode('grid')}
-            className={viewMode === 'grid' ? 'bg-[#00a8b5]' : ''}
+            className={viewMode === 'grid' ? 'bg-[#01B8D1]' : ''}
           >
             <LayoutGrid className="h-4 w-4" />
           </Button>
@@ -265,7 +265,7 @@ export default function CustomerList() {
             variant={viewMode === 'list' ? 'default' : 'ghost'}
             size="icon"
             onClick={() => setViewMode('list')}
-            className={viewMode === 'list' ? 'bg-[#00a8b5]' : ''}
+            className={viewMode === 'list' ? 'bg-[#01B8D1]' : ''}
           >
             <List className="h-4 w-4" />
           </Button>
@@ -327,7 +327,7 @@ export default function CustomerList() {
               : 'Try adjusting your search or filters'}
           </p>
           {customers.length === 0 && (
-            <Button onClick={() => setIsAddModalOpen(true)} className="bg-[#00a8b5] hover:bg-[#008a95]">
+            <Button onClick={() => setIsAddModalOpen(true)} className="bg-[#01B8D1] hover:bg-[#00a0bb]">
               <Plus className="h-4 w-4 mr-2" />
               Add Customer
             </Button>
@@ -347,8 +347,8 @@ export default function CustomerList() {
               <CardContent className="p-5">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-[#00a8b5]/10 flex items-center justify-center">
-                      <Building2 className="h-5 w-5 text-[#00a8b5]" />
+                    <div className="h-10 w-10 rounded-lg bg-[#01B8D1]/10 flex items-center justify-center">
+                      <Building2 className="h-5 w-5 text-[#01B8D1]" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-slate-900 line-clamp-1">
@@ -429,8 +429,8 @@ export default function CustomerList() {
                 >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-lg bg-[#00a8b5]/10 flex items-center justify-center">
-                        <Building2 className="h-4 w-4 text-[#00a8b5]" />
+                      <div className="h-9 w-9 rounded-lg bg-[#01B8D1]/10 flex items-center justify-center">
+                        <Building2 className="h-4 w-4 text-[#01B8D1]" />
                       </div>
                       <div>
                         <div className="font-medium text-slate-900">{customer.company_name}</div>

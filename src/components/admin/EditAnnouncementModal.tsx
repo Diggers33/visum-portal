@@ -69,7 +69,7 @@ const categories = [
   { value: 'new-product', label: 'New Product', color: 'bg-[#10b981] text-white' },
   { value: 'marketing', label: 'Marketing', color: 'bg-[#8b5cf6] text-white' },
   { value: 'documentation', label: 'Documentation', color: 'bg-[#3b82f6] text-white' },
-  { value: 'training', label: 'Training', color: 'bg-[#00a8b5] text-white' },
+  { value: 'training', label: 'Training', color: 'bg-[#01B8D1] text-white' },
   { value: 'policy', label: 'Policy', color: 'bg-[#f59e0b] text-white' },
   { value: 'general', label: 'General', color: 'bg-[#6b7280] text-white' },
 ];
@@ -222,7 +222,7 @@ export default function EditAnnouncementModal({
             {isPublished && (
               <div className="bg-slate-50 border border-slate-200 rounded-lg p-5">
                 <div className="flex items-center gap-2 mb-4">
-                  <BarChart className="h-5 w-5 text-[#00a8b5]" />
+                  <BarChart className="h-5 w-5 text-[#01B8D1]" />
                   <h3 className="text-[15px] font-semibold text-slate-900">Analytics</h3>
                   <span className="text-[12px] text-[#6b7280]">(Read-only)</span>
                 </div>
@@ -231,7 +231,7 @@ export default function EditAnnouncementModal({
                   {/* Views */}
                   <div className="flex items-start gap-3">
                     <div className="p-2 bg-white rounded-lg border border-slate-200">
-                      <Eye className="h-4 w-4 text-[#00a8b5]" />
+                      <Eye className="h-4 w-4 text-[#01B8D1]" />
                     </div>
                     <div>
                       <p className="text-[13px] text-[#6b7280]">Views</p>
@@ -244,7 +244,7 @@ export default function EditAnnouncementModal({
                   {/* Click-through */}
                   <div className="flex items-start gap-3">
                     <div className="p-2 bg-white rounded-lg border border-slate-200">
-                      <BarChart className="h-4 w-4 text-[#00a8b5]" />
+                      <BarChart className="h-4 w-4 text-[#01B8D1]" />
                     </div>
                     <div>
                       <p className="text-[13px] text-[#6b7280]">Click-through</p>
@@ -260,7 +260,7 @@ export default function EditAnnouncementModal({
                   {/* First Viewed */}
                   <div className="flex items-start gap-3">
                     <div className="p-2 bg-white rounded-lg border border-slate-200">
-                      <Clock className="h-4 w-4 text-[#00a8b5]" />
+                      <Clock className="h-4 w-4 text-[#01B8D1]" />
                     </div>
                     <div>
                       <p className="text-[13px] text-[#6b7280]">First viewed</p>
@@ -271,7 +271,7 @@ export default function EditAnnouncementModal({
                   {/* Last Viewed */}
                   <div className="flex items-start gap-3">
                     <div className="p-2 bg-white rounded-lg border border-slate-200">
-                      <Clock className="h-4 w-4 text-[#00a8b5]" />
+                      <Clock className="h-4 w-4 text-[#01B8D1]" />
                     </div>
                     <div>
                       <p className="text-[13px] text-[#6b7280]">Last viewed</p>
@@ -284,7 +284,7 @@ export default function EditAnnouncementModal({
                 <div className="mt-4 pt-4 border-t border-slate-200">
                   <div className="flex items-start gap-3">
                     <div className="p-2 bg-white rounded-lg border border-slate-200">
-                      <Users className="h-4 w-4 text-[#00a8b5]" />
+                      <Users className="h-4 w-4 text-[#01B8D1]" />
                     </div>
                     <div>
                       <p className="text-[13px] text-[#6b7280]">Top viewer</p>
@@ -396,7 +396,7 @@ export default function EditAnnouncementModal({
                       setPublishImmediately(true);
                       setHasChanges(true);
                     }}
-                    className="w-4 h-4 text-[#00a8b5] border-slate-300 focus:ring-[#00a8b5]"
+                    className="w-4 h-4 text-[#01B8D1] border-slate-300 focus:ring-[#01B8D1]"
                   />
                   <Label htmlFor="immediately" className="font-normal cursor-pointer text-[14px]">
                     Immediately
@@ -412,7 +412,7 @@ export default function EditAnnouncementModal({
                       setPublishImmediately(false);
                       setHasChanges(true);
                     }}
-                    className="w-4 h-4 text-[#00a8b5] border-slate-300 focus:ring-[#00a8b5]"
+                    className="w-4 h-4 text-[#01B8D1] border-slate-300 focus:ring-[#01B8D1]"
                   />
                   <Label htmlFor="schedule" className="font-normal cursor-pointer text-[14px]">
                     Schedule for
@@ -478,7 +478,7 @@ export default function EditAnnouncementModal({
                 Cancel
               </Button>
               <Button
-                className="bg-[#00a8b5] hover:bg-[#008a95] text-white"
+                className="bg-[#01B8D1] hover:bg-[#00a0bb] text-white"
                 onClick={handleSave}
                 disabled={isPending || !isFormValid}
               >
@@ -519,7 +519,7 @@ export default function EditAnnouncementModal({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmArchive} className="bg-[#00a8b5] hover:bg-[#008a95]">
+            <AlertDialogAction onClick={handleConfirmArchive} className="bg-[#01B8D1] hover:bg-[#00a0bb]">
               Archive Announcement
             </AlertDialogAction>
           </AlertDialogFooter>

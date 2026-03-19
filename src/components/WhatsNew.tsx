@@ -173,7 +173,7 @@ export default function WhatsNew() {
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#01B8D1]" />
         </div>
       ) : (
         <div className="space-y-4">
@@ -201,7 +201,7 @@ export default function WhatsNew() {
                     <Link to={announcement.link_url}>
                       <Button 
                         variant="ghost" 
-                        className="text-[#00a8b5] hover:text-[#008a95] hover:bg-[#00a8b5]/5 p-0 h-auto transition-colors"
+                        className="text-[#01B8D1] hover:text-[#00a0bb] hover:bg-[#01B8D1]/5 p-0 h-auto transition-colors"
                       >
                         {announcement.link_text || t('whatsNew.learnMore')}
                         <ArrowRight className="ml-2 h-4 w-4" />
@@ -227,7 +227,7 @@ export default function WhatsNew() {
         <div className="flex justify-center pt-4">
           <Button 
             variant="outline" 
-            className="text-[#00a8b5] border-[#00a8b5] hover:bg-[#00a8b5]/5"
+            className="text-[#01B8D1] border-[#01B8D1] hover:bg-[#01B8D1]/5"
           >
             {t('whatsNew.loadMore')}
             <ChevronDown className="ml-2 h-4 w-4" />

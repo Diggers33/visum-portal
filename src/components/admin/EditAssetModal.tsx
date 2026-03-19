@@ -378,7 +378,7 @@ export default function EditAssetModal({ asset, open, onOpenChange, onSave }: Ed
                     value="published"
                     checked={formData.status === 'published'}
                     onChange={(e) => handleFieldChange('status', e.target.value)}
-                    className="w-4 h-4 text-[#00a8b5] border-slate-300 focus:ring-[#00a8b5]"
+                    className="w-4 h-4 text-[#01B8D1] border-slate-300 focus:ring-[#01B8D1]"
                   />
                   <Label htmlFor="status-published" className="font-normal cursor-pointer text-[14px]">
                     Published <span className="text-[#6b7280]">(visible to all distributors)</span>
@@ -392,7 +392,7 @@ export default function EditAssetModal({ asset, open, onOpenChange, onSave }: Ed
                     value="draft"
                     checked={formData.status === 'draft'}
                     onChange={(e) => handleFieldChange('status', e.target.value)}
-                    className="w-4 h-4 text-[#00a8b5] border-slate-300 focus:ring-[#00a8b5]"
+                    className="w-4 h-4 text-[#01B8D1] border-slate-300 focus:ring-[#01B8D1]"
                   />
                   <Label htmlFor="status-draft" className="font-normal cursor-pointer text-[14px]">
                     Draft <span className="text-[#6b7280]">(only visible to admins)</span>
@@ -455,7 +455,7 @@ export default function EditAssetModal({ asset, open, onOpenChange, onSave }: Ed
               Cancel
             </Button>
             <Button
-              className="bg-[#00a8b5] hover:bg-[#008a95]"
+              className="bg-[#01B8D1] hover:bg-[#00a0bb]"
               onClick={handleSave}
               disabled={!isFormValid || isPending}
             >

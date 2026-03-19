@@ -182,7 +182,7 @@ export default function MobileTrainingCenter() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-[#00a8b5] mx-auto mb-4" />
+          <Loader2 className="h-12 w-12 animate-spin text-[#01B8D1] mx-auto mb-4" />
           <p className="text-slate-600">Loading training materials...</p>
         </div>
       </div>
@@ -196,7 +196,7 @@ export default function MobileTrainingCenter() {
         <div className="text-center">
           <h2 className="text-lg font-semibold text-slate-900 mb-2">Unable to load training materials</h2>
           <p className="text-slate-600 mb-4">{error}</p>
-          <Button onClick={() => window.location.reload()} className="bg-[#00a8b5] hover:bg-[#008a95]">
+          <Button onClick={() => window.location.reload()} className="bg-[#01B8D1] hover:bg-[#00a0bb]">
             Try Again
           </Button>
         </div>
@@ -218,7 +218,7 @@ export default function MobileTrainingCenter() {
           <Button 
             size="sm"
             variant={selectedTypes.length === 0 ? "default" : "outline"}
-            className={`rounded-full shrink-0 h-8 ${selectedTypes.length === 0 ? 'bg-[#00a8b5] hover:bg-[#008a95]' : ''}`}
+            className={`rounded-full shrink-0 h-8 ${selectedTypes.length === 0 ? 'bg-[#01B8D1] hover:bg-[#00a0bb]' : ''}`}
             onClick={() => setSelectedTypes([])}
           >
             All Materials
@@ -228,7 +228,7 @@ export default function MobileTrainingCenter() {
               key={type}
               size="sm"
               variant={selectedTypes.includes(type) ? "default" : "outline"}
-              className={`rounded-full shrink-0 h-8 ${selectedTypes.includes(type) ? 'bg-[#00a8b5] hover:bg-[#008a95]' : ''}`}
+              className={`rounded-full shrink-0 h-8 ${selectedTypes.includes(type) ? 'bg-[#01B8D1] hover:bg-[#00a0bb]' : ''}`}
               onClick={() => handleQuickFilter(type)}
             >
               {type}
@@ -262,7 +262,7 @@ export default function MobileTrainingCenter() {
                 <Filter className="h-4 w-4 mr-2" />
                 Advanced Filters
                 {activeFiltersCount > 0 && (
-                  <Badge className="ml-auto bg-[#00a8b5] text-white rounded-full h-5 min-w-[20px]">
+                  <Badge className="ml-auto bg-[#01B8D1] text-white rounded-full h-5 min-w-[20px]">
                     {activeFiltersCount}
                   </Badge>
                 )}
@@ -396,7 +396,7 @@ export default function MobileTrainingCenter() {
 
               <div className="p-4 bg-white border-t border-slate-200">
                 <Button 
-                  className="w-full bg-[#00a8b5] hover:bg-[#008a95] h-12 rounded-xl"
+                  className="w-full bg-[#01B8D1] hover:bg-[#00a0bb] h-12 rounded-xl"
                   onClick={() => setFilterOpen(false)}
                 >
                   View {filteredMaterials.length} materials
@@ -519,7 +519,7 @@ export default function MobileTrainingCenter() {
                 <div className="flex gap-2">
                   {(material.format?.toLowerCase().includes('video') || material.format?.toLowerCase().includes('webinar')) ? (
                     <Button 
-                      className="flex-1 bg-[#00a8b5] hover:bg-[#008a95] h-10 rounded-xl"
+                      className="flex-1 bg-[#01B8D1] hover:bg-[#00a0bb] h-10 rounded-xl"
                       onClick={() => handleAccess(material)}
                     >
                       <PlayCircle className="mr-2 h-4 w-4" />
@@ -527,7 +527,7 @@ export default function MobileTrainingCenter() {
                     </Button>
                   ) : (
                     <Button 
-                      className="flex-1 bg-[#00a8b5] hover:bg-[#008a95] h-10 rounded-xl"
+                      className="flex-1 bg-[#01B8D1] hover:bg-[#00a0bb] h-10 rounded-xl"
                       onClick={() => handleAccess(material)}
                     >
                       <FileIcon className="mr-2 h-4 w-4" />

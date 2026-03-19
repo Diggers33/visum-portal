@@ -170,7 +170,7 @@ export default function EditDistributorModal({
             {/* Company Information */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-[#00a8b5]" />
+                <Building2 className="h-5 w-5 text-[#01B8D1]" />
                 <h3 className="text-lg font-semibold">Company Information</h3>
               </div>
 
@@ -323,7 +323,7 @@ export default function EditDistributorModal({
             <Button
               type="submit"
               disabled={loading}
-              className="bg-[#00a8b5] hover:bg-[#008a95]"
+              className="bg-[#01B8D1] hover:bg-[#00a0bb]"
             >
               {loading ? (
                 <>

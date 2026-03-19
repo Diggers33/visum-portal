@@ -573,7 +573,7 @@ export default function MarketingManagement() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#01B8D1]" />
       </div>
     );
   }
@@ -590,7 +590,7 @@ export default function MarketingManagement() {
       <div className="flex flex-col sm:flex-row gap-3">
         <Button
           onClick={() => setIsAddDialogOpen(true)}
-          className="bg-[#00a8b5] hover:bg-[#008a95] text-white"
+          className="bg-[#01B8D1] hover:bg-[#00a0bb] text-white"
         >
           <Plus className="mr-2 h-4 w-4" />
           Add Asset
@@ -1018,11 +1018,7 @@ export default function MarketingManagement() {
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={uploading || (pendingFiles.length === 0 && !selectedFile)}
-                className="bg-[#00a8b5] hover:bg-[#008a95]"
-              >
+              <Button type="submit" disabled={uploading} className="bg-[#01B8D1] hover:bg-[#00a0bb]">
                 {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {pendingFiles.length > 1
                   ? `Upload ${pendingFiles.length} Assets`
@@ -1279,7 +1275,7 @@ export default function MarketingManagement() {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={uploading} className="bg-[#00a8b5] hover:bg-[#008a95]">
+              <Button type="submit" disabled={uploading} className="bg-[#01B8D1] hover:bg-[#00a0bb]">
                 {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Update Asset
               </Button>

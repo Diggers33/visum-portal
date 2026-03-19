@@ -421,9 +421,9 @@ export default function TechnicalDocs() {
       return <ArrowUpDown className="h-4 w-4 ml-1 text-slate-400" />;
     }
     return sortDirection === 'asc' ? (
-      <ArrowUp className="h-4 w-4 ml-1 text-[#00a8b5]" />
+      <ArrowUp className="h-4 w-4 ml-1 text-[#01B8D1]" />
     ) : (
-      <ArrowDown className="h-4 w-4 ml-1 text-[#00a8b5]" />
+      <ArrowDown className="h-4 w-4 ml-1 text-[#01B8D1]" />
     );
   };
 
@@ -434,7 +434,7 @@ export default function TechnicalDocs() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/" className="text-slate-600 hover:text-[#00a8b5]">
+              <BreadcrumbLink href="/" className="text-slate-600 hover:text-[#01B8D1]">
                 Home
               </BreadcrumbLink>
             </BreadcrumbItem>
@@ -466,7 +466,7 @@ export default function TechnicalDocs() {
             key={category.name}
             className={`border-slate-200 cursor-pointer transition-all hover:shadow-md ${
               selectedCategories.includes(category.name) 
-                ? 'border-[#00a8b5] shadow-md bg-cyan-50/30' 
+                ? 'border-[#01B8D1] shadow-md bg-cyan-50/30' 
                 : ''
             }`}
             onClick={() => handleCategoryCardClick(category.name)}
@@ -604,7 +604,7 @@ export default function TechnicalDocs() {
                   <Separator />
                   <button
                     onClick={clearAllFilters}
-                    className="text-sm text-[#00a8b5] hover:text-[#008a95] underline cursor-pointer w-full text-center"
+                    className="text-sm text-[#01B8D1] hover:text-[#00a0bb] underline cursor-pointer w-full text-center"
                   >
                     Clear all filters
                   </button>
@@ -657,7 +657,7 @@ export default function TechnicalDocs() {
                   {documents.length !== filteredAndSortedDocs.length && ` of ${documents.length}`}
                 </p>
                 {selectedDocs.length > 0 && (
-                  <Button className="bg-[#00a8b5] hover:bg-[#008a95]">
+                  <Button className="bg-[#01B8D1] hover:bg-[#00a0bb]">
                     <Download className="mr-2 h-4 w-4" />
                     Download Selected ({selectedDocs.length})
                   </Button>
@@ -672,7 +672,7 @@ export default function TechnicalDocs() {
               {/* Loading state */}
               {loading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5]" />
+                  <Loader2 className="h-8 w-8 animate-spin text-[#01B8D1]" />
                 </div>
               ) : (
                 <>
@@ -691,7 +691,7 @@ export default function TechnicalDocs() {
                         <TableHead>
                           <button
                             onClick={() => handleSort('title')}
-                            className="flex items-center hover:text-[#00a8b5] transition-colors"
+                            className="flex items-center hover:text-[#01B8D1] transition-colors"
                           >
                             Document Title
                             <SortIcon field="title" />
@@ -700,7 +700,7 @@ export default function TechnicalDocs() {
                         <TableHead>
                           <button
                             onClick={() => handleSort('product')}
-                            className="flex items-center hover:text-[#00a8b5] transition-colors"
+                            className="flex items-center hover:text-[#01B8D1] transition-colors"
                           >
                             Product
                             <SortIcon field="product" />
@@ -709,7 +709,7 @@ export default function TechnicalDocs() {
                         <TableHead>
                           <button
                             onClick={() => handleSort('category')}
-                            className="flex items-center hover:text-[#00a8b5] transition-colors"
+                            className="flex items-center hover:text-[#01B8D1] transition-colors"
                           >
                             Category
                             <SortIcon field="category" />
@@ -718,7 +718,7 @@ export default function TechnicalDocs() {
                         <TableHead>
                           <button
                             onClick={() => handleSort('version')}
-                            className="flex items-center hover:text-[#00a8b5] transition-colors"
+                            className="flex items-center hover:text-[#01B8D1] transition-colors"
                           >
                             Version
                             <SortIcon field="version" />
@@ -727,7 +727,7 @@ export default function TechnicalDocs() {
                         <TableHead>
                           <button
                             onClick={() => handleSort('size')}
-                            className="flex items-center hover:text-[#00a8b5] transition-colors"
+                            className="flex items-center hover:text-[#01B8D1] transition-colors"
                           >
                             Size
                             <SortIcon field="size" />
@@ -736,7 +736,7 @@ export default function TechnicalDocs() {
                         <TableHead>
                           <button
                             onClick={() => handleSort('updated')}
-                            className="flex items-center hover:text-[#00a8b5] transition-colors"
+                            className="flex items-center hover:text-[#01B8D1] transition-colors"
                           >
                             Last Updated
                             <SortIcon field="updated" />
@@ -764,7 +764,7 @@ export default function TechnicalDocs() {
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <div className="p-2 bg-cyan-50 rounded-lg">
-                                <FileText className="h-4 w-4 text-[#00a8b5]" />
+                                <FileText className="h-4 w-4 text-[#01B8D1]" />
                               </div>
                               <span className="text-sm text-slate-900">{doc.title}</span>
                             </div>
@@ -836,7 +836,7 @@ export default function TechnicalDocs() {
                             onCheckedChange={() => handleSelectDoc(doc.id)}
                           />
                           <div className="p-3 bg-cyan-50 rounded-lg flex-shrink-0">
-                            <FileText className="h-6 w-6 text-[#00a8b5]" />
+                            <FileText className="h-6 w-6 text-[#01B8D1]" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="text-sm text-slate-900 mb-2 line-clamp-2">{doc.title}</h4>
@@ -877,7 +877,7 @@ export default function TechnicalDocs() {
                           </Button>
                           <Button 
                             size="sm" 
-                            className="flex-1 bg-[#00a8b5] hover:bg-[#008a95]"
+                            className="flex-1 bg-[#01B8D1] hover:bg-[#00a0bb]"
                             onClick={() => handleDownload(doc.id, doc.title, doc.file_url)}
                             disabled={downloadingIds.has(doc.id) || !doc.file_url}
                             title={!doc.file_url ? 'File URL missing' : ''}

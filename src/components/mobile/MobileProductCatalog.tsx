@@ -82,7 +82,7 @@ export default function MobileProductCatalog() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-[#00a8b5] mx-auto mb-4" />
+          <Loader2 className="h-12 w-12 animate-spin text-[#01B8D1] mx-auto mb-4" />
           <p className="text-slate-600">Loading products...</p>
         </div>
       </div>
@@ -103,7 +103,7 @@ export default function MobileProductCatalog() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-[#00a8b5] to-[#008a95] text-white p-6">
+      <div className="bg-gradient-to-br from-[#01B8D1] to-[#00a0bb] text-white p-6">
         <h1 className="mb-2">Product Catalog</h1>
         <p className="text-white/90">{filteredProducts.length} products available</p>
       </div>
@@ -128,7 +128,7 @@ export default function MobileProductCatalog() {
                 <SlidersHorizontal className="h-4 w-4" />
                 Filters
                 {activeFiltersCount > 0 && (
-                  <Badge className="ml-auto bg-[#00a8b5] text-white h-5 w-5 p-0 flex items-center justify-center rounded-full text-xs">
+                  <Badge className="ml-auto bg-[#01B8D1] text-white h-5 w-5 p-0 flex items-center justify-center rounded-full text-xs">
                     {activeFiltersCount}
                   </Badge>
                 )}
@@ -139,7 +139,7 @@ export default function MobileProductCatalog() {
                 <div className="flex items-center justify-between">
                   <SheetTitle>Filters</SheetTitle>
                   {activeFiltersCount > 0 && (
-                    <Button variant="ghost" size="sm" onClick={clearAllFilters} className="text-[#00a8b5]">
+                    <Button variant="ghost" size="sm" onClick={clearAllFilters} className="text-[#01B8D1]">
                       Clear all
                     </Button>
                   )}
@@ -192,7 +192,7 @@ export default function MobileProductCatalog() {
 
               <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200">
                 <SheetClose asChild>
-                  <Button className="w-full bg-[#00a8b5] hover:bg-[#008a95] h-12 rounded-xl">
+                  <Button className="w-full bg-[#01B8D1] hover:bg-[#00a0bb] h-12 rounded-xl">
                     View {filteredProducts.length} products
                   </Button>
                 </SheetClose>
@@ -258,7 +258,7 @@ export default function MobileProductCatalog() {
 
                 <div className="flex items-center justify-between">
                   {product.price && (
-                    <div className="text-[#00a8b5] font-medium">{product.price}</div>
+                    <div className="text-[#01B8D1] font-medium">{product.price}</div>
                   )}
                   <ChevronRight className="h-5 w-5 text-slate-400" />
                 </div>

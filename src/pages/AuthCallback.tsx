@@ -381,7 +381,7 @@ export default function AuthCallback() {
               </>
             ) : (
               <>
-                <Loader2 className="w-16 h-16 text-[#00a8b5] animate-spin mx-auto mb-4" />
+                <Loader2 className="w-16 h-16 text-[#01B8D1] animate-spin mx-auto mb-4" />
                 <h2 className="text-2xl font-bold text-slate-900 mb-2">
                   {status}
                 </h2>

@@ -643,7 +643,7 @@ export default function AdminSettings() {
                   onClick={() => setActiveTab('profile')}
                   className={`flex items-center gap-3 px-4 py-4 text-left transition-colors ${
                     activeTab === 'profile'
-                      ? 'bg-[#00a8b5] text-white'
+                      ? 'bg-[#01B8D1] text-white'
                       : 'text-slate-700 hover:bg-slate-50'
                   }`}
                 >
@@ -654,7 +654,7 @@ export default function AdminSettings() {
                   onClick={() => setActiveTab('security')}
                   className={`flex items-center gap-3 px-4 py-4 text-left transition-colors ${
                     activeTab === 'security'
-                      ? 'bg-[#00a8b5] text-white'
+                      ? 'bg-[#01B8D1] text-white'
                       : 'text-slate-700 hover:bg-slate-50'
                   }`}
                 >
@@ -665,7 +665,7 @@ export default function AdminSettings() {
                   onClick={() => setActiveTab('admin-users')}
                   className={`flex items-center gap-3 px-4 py-4 text-left transition-colors ${
                     activeTab === 'admin-users'
-                      ? 'bg-[#00a8b5] text-white'
+                      ? 'bg-[#01B8D1] text-white'
                       : 'text-slate-700 hover:bg-slate-50'
                   }`}
                 >
@@ -697,7 +697,7 @@ export default function AdminSettings() {
                         {profileData.photoUrl ? (
                           <AvatarImage src={profileData.photoUrl} alt={profileData.fullName} />
                         ) : (
-                          <AvatarFallback className="bg-[#00a8b5] text-white text-[24px]">
+                          <AvatarFallback className="bg-[#01B8D1] text-white text-[24px]">
                             {profileData.initials}
                           </AvatarFallback>
                         )}
@@ -784,7 +784,7 @@ export default function AdminSettings() {
                       Cancel
                     </Button>
                     <Button
-                      className="bg-[#00a8b5] hover:bg-[#008a95] text-white"
+                      className="bg-[#01B8D1] hover:bg-[#00a0bb] text-white"
                       onClick={handleSaveProfile}
                       disabled={!hasProfileChanges || isPending}
                     >
@@ -936,7 +936,7 @@ export default function AdminSettings() {
                       Cancel
                     </Button>
                     <Button
-                      className="bg-[#00a8b5] hover:bg-[#008a95] text-white"
+                      className="bg-[#01B8D1] hover:bg-[#00a0bb] text-white"
                       onClick={handleUpdatePassword}
                       disabled={isPending}
                     >
@@ -956,7 +956,7 @@ export default function AdminSettings() {
                     </div>
                     <Button
                       onClick={handleAddUserClick}
-                      className="bg-[#00a8b5] hover:bg-[#008a95] text-white"
+                      className="bg-[#01B8D1] hover:bg-[#00a0bb] text-white"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Add Admin User
@@ -987,7 +987,7 @@ export default function AdminSettings() {
                                     {user.avatarUrl ? (
                                       <AvatarImage src={user.avatarUrl} alt={user.fullName} />
                                     ) : (
-                                      <AvatarFallback className="bg-[#00a8b5] text-white text-sm">
+                                      <AvatarFallback className="bg-[#01B8D1] text-white text-sm">
                                         {user.fullName.split(' ').map(n => n[0]).join('')}
                                       </AvatarFallback>
                                     )}
@@ -1226,7 +1226,7 @@ export default function AdminSettings() {
             <Button
               onClick={handleCreateUser}
               disabled={isPending}
-              className="bg-[#00a8b5] hover:bg-[#008a95] text-white"
+              className="bg-[#01B8D1] hover:bg-[#00a0bb] text-white"
             >
               {isPending ? 'Creating...' : 'Create Admin User'}
             </Button>
@@ -1344,7 +1344,7 @@ export default function AdminSettings() {
             <Button
               onClick={handleUpdateUser}
               disabled={isPending}
-              className="bg-[#00a8b5] hover:bg-[#008a95] text-white"
+              className="bg-[#01B8D1] hover:bg-[#00a0bb] text-white"
             >
               {isPending ? 'Saving...' : 'Save Changes'}
             </Button>

@@ -379,7 +379,7 @@ export default function TrainingCenter() {
                   <Separator />
                   <button
                     onClick={clearAllFilters}
-                    className="text-sm text-[#00a8b5] hover:text-[#008a95] underline cursor-pointer w-full text-center"
+                    className="text-sm text-[#01B8D1] hover:text-[#00a0bb] underline cursor-pointer w-full text-center"
                   >
                     Clear all filters
                   </button>
@@ -409,7 +409,7 @@ export default function TrainingCenter() {
                   variant={selectedTypes.length === 0 ? 'default' : 'outline'}
                   size="sm"
                   onClick={clearAllFilters}
-                  className={selectedTypes.length === 0 ? 'bg-[#00a8b5] hover:bg-[#008a95]' : ''}
+                  className={selectedTypes.length === 0 ? 'bg-[#01B8D1] hover:bg-[#00a0bb]' : ''}
                 >
                   All Materials
                 </Button>
@@ -417,7 +417,7 @@ export default function TrainingCenter() {
                   variant={selectedTypes.includes('Product Training') ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => handleQuickFilter('Product Training')}
-                  className={selectedTypes.includes('Product Training') ? 'bg-[#00a8b5] hover:bg-[#008a95]' : ''}
+                  className={selectedTypes.includes('Product Training') ? 'bg-[#01B8D1] hover:bg-[#00a0bb]' : ''}
                 >
                   Product Training
                 </Button>
@@ -425,7 +425,7 @@ export default function TrainingCenter() {
                   variant={selectedTypes.includes('Sales Training') ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => handleQuickFilter('Sales Training')}
-                  className={selectedTypes.includes('Sales Training') ? 'bg-[#00a8b5] hover:bg-[#008a95]' : ''}
+                  className={selectedTypes.includes('Sales Training') ? 'bg-[#01B8D1] hover:bg-[#00a0bb]' : ''}
                 >
                   Sales Training
                 </Button>
@@ -433,7 +433,7 @@ export default function TrainingCenter() {
                   variant={selectedTypes.includes('Technical Guides') ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => handleQuickFilter('Technical Guides')}
-                  className={selectedTypes.includes('Technical Guides') ? 'bg-[#00a8b5] hover:bg-[#008a95]' : ''}
+                  className={selectedTypes.includes('Technical Guides') ? 'bg-[#01B8D1] hover:bg-[#00a0bb]' : ''}
                 >
                   Technical Guides
                 </Button>
@@ -469,7 +469,7 @@ export default function TrainingCenter() {
               {/* Loading state */}
               {loading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5]" />
+                  <Loader2 className="h-8 w-8 animate-spin text-[#01B8D1]" />
                 </div>
               ) : (
                 <>
@@ -532,7 +532,7 @@ export default function TrainingCenter() {
                           </div>
                           
                           <CardHeader className="pb-3">
-                            <CardTitle className="text-[17px] line-clamp-2 leading-snug group-hover:text-[#00a8b5] transition-colors">
+                            <CardTitle className="text-[17px] line-clamp-2 leading-snug group-hover:text-[#01B8D1] transition-colors">
                               {material.title}
                             </CardTitle>
                             <CardDescription className="line-clamp-2 text-[14px]">
@@ -566,7 +566,7 @@ export default function TrainingCenter() {
                             <div className="flex gap-2">
                               {(material.fileType === 'MP4' || material.format === 'Webinar Recording') ? (
                                 <Button 
-                                  className="flex-1 bg-[#00a8b5] hover:bg-[#008a95] shadow-sm"
+                                  className="flex-1 bg-[#01B8D1] hover:bg-[#00a0bb] shadow-sm"
                                   onClick={() => handlePlayVideo(material)}
                                 >
                                   <PlayCircle className="mr-2 h-4 w-4" />
@@ -574,7 +574,7 @@ export default function TrainingCenter() {
                                 </Button>
                               ) : (
                                 <Button 
-                                  className="flex-1 bg-[#00a8b5] hover:bg-[#008a95] shadow-sm"
+                                  className="flex-1 bg-[#01B8D1] hover:bg-[#00a0bb] shadow-sm"
                                   onClick={() => handleDownload(material)}
                                 >
                                   <FileIcon className="mr-2 h-4 w-4" />

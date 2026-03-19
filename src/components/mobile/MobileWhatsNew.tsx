@@ -89,7 +89,7 @@ export default function MobileWhatsNew() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-slate-50">
-        <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#01B8D1]" />
       </div>
     );
   }
@@ -172,7 +172,7 @@ export default function MobileWhatsNew() {
                 key={update.id} 
                 className="rounded-xl overflow-hidden shadow-lg flex flex-col"
                 style={{ 
-                  background: 'linear-gradient(135deg, #00a8b5 0%, #008a95 100%)', 
+                  background: 'linear-gradient(135deg, #01B8D1 0%, #00a0bb 100%)', 
                   height: '280px'
                 }}
               >
@@ -200,14 +200,14 @@ export default function MobileWhatsNew() {
                     {update.link ? (
                       <Link to={update.link}>
                         <button
-                          className="px-4 py-2.5 bg-white text-[#00a8b5] rounded-lg font-semibold hover:bg-white/95 transition-colors shadow-md text-sm w-full"
+                          className="px-4 py-2.5 bg-white text-[#01B8D1] rounded-lg font-semibold hover:bg-white/95 transition-colors shadow-md text-sm w-full"
                         >
                           {update.link_text || 'Learn More'}
                         </button>
                       </Link>
                     ) : (
                       <button
-                        className="px-4 py-2.5 bg-white text-[#00a8b5] rounded-lg font-semibold hover:bg-white/95 transition-colors shadow-md text-sm w-full"
+                        className="px-4 py-2.5 bg-white text-[#01B8D1] rounded-lg font-semibold hover:bg-white/95 transition-colors shadow-md text-sm w-full"
                         onClick={() => handleReadMore(update)}
                       >
                         Read More
@@ -257,7 +257,7 @@ export default function MobileWhatsNew() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-[#00a8b5] hover:text-[#008a95] hover:bg-[#00a8b5]/5 -ml-2 gap-1 h-8"
+                          className="text-[#01B8D1] hover:text-[#00a0bb] hover:bg-[#01B8D1]/5 -ml-2 gap-1 h-8"
                         >
                           {update.link_text || 'Learn More'}
                           <ArrowRight className="h-3 w-3" />
@@ -267,7 +267,7 @@ export default function MobileWhatsNew() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-[#00a8b5] hover:text-[#008a95] hover:bg-[#00a8b5]/5 -ml-2 gap-1 h-8"
+                        className="text-[#01B8D1] hover:text-[#00a0bb] hover:bg-[#01B8D1]/5 -ml-2 gap-1 h-8"
                         onClick={() => handleReadMore(update)}
                       >
                         Read More
@@ -322,7 +322,7 @@ export default function MobileWhatsNew() {
                 {selectedAnnouncement.link && (
                   <Link to={selectedAnnouncement.link} className="block mt-6">
                     <Button
-                      className="w-full bg-[#00a8b5] hover:bg-[#008a95] text-white"
+                      className="w-full bg-[#01B8D1] hover:bg-[#00a0bb] text-white"
                       onClick={() => setDetailsOpen(false)}
                     >
                       {selectedAnnouncement.link_text || 'Learn More'}

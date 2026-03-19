@@ -622,14 +622,14 @@ export default function CreateReleaseModal({
                   {...getRootProps()}
                   className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
                     isDragActive
-                      ? 'border-[#00a8b5] bg-[#00a8b5]/5'
+                      ? 'border-[#01B8D1] bg-[#01B8D1]/5'
                       : 'border-slate-300 hover:border-slate-400'
                   } ${selectedFile ? 'opacity-50' : ''}`}
                 >
                   <input {...getInputProps()} />
                   <Upload className="h-10 w-10 mx-auto text-slate-400 mb-4" />
                   {isDragActive ? (
-                    <p className="text-[#00a8b5]">Drop the file here...</p>
+                    <p className="text-[#01B8D1]">Drop the file here...</p>
                   ) : (
                     <>
                       <p className="text-slate-600 mb-2">
@@ -648,7 +648,7 @@ export default function CreateReleaseModal({
                 <div className="p-4 bg-slate-50 rounded-lg border space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <File className="h-8 w-8 text-[#00a8b5]" />
+                      <File className="h-8 w-8 text-[#01B8D1]" />
                       <div>
                         <p className="font-medium text-slate-900">{selectedFile.name}</p>
                         <p className="text-sm text-slate-500">{formatFileSize(selectedFile.size)}</p>
@@ -676,15 +676,15 @@ export default function CreateReleaseModal({
 
               {/* Upload in progress indicator (simple - detailed progress shown at bottom) */}
               {isUploading && selectedFile && (
-                <div className="p-4 bg-[#00a8b5]/5 rounded-lg border border-[#00a8b5]/20">
+                <div className="p-4 bg-[#01B8D1]/5 rounded-lg border border-[#01B8D1]/20">
                   <div className="flex items-center gap-3">
                     <div className="relative">
-                      <File className="h-8 w-8 text-[#00a8b5]" />
-                      <Loader2 className="h-4 w-4 animate-spin text-[#00a8b5] absolute -bottom-1 -right-1" />
+                      <File className="h-8 w-8 text-[#01B8D1]" />
+                      <Loader2 className="h-4 w-4 animate-spin text-[#01B8D1] absolute -bottom-1 -right-1" />
                     </div>
                     <div className="flex-1">
                       <p className="font-medium text-slate-900">{selectedFile.name}</p>
-                      <p className="text-sm text-[#00a8b5]">
+                      <p className="text-sm text-[#01B8D1]">
                         Upload in progress ({uploadProgress}%) - see progress below
                       </p>
                     </div>
@@ -826,7 +826,7 @@ export default function CreateReleaseModal({
                   <ScrollArea className="h-[200px] border rounded-md p-2">
                     {loadingDistributors ? (
                       <div className="flex items-center justify-center h-full">
-                        <Loader2 className="h-6 w-6 animate-spin text-[#00a8b5]" />
+                        <Loader2 className="h-6 w-6 animate-spin text-[#01B8D1]" />
                       </div>
                     ) : filteredDistributors.length === 0 ? (
                       <p className="text-center text-slate-500 py-8">No distributors found</p>
@@ -871,7 +871,7 @@ export default function CreateReleaseModal({
                   <ScrollArea className="h-[200px] border rounded-md p-2">
                     {loadingDevices ? (
                       <div className="flex items-center justify-center h-full">
-                        <Loader2 className="h-6 w-6 animate-spin text-[#00a8b5]" />
+                        <Loader2 className="h-6 w-6 animate-spin text-[#01B8D1]" />
                       </div>
                     ) : filteredDevices.length === 0 ? (
                       <p className="text-center text-slate-500 py-8">No devices found</p>
@@ -947,14 +947,14 @@ export default function CreateReleaseModal({
           <div className="border-t pt-4 mt-2 space-y-3">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <File className="h-6 w-6 text-[#00a8b5]" />
-                <Loader2 className="h-3 w-3 animate-spin text-[#00a8b5] absolute -bottom-1 -right-1" />
+                <File className="h-6 w-6 text-[#01B8D1]" />
+                <Loader2 className="h-3 w-3 animate-spin text-[#01B8D1] absolute -bottom-1 -right-1" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-slate-900 text-sm truncate">{selectedFile.name}</p>
                 <p className="text-xs text-slate-500">Uploading...</p>
               </div>
-              <span className="font-medium text-[#00a8b5] text-sm">{uploadProgress}%</span>
+              <span className="font-medium text-[#01B8D1] text-sm">{uploadProgress}%</span>
             </div>
 
             <Progress value={uploadProgress} className="h-2" />
@@ -1008,7 +1008,7 @@ export default function CreateReleaseModal({
             <Button
               onClick={handleSubmit}
               disabled={loading}
-              className="bg-[#00a8b5] hover:bg-[#008a95]"
+              className="bg-[#01B8D1] hover:bg-[#00a0bb]"
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {publishImmediately ? 'Create & Publish' : 'Save as Draft'}

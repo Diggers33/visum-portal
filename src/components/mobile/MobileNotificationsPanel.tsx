@@ -71,7 +71,7 @@ export default function MobileNotificationsPanel({ isOpen, onClose }: MobileNoti
   const getNotificationColor = (type: string) => {
     switch (type) {
       case 'product':
-        return 'bg-[#00a8b5]';
+        return 'bg-[#01B8D1]';
       case 'documentation':
         return 'bg-blue-500';
       case 'training':
@@ -79,7 +79,7 @@ export default function MobileNotificationsPanel({ isOpen, onClose }: MobileNoti
       case 'marketing':
         return 'bg-pink-500';
       case 'announcement':
-        return 'bg-[#00a8b5]';
+        return 'bg-[#01B8D1]';
       case 'alert':
         return 'bg-orange-500';
       case 'success':
@@ -145,8 +145,8 @@ export default function MobileNotificationsPanel({ isOpen, onClose }: MobileNoti
             <div className="px-5 py-4 border-b border-slate-200 bg-white">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-[#00a8b5]/10 rounded-xl">
-                    <Bell className="h-6 w-6 text-[#00a8b5]" />
+                  <div className="p-2 bg-[#01B8D1]/10 rounded-xl">
+                    <Bell className="h-6 w-6 text-[#01B8D1]" />
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold text-slate-900">Notifications</h2>
@@ -171,7 +171,7 @@ export default function MobileNotificationsPanel({ isOpen, onClose }: MobileNoti
                   variant="outline"
                   size="sm"
                   onClick={markAllAsRead}
-                  className="w-full h-10 text-[#00a8b5] border-[#00a8b5] hover:bg-[#00a8b5]/5"
+                  className="w-full h-10 text-[#01B8D1] border-[#01B8D1] hover:bg-[#01B8D1]/5"
                 >
                   <Check className="h-4 w-4 mr-2" />
                   Mark all as read
@@ -188,7 +188,7 @@ export default function MobileNotificationsPanel({ isOpen, onClose }: MobileNoti
               {/* Pull to Refresh Indicator */}
               {refreshing && (
                 <div className="flex items-center justify-center py-4">
-                  <RefreshCw className="h-5 w-5 text-[#00a8b5] animate-spin" />
+                  <RefreshCw className="h-5 w-5 text-[#01B8D1] animate-spin" />
                   <span className="ml-2 text-sm text-slate-500">Refreshing...</span>
                 </div>
               )}
@@ -196,7 +196,7 @@ export default function MobileNotificationsPanel({ isOpen, onClose }: MobileNoti
               {/* Loading State */}
               {loading && (
                 <div className="flex items-center justify-center py-16">
-                  <Loader2 className="h-8 w-8 text-[#00a8b5] animate-spin" />
+                  <Loader2 className="h-8 w-8 text-[#01B8D1] animate-spin" />
                 </div>
               )}
 
@@ -345,13 +345,13 @@ function SwipeableNotificationCard({
         onClick={() => !isDragging && onClick(notification)}
         className={`relative bg-white border rounded-2xl p-4 ${
           !notification.read 
-            ? 'border-[#00a8b5] bg-[#00a8b5]/5' 
+            ? 'border-[#01B8D1] bg-[#01B8D1]/5' 
             : 'border-slate-200'
         }`}
       >
         {/* Unread Indicator */}
         {!notification.read && (
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#00a8b5] rounded-l-2xl" />
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#01B8D1] rounded-l-2xl" />
         )}
 
         <div className="flex gap-3 pl-2">
@@ -384,7 +384,7 @@ function SwipeableNotificationCard({
                 e.stopPropagation();
                 onRead(notification.id);
               }}
-              className="flex-1 h-9 text-[#00a8b5] border-[#00a8b5]/30 hover:bg-[#00a8b5]/5"
+              className="flex-1 h-9 text-[#01B8D1] border-[#01B8D1]/30 hover:bg-[#01B8D1]/5"
             >
               <Check className="h-4 w-4 mr-1" />
               Mark read

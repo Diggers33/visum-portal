@@ -310,7 +310,7 @@ export default function SoftwareReleasesManagement() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#01B8D1]" />
       </div>
     );
   }
@@ -332,7 +332,7 @@ export default function SoftwareReleasesManagement() {
           </Button>
           <Button
             onClick={() => setIsCreateModalOpen(true)}
-            className="bg-[#00a8b5] hover:bg-[#008a95] text-white"
+            className="bg-[#01B8D1] hover:bg-[#00a0bb] text-white"
           >
             <Plus className="h-4 w-4 mr-2" />
             New Release
@@ -474,7 +474,7 @@ export default function SoftwareReleasesManagement() {
                   setProductFilter('all');
                   setSearchQuery('');
                 }}
-                className="text-[#00a8b5] hover:text-[#008a95]"
+                className="text-[#01B8D1] hover:text-[#00a0bb]"
               >
                 Clear Filters
               </Button>

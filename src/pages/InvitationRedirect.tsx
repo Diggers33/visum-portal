@@ -133,7 +133,7 @@ export default function InvitationRedirect() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="max-w-md w-full mx-4">
         <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-[#00a8b5] mx-auto mb-4" />
+          <Loader2 className="h-12 w-12 animate-spin text-[#01B8D1] mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-slate-900 mb-2">
             Processing your invitation...
           </h2>

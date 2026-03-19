@@ -96,28 +96,27 @@ export default function AdminLayout({ children, onLogout }: AdminLayoutProps) {
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#1e293b] transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
+        style={{ background: '#0F183D', borderRight: '1px solid rgba(255,255,255,0.06)' }}
       >
         {/* Logo */}
-        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-700">
-          <div>
-            <h1 className="text-[20px] font-semibold text-white">
-              Visum<sup className="text-[12px]">®</sup>
-            </h1>
-            <p className="text-[11px] text-[#ef4444]">Admin Portal</p>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+          <div className="flex flex-col items-start gap-1">
+            <img src="/assets/Logo_Visum.svg" alt="Visum" className="h-9 w-auto" />
+            <span className="text-[9px] font-semibold tracking-[0.18em] uppercase text-white/40">Administration Portal</span>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-slate-400 hover:text-white"
+            className="lg:hidden text-white/40 hover:text-white"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-1">
+        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
           {navigation.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.href;
@@ -126,13 +125,16 @@ export default function AdminLayout({ children, onLogout }: AdminLayoutProps) {
                 key={item.name}
                 to={item.href}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] transition-colors ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-[14px] transition-colors relative ${
                   isActive
-                    ? 'bg-[#ef4444] text-white'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                    ? 'bg-white/10 text-white'
+                    : 'text-white/60 hover:text-white/90'
                 }`}
+                onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; }}
+                onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = ''; }}
               >
-                <Icon className="h-5 w-5" />
+                {isActive && <div className="absolute left-0 top-1 bottom-1 w-[3px] bg-[#01B8D1] rounded-r" />}
+                <Icon className={`h-4 w-4 flex-shrink-0 ${isActive ? 'text-white' : 'text-white/50'}`} />
                 <span>{item.name}</span>
               </Link>
             );
@@ -140,16 +142,19 @@ export default function AdminLayout({ children, onLogout }: AdminLayoutProps) {
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-700">
-          <p className="text-[12px] text-slate-400 text-center">
+        <div className="p-4 border-t border-white/10 space-y-3">
+          <p className="text-[12px] text-white/40 text-center">
             Need help?{' '}
-            <a 
-              href="mailto:it@iris-eng.com" 
-              className="text-[#00a8b5] hover:text-[#008a95] underline"
+            <a
+              href="mailto:it@iris-eng.com"
+              className="text-[#01B8D1] hover:text-[#00a0bb] underline"
             >
               Contact IT
             </a>
           </p>
+          <div className="flex justify-center">
+            <img src="/assets/IRIS_LOGO.svg" alt="IRIS Technology Solutions" className="h-7 w-auto opacity-60" />
+          </div>
         </div>
       </div>
 
@@ -165,9 +170,9 @@ export default function AdminLayout({ children, onLogout }: AdminLayoutProps) {
             >
               <Menu className="h-6 w-6" />
             </button>
-            <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-[#ef4444]/10 rounded-full">
-              <div className="w-2 h-2 bg-[#ef4444] rounded-full" />
-              <span className="text-[12px] font-medium text-[#ef4444]">ADMIN MODE</span>
+            <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-[#01B8D1]/10 rounded-full">
+              <div className="w-2 h-2 bg-[#01B8D1] rounded-full" />
+              <span className="text-[12px] font-medium text-[#01B8D1]">ADMIN MODE</span>
             </div>
           </div>
 
@@ -186,14 +191,14 @@ export default function AdminLayout({ children, onLogout }: AdminLayoutProps) {
             {/* Notifications */}
             <button className="relative p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg">
               <Bell className="h-5 w-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-[#ef4444] rounded-full" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-[#01B8D1] rounded-full" />
             </button>
 
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-3 p-2 hover:bg-slate-100 rounded-lg">
-                  <div className="w-8 h-8 bg-[#ef4444] rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-[#0F183D] border border-[#01B8D1]/40 rounded-full flex items-center justify-center">
                     <span className="text-[13px] text-white">{userInitials || 'U'}</span>
                   </div>
                   <div className="hidden lg:block text-left">

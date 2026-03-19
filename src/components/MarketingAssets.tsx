@@ -476,7 +476,7 @@ export default function MarketingAssets() {
                     <Separator />
                     <button
                       onClick={clearAllFilters}
-                      className="text-sm text-[#00a8b5] hover:text-[#008a95] underline cursor-pointer w-full text-center"
+                      className="text-sm text-[#01B8D1] hover:text-[#00a0bb] underline cursor-pointer w-full text-center"
                     >
                       Clear all filters
                     </button>
@@ -529,7 +529,7 @@ export default function MarketingAssets() {
             {/* Loading state */}
             {loading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5]" />
+                <Loader2 className="h-8 w-8 animate-spin text-[#01B8D1]" />
               </div>
             ) : filteredAssets.length === 0 ? (
               <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-lg">
@@ -582,7 +582,7 @@ export default function MarketingAssets() {
                       <CardContent className="p-4 flex flex-col flex-1">
                         <div className="flex items-start gap-3 flex-1">
                           <div className="p-2 bg-cyan-50 rounded-lg flex-shrink-0">
-                            <FileIcon className="h-5 w-5 text-[#00a8b5]" />
+                            <FileIcon className="h-5 w-5 text-[#01B8D1]" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="text-sm text-slate-900 mb-1 line-clamp-2">{displayName}</h4>
@@ -600,7 +600,7 @@ export default function MarketingAssets() {
                           </div>
                         </div>
                         <Button 
-                          className="w-full mt-4 bg-[#00a8b5] hover:bg-[#008a95]"
+                          className="w-full mt-4 bg-[#01B8D1] hover:bg-[#00a0bb]"
                           onClick={() => handleDownload(asset.id, displayName, asset.file_url)}
                           disabled={downloadingIds.has(asset.id) || !asset.file_url}
                           title={!asset.file_url ? 'File URL missing - contact administrator' : ''}
@@ -627,7 +627,7 @@ export default function MarketingAssets() {
                       return (
                         <div key={asset.id} className="flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors">
                           <div className="p-3 bg-cyan-50 rounded-lg">
-                            <FileIcon className="h-6 w-6 text-[#00a8b5]" />
+                            <FileIcon className="h-6 w-6 text-[#01B8D1]" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="text-sm text-slate-900 mb-1">{displayName}</h4>
@@ -656,7 +656,7 @@ export default function MarketingAssets() {
                           </div>
                           <Button 
                             size="sm" 
-                            className="bg-[#00a8b5] hover:bg-[#008a95]"
+                            className="bg-[#01B8D1] hover:bg-[#00a0bb]"
                             onClick={() => handleDownload(asset.id, displayName, asset.file_url)}
                             disabled={downloadingIds.has(asset.id) || !asset.file_url}
                             title={!asset.file_url ? 'File URL missing - contact administrator' : ''}

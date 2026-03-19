@@ -161,7 +161,7 @@ export default function MobileMarketingAssets() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-[#00a8b5] mx-auto mb-4" />
+          <Loader2 className="h-12 w-12 animate-spin text-[#01B8D1] mx-auto mb-4" />
           <p className="text-slate-600">Loading marketing assets...</p>
         </div>
       </div>
@@ -175,7 +175,7 @@ export default function MobileMarketingAssets() {
         <div className="text-center">
           <h2 className="text-lg font-semibold text-slate-900 mb-2">Unable to load assets</h2>
           <p className="text-slate-600 mb-4">{error}</p>
-          <Button onClick={() => window.location.reload()} className="bg-[#00a8b5] hover:bg-[#008a95]">
+          <Button onClick={() => window.location.reload()} className="bg-[#01B8D1] hover:bg-[#00a0bb]">
             Try Again
           </Button>
         </div>
@@ -194,7 +194,7 @@ export default function MobileMarketingAssets() {
             placeholder="Search assets..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-slate-50 border-slate-200 focus:border-[#00a8b5]"
+            className="pl-10 bg-slate-50 border-slate-200 focus:border-[#01B8D1]"
           />
         </div>
 
@@ -206,7 +206,7 @@ export default function MobileMarketingAssets() {
                 <Filter className="h-4 w-4" />
                 <span>Filters</span>
                 {activeFiltersCount > 0 && (
-                  <Badge variant="secondary" className="h-5 min-w-[20px] rounded-full bg-[#00a8b5] text-white">
+                  <Badge variant="secondary" className="h-5 min-w-[20px] rounded-full bg-[#01B8D1] text-white">
                     {activeFiltersCount}
                   </Badge>
                 )}
@@ -218,7 +218,7 @@ export default function MobileMarketingAssets() {
               <div className="flex items-center justify-between">
                 <SheetTitle>Filters</SheetTitle>
                 {activeFiltersCount > 0 && (
-                  <Button variant="ghost" size="sm" onClick={clearAllFilters} className="text-[#00a8b5]">
+                  <Button variant="ghost" size="sm" onClick={clearAllFilters} className="text-[#01B8D1]">
                     Clear all
                   </Button>
                 )}
@@ -328,7 +328,7 @@ export default function MobileMarketingAssets() {
           <Card className="p-8 text-center">
             <p className="text-slate-600">No assets found matching your filters</p>
             {activeFiltersCount > 0 && (
-              <Button variant="link" onClick={clearAllFilters} className="mt-2 text-[#00a8b5]">
+              <Button variant="link" onClick={clearAllFilters} className="mt-2 text-[#01B8D1]">
                 Clear all filters
               </Button>
             )}
@@ -403,7 +403,7 @@ export default function MobileMarketingAssets() {
                     </div>
 
                     <Button 
-                      className="w-full bg-[#00a8b5] hover:bg-[#008a95]"
+                      className="w-full bg-[#01B8D1] hover:bg-[#00a0bb]"
                       onClick={() => handleDownload(asset)}
                       size="sm"
                     >

@@ -328,7 +328,7 @@ export default function AddDeviceModal({
             <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading} className="bg-[#00a8b5] hover:bg-[#008a95]">
+            <Button type="submit" disabled={loading} className="bg-[#01B8D1] hover:bg-[#00a0bb]">
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Add Device
             </Button>

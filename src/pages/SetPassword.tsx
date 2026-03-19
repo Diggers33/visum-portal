@@ -103,9 +103,9 @@ export default function SetPassword() {
         <div className="bg-white rounded-lg shadow-lg p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-[#00a8b5]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-[#01B8D1]/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
-                className="w-8 h-8 text-[#00a8b5]"
+                className="w-8 h-8 text-[#01B8D1]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -221,7 +221,7 @@ export default function SetPassword() {
             {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full bg-[#00a8b5] hover:bg-[#008a95] text-white"
+              className="w-full bg-[#01B8D1] hover:bg-[#00a0bb] text-white"
               disabled={isLoading || !isPasswordValid || !doPasswordsMatch}
             >
               {isLoading ? (

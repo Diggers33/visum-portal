@@ -52,7 +52,7 @@ export default function ForgotPassword() {
             <Link to="/login">
               <Button 
                 variant="outline"
-                className="inline-flex items-center justify-center gap-2 border-[#00a8b5] text-[#00a8b5] hover:bg-[#00a8b5]/5"
+                className="inline-flex items-center justify-center gap-2 border-[#01B8D1] text-[#01B8D1] hover:bg-[#01B8D1]/5"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back to login
@@ -68,8 +68,8 @@ export default function ForgotPassword() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
         <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 bg-[#00a8b5]/10 rounded-full flex items-center justify-center mb-4">
-            <Mail className="w-8 h-8 text-[#00a8b5]" />
+          <div className="mx-auto w-16 h-16 bg-[#01B8D1]/10 rounded-full flex items-center justify-center mb-4">
+            <Mail className="w-8 h-8 text-[#01B8D1]" />
           </div>
           <h2 className="text-2xl font-bold text-slate-900 mb-2">Forgot your password?</h2>
           <p className="text-slate-600">
@@ -88,7 +88,7 @@ export default function ForgotPassword() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="distributor@example.com"
-              className="h-11 rounded-lg border-slate-300 focus:border-[#00a8b5] focus:ring-2 focus:ring-[#00a8b5]/20 transition-all duration-200"
+              className="h-11 rounded-lg border-slate-300 focus:border-[#01B8D1] focus:ring-2 focus:ring-[#01B8D1]/20 transition-all duration-200"
               required
             />
           </div>
@@ -102,7 +102,7 @@ export default function ForgotPassword() {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full h-11 bg-[#00a8b5] hover:bg-[#008a95] rounded-lg transition-all duration-200"
+            className="w-full h-11 bg-[#01B8D1] hover:bg-[#00a0bb] rounded-lg transition-all duration-200"
             style={{ boxShadow: '0 2px 8px rgba(0,168,181,0.2)' }}
           >
             {loading ? 'Sending...' : 'Send reset link'}

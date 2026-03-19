@@ -72,9 +72,8 @@ export default function MobileDashboardLayout({ children, onLogout }: MobileDash
       <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
         <div className="flex items-center justify-between px-4 h-14">
           {/* Logo */}
-          <div className="flex flex-col">
-            <span className="text-base text-[#00a8b5] tracking-tight leading-tight">Visum®</span>
-            <span className="text-[9px] text-[#999999] leading-tight -mt-0.5">By IRIS Technology</span>
+          <div className="flex items-center">
+            <img src="/assets/Logo_Visum.svg" alt="Visum" className="h-7 w-auto" />
           </div>
 
           {/* Right Actions */}
@@ -120,7 +119,7 @@ export default function MobileDashboardLayout({ children, onLogout }: MobileDash
               <SheetContent side="right" className="w-80 p-0">
                 <div className="flex flex-col h-full">
                   {/* User Info */}
-                  <div className="p-6 bg-gradient-to-br from-[#00a8b5] to-[#008a95]">
+                  <div className="p-6 bg-gradient-to-br from-[#01B8D1] to-[#00a0bb]">
                     {profileLoading ? (
                       <div className="flex items-center justify-center py-4">
                         <Loader2 className="h-8 w-8 animate-spin text-white/80" />
@@ -208,7 +207,7 @@ export default function MobileDashboardLayout({ children, onLogout }: MobileDash
               <Input
                 type="search"
                 placeholder="Search products, docs..."
-                className="pl-10 bg-slate-50 border-slate-200 focus:border-[#00a8b5] h-10"
+                className="pl-10 bg-slate-50 border-slate-200 focus:border-[#01B8D1] h-10"
                 autoFocus
               />
             </div>
@@ -238,18 +237,18 @@ export default function MobileDashboardLayout({ children, onLogout }: MobileDash
               >
                 <item.icon 
                   className={`h-5 w-5 pointer-events-none ${
-                    isActive ? 'text-[#00a8b5]' : 'text-slate-500'
+                    isActive ? 'text-[#01B8D1]' : 'text-slate-500'
                   }`} 
                 />
                 <span 
                   className={`text-[10px] pointer-events-none ${
-                    isActive ? 'text-[#00a8b5]' : 'text-slate-600'
+                    isActive ? 'text-[#01B8D1]' : 'text-slate-600'
                   }`}
                 >
                   {item.name}
                 </span>
                 {isActive && (
-                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-[#00a8b5] rounded-t-full pointer-events-none" />
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-[#01B8D1] rounded-t-full pointer-events-none" />
                 )}
               </Link>
             );

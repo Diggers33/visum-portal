@@ -132,7 +132,7 @@ export default function DocumentHistoryModal({
           <button
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
               activeTab === 'history'
-                ? 'border-[#00a8b5] text-[#00a8b5]'
+                ? 'border-[#01B8D1] text-[#01B8D1]'
                 : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
             onClick={() => setActiveTab('history')}
@@ -142,7 +142,7 @@ export default function DocumentHistoryModal({
           <button
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
               activeTab === 'versions'
-                ? 'border-[#00a8b5] text-[#00a8b5]'
+                ? 'border-[#01B8D1] text-[#01B8D1]'
                 : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
             onClick={() => setActiveTab('versions')}
@@ -155,7 +155,7 @@ export default function DocumentHistoryModal({
         <div className="flex-1 overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-48">
-              <Loader2 className="h-6 w-6 animate-spin text-[#00a8b5]" />
+              <Loader2 className="h-6 w-6 animate-spin text-[#01B8D1]" />
             </div>
           ) : activeTab === 'history' ? (
             <ScrollArea className="h-full max-h-[400px]">
@@ -235,7 +235,7 @@ export default function DocumentHistoryModal({
                       key={ver.id}
                       className={`flex items-center gap-4 p-4 rounded-lg border ${
                         ver.id === document.id
-                          ? 'border-[#00a8b5] bg-[#00a8b5]/5'
+                          ? 'border-[#01B8D1] bg-[#01B8D1]/5'
                           : 'border-slate-200 hover:bg-slate-50'
                       }`}
                     >
@@ -270,7 +270,7 @@ export default function DocumentHistoryModal({
                           href={ver.file_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[#00a8b5] hover:underline text-sm"
+                          className="text-[#01B8D1] hover:underline text-sm"
                         >
                           View
                         </a>

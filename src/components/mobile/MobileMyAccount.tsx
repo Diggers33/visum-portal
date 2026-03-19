@@ -35,7 +35,7 @@ export default function MobileMyAccount() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5] mx-auto mb-4" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#01B8D1] mx-auto mb-4" />
           <p className="text-slate-600">Loading profile...</p>
         </div>
       </div>
@@ -49,7 +49,7 @@ export default function MobileMyAccount() {
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="mb-2 text-slate-900">Unable to Load Profile</h2>
           <p className="text-slate-600 mb-4">{error || 'Profile not found'}</p>
-          <Button onClick={() => window.location.reload()} className="bg-[#00a8b5] hover:bg-[#008a95]">
+          <Button onClick={() => window.location.reload()} className="bg-[#01B8D1] hover:bg-[#00a0bb]">
             Try Again
           </Button>
         </div>
@@ -75,7 +75,7 @@ export default function MobileMyAccount() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-[#00a8b5] to-[#008a95] text-white p-6">
+      <div className="bg-gradient-to-br from-[#01B8D1] to-[#00a0bb] text-white p-6">
         <div className="flex items-center gap-4 mb-4">
           <Avatar className="h-16 w-16 border-2 border-white/30">
             <AvatarFallback className="bg-white/20 text-white text-xl">
@@ -100,7 +100,7 @@ export default function MobileMyAccount() {
         <Card className="border-slate-200">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <User className="h-4 w-4 text-[#00a8b5]" />
+              <User className="h-4 w-4 text-[#01B8D1]" />
               Account Information
             </CardTitle>
           </CardHeader>
@@ -151,7 +151,7 @@ export default function MobileMyAccount() {
         <Card className="border-slate-200">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <MapPin className="h-4 w-4 text-[#00a8b5]" />
+              <MapPin className="h-4 w-4 text-[#01B8D1]" />
               Territory Details
             </CardTitle>
           </CardHeader>
@@ -178,7 +178,7 @@ export default function MobileMyAccount() {
               <div>
                 <Label className="text-xs text-slate-500">Distributor Type</Label>
                 <div className="mt-1">
-                  <Badge className="bg-[#00a8b5] text-white">{profile.distributor_type}</Badge>
+                  <Badge className="bg-[#01B8D1] text-white">{profile.distributor_type}</Badge>
                 </div>
               </div>
             )}
@@ -189,7 +189,7 @@ export default function MobileMyAccount() {
         <Card className="border-slate-200">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <CreditCard className="h-4 w-4 text-[#00a8b5]" />
+              <CreditCard className="h-4 w-4 text-[#01B8D1]" />
               Subscription & Billing
             </CardTitle>
           </CardHeader>
@@ -221,7 +221,7 @@ export default function MobileMyAccount() {
         <Card className="border-slate-200">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Bell className="h-4 w-4 text-[#00a8b5]" />
+              <Bell className="h-4 w-4 text-[#01B8D1]" />
               Notification Preferences
             </CardTitle>
           </CardHeader>
@@ -306,13 +306,13 @@ export default function MobileMyAccount() {
         </Card>
 
         {/* Support */}
-        <Card className="border-slate-200 bg-gradient-to-br from-[#00a8b5]/5 to-[#008a95]/5">
+        <Card className="border-slate-200 bg-gradient-to-br from-[#01B8D1]/5 to-[#00a0bb]/5">
           <CardContent className="p-6 text-center">
             <h3 className="mb-2 text-slate-900">Need Help?</h3>
             <p className="text-sm text-slate-600 mb-4">
               Our support team is here to assist you
             </p>
-            <Button className="bg-[#00a8b5] hover:bg-[#008a95] h-10 rounded-lg">
+            <Button className="bg-[#01B8D1] hover:bg-[#00a0bb] h-10 rounded-lg">
               Contact Support
             </Button>
           </CardContent>

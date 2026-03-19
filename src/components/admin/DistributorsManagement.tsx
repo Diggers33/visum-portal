@@ -741,7 +741,7 @@ export default function DistributorsManagement() {
         <div className="flex flex-col sm:flex-row gap-3 flex-1 w-full">
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-[#00a8b5] hover:bg-[#008a95] text-white">
+              <Button className="bg-[#01B8D1] hover:bg-[#00a0bb] text-white">
                 <Plus className="mr-2 h-4 w-4" />
                 Add New Distributor
               </Button>
@@ -856,13 +856,13 @@ export default function DistributorsManagement() {
                         <Badge
                           key={territory}
                           variant="secondary"
-                          className="bg-[#00a8b5]/10 text-[#00a8b5] hover:bg-[#00a8b5]/20"
+                          className="bg-[#01B8D1]/10 text-[#01B8D1] hover:bg-[#01B8D1]/20"
                         >
                           {territory}
                           <button
                             type="button"
                             onClick={() => removeTerritory(territory)}
-                            className="ml-1 hover:text-[#008a95]"
+                            className="ml-1 hover:text-[#00a0bb]"
                             disabled={isCreating}
                           >
                             <X className="h-3 w-3" />
@@ -886,7 +886,7 @@ export default function DistributorsManagement() {
                         onChange={(e) =>
                           setNewDistributor({ ...newDistributor, accountType: e.target.value })
                         }
-                        className="w-4 h-4 text-[#00a8b5]"
+                        className="w-4 h-4 text-[#01B8D1]"
                         disabled={isCreating}
                       />
                       <Label htmlFor="exclusive" className="font-normal cursor-pointer">
@@ -903,7 +903,7 @@ export default function DistributorsManagement() {
                         onChange={(e) =>
                           setNewDistributor({ ...newDistributor, accountType: e.target.value })
                         }
-                        className="w-4 h-4 text-[#00a8b5]"
+                        className="w-4 h-4 text-[#01B8D1]"
                         disabled={isCreating}
                       />
                       <Label htmlFor="non-exclusive" className="font-normal cursor-pointer">
@@ -938,7 +938,7 @@ export default function DistributorsManagement() {
                 </Button>
                 <Button
                   onClick={handleAddDistributor}
-                  className="bg-[#00a8b5] hover:bg-[#008a95]"
+                  className="bg-[#01B8D1] hover:bg-[#00a0bb]"
                   disabled={isCreating}
                 >
                   {isCreating ? (
@@ -1052,7 +1052,7 @@ export default function DistributorsManagement() {
           <CardContent className="p-0">
             {isLoading ? (
               <div className="flex items-center justify-center h-64">
-                <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5]" />
+                <Loader2 className="h-8 w-8 animate-spin text-[#01B8D1]" />
               </div>
             ) : (
               <Table>
@@ -1257,7 +1257,7 @@ export default function DistributorsManagement() {
               </p>
               <Button
                 size="sm"
-                className="bg-[#00a8b5] hover:bg-[#008a95]"
+                className="bg-[#01B8D1] hover:bg-[#00a0bb]"
                 onClick={() => setIsAddUserDialogOpen(true)}
               >
                 <Plus className="mr-2 h-4 w-4" />
@@ -1268,7 +1268,7 @@ export default function DistributorsManagement() {
             {/* Users Table */}
             {manageUsersLoading ? (
               <div className="flex items-center justify-center h-48">
-                <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5]" />
+                <Loader2 className="h-8 w-8 animate-spin text-[#01B8D1]" />
               </div>
             ) : (
               <div className="border rounded-lg overflow-hidden">
@@ -1326,7 +1326,7 @@ export default function DistributorsManagement() {
                                   size="sm"
                                   onClick={() => handleSaveEdit(user.id)}
                                   disabled={savingEdit}
-                                  className="bg-[#00a8b5] hover:bg-[#008a95]"
+                                  className="bg-[#01B8D1] hover:bg-[#00a0bb]"
                                 >
                                   {savingEdit ? (
                                     <Loader2 className="h-3 w-3 animate-spin" />
@@ -1441,7 +1441,7 @@ export default function DistributorsManagement() {
             <Button variant="outline" onClick={() => setIsAddUserDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddUser} className="bg-[#00a8b5] hover:bg-[#008a95]">
+            <Button onClick={handleAddUser} className="bg-[#01B8D1] hover:bg-[#00a0bb]">
               Add User
             </Button>
           </DialogFooter>

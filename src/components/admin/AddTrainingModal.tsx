@@ -419,7 +419,7 @@ export default function AddTrainingModal({ open, onOpenChange, onAdd }: AddTrain
                   value="videoLink"
                   checked={contentSource === 'videoLink'}
                   onChange={(e) => handleContentSourceChange('videoLink')}
-                  className="w-4 h-4 text-[#00a8b5] border-slate-300 focus:ring-[#00a8b5]"
+                  className="w-4 h-4 text-[#01B8D1] border-slate-300 focus:ring-[#01B8D1]"
                 />
                 <Label htmlFor="source-video-link" className="font-normal cursor-pointer text-[14px]">
                   Video Link <span className="text-[#6b7280]">(YouTube, Vimeo - recommended)</span>
@@ -433,7 +433,7 @@ export default function AddTrainingModal({ open, onOpenChange, onAdd }: AddTrain
                   value="uploadFile"
                   checked={contentSource === 'uploadFile'}
                   onChange={(e) => handleContentSourceChange('uploadFile')}
-                  className="w-4 h-4 text-[#00a8b5] border-slate-300 focus:ring-[#00a8b5]"
+                  className="w-4 h-4 text-[#01B8D1] border-slate-300 focus:ring-[#01B8D1]"
                 />
                 <Label htmlFor="source-upload-file" className="font-normal cursor-pointer text-[14px]">
                   Upload File <span className="text-[#6b7280]">(Host on portal)</span>
@@ -469,7 +469,7 @@ export default function AddTrainingModal({ open, onOpenChange, onAdd }: AddTrain
                     variant="outline"
                     onClick={handlePreviewVideo}
                     disabled={isPreviewing || !videoUrl.trim()}
-                    className="border-[#00a8b5] text-[#00a8b5] hover:bg-[#00a8b5] hover:text-white shrink-0"
+                    className="border-[#01B8D1] text-[#01B8D1] hover:bg-[#01B8D1] hover:text-white shrink-0"
                   >
                     <ExternalLink className="mr-2 h-4 w-4" />
                     {isPreviewing ? 'Loading...' : 'Preview Video'}
@@ -514,7 +514,7 @@ export default function AddTrainingModal({ open, onOpenChange, onAdd }: AddTrain
               {!selectedFile ? (
                 <div>
                   <label htmlFor="file-upload" className="cursor-pointer">
-                    <div className="border-2 border-dashed border-slate-200 rounded-lg p-8 text-center hover:border-[#00a8b5] transition-colors">
+                    <div className="border-2 border-dashed border-slate-200 rounded-lg p-8 text-center hover:border-[#01B8D1] transition-colors">
                       <Upload className="h-8 w-8 text-slate-400 mx-auto mb-2" />
                       <p className="text-[13px] text-[#6b7280] mb-1">Click to upload or drag and drop</p>
                       <p className="text-[12px] text-[#9ca3af]">Video (MP4, MOV, AVI) or PDF Guide • Max 500MB</p>
@@ -532,9 +532,9 @@ export default function AddTrainingModal({ open, onOpenChange, onAdd }: AddTrain
                 <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
                   <div className="flex items-start gap-3">
                     {isVideo ? (
-                      <Video className="h-10 w-10 text-[#00a8b5] mt-1" />
+                      <Video className="h-10 w-10 text-[#01B8D1] mt-1" />
                     ) : (
-                      <FileText className="h-10 w-10 text-[#00a8b5] mt-1" />
+                      <FileText className="h-10 w-10 text-[#01B8D1] mt-1" />
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-slate-900 truncate">{selectedFile.name}</p>
@@ -721,7 +721,7 @@ export default function AddTrainingModal({ open, onOpenChange, onAdd }: AddTrain
               {!thumbnailFile ? (
                 <div>
                   <label htmlFor="thumbnail-upload" className="cursor-pointer">
-                    <div className="border-2 border-dashed border-slate-200 rounded-lg p-6 text-center hover:border-[#00a8b5] transition-colors">
+                    <div className="border-2 border-dashed border-slate-200 rounded-lg p-6 text-center hover:border-[#01B8D1] transition-colors">
                       <ImageIcon className="h-6 w-6 text-slate-400 mx-auto mb-2" />
                       <p className="text-[12px] text-[#6b7280]">Upload custom thumbnail</p>
                       <p className="text-[11px] text-[#9ca3af]">JPG, PNG, WEBP • Max 5MB</p>
@@ -738,7 +738,7 @@ export default function AddTrainingModal({ open, onOpenChange, onAdd }: AddTrain
               ) : (
                 <div className="border border-slate-200 rounded-lg p-3 bg-slate-50">
                   <div className="flex items-center gap-3">
-                    <ImageIcon className="h-8 w-8 text-[#00a8b5]" />
+                    <ImageIcon className="h-8 w-8 text-[#01B8D1]" />
                     <div className="flex-1 min-w-0">
                       <p className="text-[13px] font-medium text-slate-900 truncate">{thumbnailFile.name}</p>
                       <p className="text-[12px] text-[#6b7280]">
@@ -773,7 +773,7 @@ export default function AddTrainingModal({ open, onOpenChange, onAdd }: AddTrain
                   value="published"
                   checked={formData.status === 'published'}
                   onChange={(e) => handleFieldChange('status', e.target.value)}
-                  className="w-4 h-4 text-[#00a8b5] border-slate-300 focus:ring-[#00a8b5]"
+                  className="w-4 h-4 text-[#01B8D1] border-slate-300 focus:ring-[#01B8D1]"
                 />
                 <Label htmlFor="status-published" className="font-normal cursor-pointer text-[14px]">
                   Published <span className="text-[#6b7280]">(visible to all distributors)</span>
@@ -787,7 +787,7 @@ export default function AddTrainingModal({ open, onOpenChange, onAdd }: AddTrain
                   value="draft"
                   checked={formData.status === 'draft'}
                   onChange={(e) => handleFieldChange('status', e.target.value)}
-                  className="w-4 h-4 text-[#00a8b5] border-slate-300 focus:ring-[#00a8b5]"
+                  className="w-4 h-4 text-[#01B8D1] border-slate-300 focus:ring-[#01B8D1]"
                 />
                 <Label htmlFor="status-draft" className="font-normal cursor-pointer text-[14px]">
                   Draft <span className="text-[#6b7280]">(only admins can see)</span>
@@ -802,7 +802,7 @@ export default function AddTrainingModal({ open, onOpenChange, onAdd }: AddTrain
             Cancel
           </Button>
           <Button
-            className="bg-[#00a8b5] hover:bg-[#008a95]"
+            className="bg-[#01B8D1] hover:bg-[#00a0bb]"
             onClick={handleSubmit}
             disabled={!isFormValid || isPending}
           >

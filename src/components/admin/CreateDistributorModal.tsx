@@ -211,7 +211,7 @@ export default function CreateDistributorModal({
             {/* Company Information Section */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-[#00a8b5]" />
+                <Building2 className="h-5 w-5 text-[#01B8D1]" />
                 <h3 className="text-lg font-semibold">Company Information</h3>
               </div>
 
@@ -336,7 +336,7 @@ export default function CreateDistributorModal({
                 />
                 <Label htmlFor="create_first_user" className="cursor-pointer">
                   <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-[#00a8b5]" />
+                    <User className="h-4 w-4 text-[#01B8D1]" />
                     <span className="font-semibold">Create First User</span>
                   </div>
                 </Label>
@@ -431,7 +431,7 @@ export default function CreateDistributorModal({
             <Button
               type="submit"
               disabled={loading}
-              className="bg-[#00a8b5] hover:bg-[#008a95]"
+              className="bg-[#01B8D1] hover:bg-[#00a0bb]"
             >
               {loading ? (
                 <>

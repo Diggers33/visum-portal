@@ -239,7 +239,7 @@ export default function MarketingAssetsSection({ productName, productId }: Marke
           </div>
           <Button
             onClick={() => setIsAddDialogOpen(true)}
-            className="bg-[#00a8b5] hover:bg-[#008a95]"
+            className="bg-[#01B8D1] hover:bg-[#00a0bb]"
           >
             <Plus className="mr-2 h-4 w-4" />
             Add Asset
@@ -248,7 +248,7 @@ export default function MarketingAssetsSection({ productName, productId }: Marke
 
         {loading ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-[#00a8b5]" />
+            <Loader2 className="h-6 w-6 animate-spin text-[#01B8D1]" />
           </div>
         ) : assets.length === 0 ? (
           <div className="text-center py-8 border-2 border-dashed border-slate-200 rounded-lg">
@@ -266,7 +266,7 @@ export default function MarketingAssetsSection({ productName, productId }: Marke
                   className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
                 >
                   <div className="p-2 bg-cyan-50 rounded">
-                    <FileIcon className="h-5 w-5 text-[#00a8b5]" />
+                    <FileIcon className="h-5 w-5 text-[#01B8D1]" />
                   </div>
                   
                   <div className="flex-1 min-w-0">
@@ -440,7 +440,7 @@ export default function MarketingAssetsSection({ productName, productId }: Marke
             <Button
               onClick={handleAddAsset}
               disabled={saving}
-              className="bg-[#00a8b5] hover:bg-[#008a95]"
+              className="bg-[#01B8D1] hover:bg-[#00a0bb]"
             >
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Add Asset

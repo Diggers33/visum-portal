@@ -328,7 +328,7 @@ function CategoryDetailView({
                 <Filter className="h-4 w-4" />
                 Filters
                 {activeFiltersCount > 0 && (
-                  <Badge className="ml-auto bg-[#00a8b5] text-white h-5 min-w-5 px-1.5 flex items-center justify-center rounded-full text-xs">
+                  <Badge className="ml-auto bg-[#01B8D1] text-white h-5 min-w-5 px-1.5 flex items-center justify-center rounded-full text-xs">
                     {activeFiltersCount}
                   </Badge>
                 )}
@@ -343,7 +343,7 @@ function CategoryDetailView({
                       variant="ghost"
                       size="sm"
                       onClick={clearAllFilters}
-                      className="text-[#00a8b5] h-8"
+                      className="text-[#01B8D1] h-8"
                     >
                       Clear all
                     </Button>
@@ -385,7 +385,7 @@ function CategoryDetailView({
 
               <div className="p-4 bg-white border-t border-slate-200">
                 <Button
-                  className="w-full bg-[#00a8b5] hover:bg-[#008a95] h-12 rounded-xl"
+                  className="w-full bg-[#01B8D1] hover:bg-[#00a0bb] h-12 rounded-xl"
                   onClick={() => setFilterOpen(false)}
                 >
                   View {filteredDocuments.length} documents
@@ -502,7 +502,7 @@ function CategoryDetailView({
                     Preview
                   </Button>
                   <Button
-                    className="flex-1 bg-[#00a8b5] hover:bg-[#008a95] h-10 rounded-xl gap-2"
+                    className="flex-1 bg-[#01B8D1] hover:bg-[#00a0bb] h-10 rounded-xl gap-2"
                     onClick={() => handleDownload(doc)}
                   >
                     <Download className="h-4 w-4" />
@@ -609,7 +609,7 @@ export default function MobileTechnicalDocs() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5] mx-auto mb-4" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#01B8D1] mx-auto mb-4" />
           <p className="text-slate-600">Loading documentation...</p>
         </div>
       </div>
@@ -623,7 +623,7 @@ export default function MobileTechnicalDocs() {
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="mb-2 text-slate-900">Unable to Load Documentation</h2>
           <p className="text-slate-600 mb-4">{error}</p>
-          <Button onClick={() => window.location.reload()} className="bg-[#00a8b5] hover:bg-[#008a95]">
+          <Button onClick={() => window.location.reload()} className="bg-[#01B8D1] hover:bg-[#00a0bb]">
             Try Again
           </Button>
         </div>

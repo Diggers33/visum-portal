@@ -200,8 +200,8 @@ export default function CustomerDetail() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="flex items-start gap-4">
-          <div className="h-14 w-14 rounded-xl bg-[#00a8b5]/10 flex items-center justify-center">
-            <Building2 className="h-7 w-7 text-[#00a8b5]" />
+          <div className="h-14 w-14 rounded-xl bg-[#01B8D1]/10 flex items-center justify-center">
+            <Building2 className="h-7 w-7 text-[#01B8D1]" />
           </div>
           <div>
             <div className="flex items-center gap-3">
@@ -247,7 +247,7 @@ export default function CustomerDetail() {
                   <Mail className="h-4 w-4 text-slate-400" />
                   <a
                     href={`mailto:${customer.contact_email}`}
-                    className="text-sm text-[#00a8b5] hover:underline"
+                    className="text-sm text-[#01B8D1] hover:underline"
                   >
                     {customer.contact_email}
                   </a>
@@ -336,7 +336,7 @@ export default function CustomerDetail() {
               <Button
                 size="sm"
                 onClick={() => setIsAddDeviceModalOpen(true)}
-                className="bg-[#00a8b5] hover:bg-[#008a95]"
+                className="bg-[#01B8D1] hover:bg-[#00a0bb]"
               >
                 <Plus className="h-4 w-4 mr-1" />
                 Add Device
@@ -442,7 +442,7 @@ export default function CustomerDetail() {
                             e.stopPropagation();
                             handleDeviceClick(device.id);
                           }}
-                          className="text-[#00a8b5] hover:text-[#008a95] hover:bg-[#00a8b5]/10"
+                          className="text-[#01B8D1] hover:text-[#00a0bb] hover:bg-[#01B8D1]/10"
                         >
                           <Eye className="h-4 w-4 mr-1" />
                           View

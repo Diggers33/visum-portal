@@ -284,7 +284,7 @@ export default function DeviceDetail() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#01B8D1]" />
       </div>
     );
   }
@@ -323,7 +323,7 @@ export default function DeviceDetail() {
                   {' '}&bull;{' '}
                   <Link
                     to={`/portal/customers/${device.customer_id}`}
-                    className="text-[#00a8b5] hover:underline"
+                    className="text-[#01B8D1] hover:underline"
                   >
                     {device.customer_name}
                   </Link>
@@ -455,7 +455,7 @@ export default function DeviceDetail() {
                   </Button>
                 </>
               )}
-              <Button onClick={() => setUploadModalOpen(true)} className="bg-[#00a8b5] hover:bg-[#008a95]">
+              <Button onClick={() => setUploadModalOpen(true)} className="bg-[#01B8D1] hover:bg-[#00a0bb]">
                 <Upload className="h-4 w-4 mr-2" />
                 Upload Document
               </Button>
@@ -465,7 +465,7 @@ export default function DeviceDetail() {
         <CardContent>
           {documentsLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-[#00a8b5]" />
+              <Loader2 className="h-6 w-6 animate-spin text-[#01B8D1]" />
             </div>
           ) : documents.length === 0 ? (
             <div className="text-center py-8 text-slate-500">
@@ -631,7 +631,7 @@ export default function DeviceDetail() {
 
           {updatesLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-[#00a8b5]" />
+              <Loader2 className="h-6 w-6 animate-spin text-[#01B8D1]" />
             </div>
           ) : (
             <>
@@ -683,7 +683,7 @@ export default function DeviceDetail() {
                         </Button>
                         <Button
                           size="sm"
-                          className="bg-[#00a8b5] hover:bg-[#008a95]"
+                          className="bg-[#01B8D1] hover:bg-[#00a0bb]"
                           onClick={() => handleMarkAsInstalled(release)}
                           disabled={markingAsInstalled === release.id}
                         >

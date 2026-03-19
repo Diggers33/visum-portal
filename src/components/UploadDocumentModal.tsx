@@ -201,7 +201,7 @@ export default function UploadDocumentModal({
               <div
                 className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
                   dragActive
-                    ? 'border-[#00a8b5] bg-[#00a8b5]/5'
+                    ? 'border-[#01B8D1] bg-[#01B8D1]/5'
                     : errors.file
                     ? 'border-red-300 bg-red-50'
                     : 'border-slate-300 hover:border-slate-400'
@@ -247,7 +247,7 @@ export default function UploadDocumentModal({
                       Drag and drop your file here, or{' '}
                       <button
                         type="button"
-                        className="text-[#00a8b5] hover:underline font-medium"
+                        className="text-[#01B8D1] hover:underline font-medium"
                         onClick={() => fileInputRef.current?.click()}
                       >
                         browse
@@ -370,7 +370,7 @@ export default function UploadDocumentModal({
             <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading || !file} className="bg-[#00a8b5] hover:bg-[#008a95]">
+            <Button type="submit" disabled={loading || !file} className="bg-[#01B8D1] hover:bg-[#00a0bb]">
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Upload Document
             </Button>

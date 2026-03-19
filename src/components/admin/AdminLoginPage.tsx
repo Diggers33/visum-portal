@@ -106,16 +106,14 @@ export default function AdminLoginPage({ onLogin }: AdminLoginPageProps) {
         <div className="w-full max-w-md space-y-8">
           {/* Logo and Branding */}
           <div className="text-center space-y-2">
-            <div className="flex items-center justify-center gap-3">
-              <h1 className="text-[32px] font-semibold text-slate-900">
-                Visum<sup className="text-[18px]">®</sup>
-              </h1>
-              <Badge className="bg-slate-700 text-white hover:bg-slate-700 text-[11px] px-2 py-0.5">
+            <div className="flex flex-col items-center gap-2">
+              <img src="/assets/Logo_Visum.svg" alt="Visum" className="h-11 w-auto" />
+              <span className="inline-block bg-[#0F183D] text-white text-[10px] font-semibold tracking-[0.15em] uppercase px-2.5 py-0.5 rounded">
                 ADMIN
-              </Badge>
+              </span>
             </div>
-            <p className="text-[18px] text-[#00a8b5]">Admin Portal</p>
-            <p className="text-[13px] text-[#9ca3af]">IRIS Technology Internal System</p>
+            <p className="text-[14px] text-[#01B8D1]">Administration Portal</p>
+            <p className="text-[12px] text-[#9ca3af]">IRIS Technology Internal System</p>
           </div>
 
           {/* Login Form */}
@@ -168,14 +166,14 @@ export default function AdminLoginPage({ onLogin }: AdminLoginPageProps) {
             </div>
 
             <div className="flex items-center justify-between">
-              <Link to="/forgot-password" className="text-[14px] text-[#00a8b5] hover:text-[#008a95]">
+              <Link to="/forgot-password" className="text-[14px] text-[#01B8D1] hover:text-[#00a0bb]">
                 Forgot password?
               </Link>
             </div>
 
             <Button
               type="submit"
-              className="w-full bg-[#00a8b5] hover:bg-[#008a95] text-white"
+              className="w-full bg-[#01B8D1] hover:bg-[#00a0bb] text-white"
               disabled={loading}
             >
               {loading ? 'Signing in...' : 'Sign in'}
@@ -223,7 +221,7 @@ export default function AdminLoginPage({ onLogin }: AdminLoginPageProps) {
 
           {/* Footer */}
           <div className="text-center">
-            <a href="#" className="text-[13px] text-[#6b7280] hover:text-[#00a8b5]">
+            <a href="#" className="text-[13px] text-[#6b7280] hover:text-[#01B8D1]">
               Contact IT support
             </a>
           </div>
@@ -240,22 +238,26 @@ export default function AdminLoginPage({ onLogin }: AdminLoginPageProps) {
         </div>
       </div>
 
-      {/* Right Panel - Branding with Background */}
-      <div 
+      {/* Right Panel - Branding */}
+      <div
         className="hidden lg:flex lg:flex-1 relative overflow-hidden items-center justify-center p-12"
         style={{
-          backgroundImage: `linear-gradient(rgba(30, 41, 59, 0.85), rgba(51, 65, 85, 0.85)), url('${adminBgImage}')`,
+          backgroundImage: `linear-gradient(rgba(15,24,61,0.88), rgba(15,24,61,0.75)), url('${adminBgImage}')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       >
-        <div className="max-w-md space-y-4 text-white relative z-10">
-          <h2 className="text-[36px] leading-tight">
+        <div className="max-w-md space-y-6 text-white relative z-10 text-center">
+          <img src="/assets/Logo_Visum.svg" alt="Visum" className="h-14 w-auto mx-auto" />
+          <h2 className="text-[32px] font-light leading-tight">
             Distributor Portal Administration
           </h2>
-          <p className="text-[16px] text-slate-200 leading-relaxed">
+          <p className="text-[16px] text-white/75 leading-relaxed">
             Internal system for managing distributor access, content library, and partner communications.
           </p>
+          <div className="pt-4">
+            <img src="/assets/IRIS_LOGO.svg" alt="IRIS Technology Solutions" className="h-8 w-auto mx-auto opacity-60" />
+          </div>
         </div>
       </div>
     </div>

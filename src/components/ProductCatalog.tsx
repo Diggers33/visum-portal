@@ -290,7 +290,7 @@ export default function ProductCatalog() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-[#00a8b5] mx-auto mb-4" />
+          <Loader2 className="h-12 w-12 animate-spin text-[#01B8D1] mx-auto mb-4" />
           <p className="text-slate-600">Loading products...</p>
         </div>
       </div>
@@ -305,7 +305,7 @@ export default function ProductCatalog() {
       <div className="bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <nav className="flex items-center text-[14px] text-slate-600">
-            <Link to="/portal" className="hover:text-[#00a8b5] flex items-center gap-1">
+            <Link to="/portal" className="hover:text-[#01B8D1] flex items-center gap-1">
               <Home className="h-4 w-4" />
               <span>{t('navigation.home')}</span>
             </Link>
@@ -351,7 +351,7 @@ export default function ProductCatalog() {
                 <SlidersHorizontal className="h-4 w-4" />
                 {t('products.filters')}
                 {(selectedCategories.length + selectedIndustries.length > 0) && (
-                  <Badge className="ml-1 bg-[#00a8b5] text-white">
+                  <Badge className="ml-1 bg-[#01B8D1] text-white">
                     {selectedCategories.length + selectedIndustries.length}
                   </Badge>
                 )}
@@ -455,7 +455,7 @@ export default function ProductCatalog() {
                   {/* Card footer */}
                   <CardFooter className="mt-auto pt-3 flex gap-2">
                     <Link to={`/portal/products/${product.id}`} className="flex-1">
-                      <Button className="w-full bg-[#00a8b5] hover:bg-[#008a95] text-white">
+                      <Button className="w-full bg-[#01B8D1] hover:bg-[#00a0bb] text-white">
                         {t('buttons.viewDetails')}
                         <ChevronRight className="ml-2 h-4 w-4" />
                       </Button>

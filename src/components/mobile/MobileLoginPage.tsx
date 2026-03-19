@@ -29,13 +29,13 @@ export default function MobileLoginPage({ onLogin }: MobileLoginPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#00a8b5] to-[#00d4aa] flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ background: '#0F183D' }}>
       {/* Header - Centered Logo */}
       <div className="flex-1 flex items-center justify-center px-6">
-        <div className="text-center">
-          <h1 className="text-4xl font-light text-white mb-2">Visum®</h1>
-          <p className="text-white/90 text-lg mb-1">Product Distribution Portal</p>
-          <p className="text-white/70 text-sm">By IRIS Technology</p>
+        <div className="text-center flex flex-col items-center gap-3">
+          <img src="/assets/Logo_Visum.svg" alt="Visum" className="h-14 w-auto" />
+          <p className="text-white/70 text-sm tracking-wide">Product Distribution Portal</p>
+          <img src="/assets/IRIS_LOGO.svg" alt="IRIS Technology Solutions" className="h-6 w-auto opacity-50 mt-1" />
         </div>
       </div>
 
@@ -58,7 +58,7 @@ export default function MobileLoginPage({ onLogin }: MobileLoginPageProps) {
                 placeholder="your.email@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-14 rounded-2xl border-slate-200 focus:border-[#00a8b5] focus:ring-[#00a8b5]/20 text-base"
+                className="h-14 rounded-2xl border-slate-200 focus:border-[#01B8D1] focus:ring-[#01B8D1]/20 text-base"
                 required
               />
             </div>
@@ -72,7 +72,7 @@ export default function MobileLoginPage({ onLogin }: MobileLoginPageProps) {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-14 rounded-2xl border-slate-200 focus:border-[#00a8b5] focus:ring-[#00a8b5]/20 text-base pr-14"
+                  className="h-14 rounded-2xl border-slate-200 focus:border-[#01B8D1] focus:ring-[#01B8D1]/20 text-base pr-14"
                   required
                 />
                 <button
@@ -87,7 +87,7 @@ export default function MobileLoginPage({ onLogin }: MobileLoginPageProps) {
 
             <Button 
               type="submit" 
-              className="w-full h-14 bg-[#00a8b5] hover:bg-[#00969d] rounded-2xl text-white font-medium text-base"
+              className="w-full h-14 bg-[#01B8D1] hover:bg-[#00969d] rounded-2xl text-white font-medium text-base"
               style={{ boxShadow: '0 6px 20px rgba(0,168,181,0.3)' }}
             >
               Sign In

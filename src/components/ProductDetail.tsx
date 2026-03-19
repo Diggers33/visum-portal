@@ -340,7 +340,7 @@ export default function ProductDetail() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#01B8D1]" />
       </div>
     );
   }
@@ -351,7 +351,7 @@ export default function ProductDetail() {
         <AlertCircle className="h-16 w-16 text-red-500 mb-4" />
         <h2 className="text-2xl font-bold text-slate-900 mb-2">Product Not Found</h2>
         <p className="text-slate-600 mb-6">{error || 'This product does not exist or is no longer available.'}</p>
-        <Button onClick={() => navigate('/portal/products')} className="bg-[#00a8b5] hover:bg-[#008a95]">
+        <Button onClick={() => navigate('/portal/products')} className="bg-[#01B8D1] hover:bg-[#00a0bb]">
           <ArrowLeft className="mr-2 h-4 w-4" />
           {t('buttons.backToProducts')}
         </Button>
@@ -370,9 +370,9 @@ export default function ProductDetail() {
       <div className="bg-white border-b border-slate-200 px-6 py-4">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center text-sm text-slate-600">
-            <Link to="/portal" className="hover:text-[#00a8b5]">Home</Link>
+            <Link to="/portal" className="hover:text-[#01B8D1]">Home</Link>
             <span className="mx-2">/</span>
-            <Link to="/portal/products" className="hover:text-[#00a8b5]">Products</Link>
+            <Link to="/portal/products" className="hover:text-[#01B8D1]">Products</Link>
             <span className="mx-2">/</span>
             <span className="text-slate-900">{product.name}</span>
           </div>
@@ -416,7 +416,7 @@ export default function ProductDetail() {
                   <button
                     onClick={() => setSelectedImage(product.image_url!)}
                     className={`aspect-square border-2 rounded-lg overflow-hidden ${
-                      selectedImage === product.image_url ? 'border-[#00a8b5]' : 'border-slate-200'
+                      selectedImage === product.image_url ? 'border-[#01B8D1]' : 'border-slate-200'
                     }`}
                   >
                     <ImageWithFallback
@@ -431,7 +431,7 @@ export default function ProductDetail() {
                     key={idx}
                     onClick={() => setSelectedImage(img)}
                     className={`aspect-square border-2 rounded-lg overflow-hidden ${
-                      selectedImage === img ? 'border-[#00a8b5]' : 'border-slate-200'
+                      selectedImage === img ? 'border-[#01B8D1]' : 'border-slate-200'
                     }`}
                   >
                     <ImageWithFallback
@@ -449,7 +449,7 @@ export default function ProductDetail() {
           <div>
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm font-medium text-[#00a8b5] uppercase tracking-wide">
+                <span className="text-sm font-medium text-[#01B8D1] uppercase tracking-wide">
                   {product.product_line}
                 </span>
               </div>
@@ -551,7 +551,7 @@ export default function ProductDetail() {
 
                 {resourcesLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-[#00a8b5]" />
+                    <Loader2 className="h-6 w-6 animate-spin text-[#01B8D1]" />
                   </div>
                 ) : hasTechnicalDocs ? (
                   <div className="grid gap-4">
@@ -559,7 +559,7 @@ export default function ProductDetail() {
                     {documentation.map((doc) => (
                       <div key={doc.id} className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                         <div className="flex items-center gap-3">
-                          <FileText className="h-10 w-10 text-[#00a8b5]" />
+                          <FileText className="h-10 w-10 text-[#01B8D1]" />
                           <div>
                             <h3 className="font-medium text-slate-900">{doc.title}</h3>
                             <div className="flex items-center gap-2 text-sm text-slate-500">
@@ -601,7 +601,7 @@ export default function ProductDetail() {
                     {documentation.length === 0 && product.datasheet_url && (
                       <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                         <div className="flex items-center gap-3">
-                          <FileText className="h-10 w-10 text-[#00a8b5]" />
+                          <FileText className="h-10 w-10 text-[#01B8D1]" />
                           <div>
                             <h3 className="font-medium text-slate-900">Product Datasheet</h3>
                             <p className="text-sm text-slate-500">Technical specifications and features</p>
@@ -621,7 +621,7 @@ export default function ProductDetail() {
                     {documentation.length === 0 && product.manual_url && (
                       <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                         <div className="flex items-center gap-3">
-                          <FileText className="h-10 w-10 text-[#00a8b5]" />
+                          <FileText className="h-10 w-10 text-[#01B8D1]" />
                           <div>
                             <h3 className="font-medium text-slate-900">User Manual</h3>
                             <p className="text-sm text-slate-500">Installation and operation guide</p>
@@ -641,7 +641,7 @@ export default function ProductDetail() {
                     {documentation.length === 0 && product.brochure_url && (
                       <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                         <div className="flex items-center gap-3">
-                          <FileText className="h-10 w-10 text-[#00a8b5]" />
+                          <FileText className="h-10 w-10 text-[#01B8D1]" />
                           <div>
                             <h3 className="font-medium text-slate-900">Product Brochure</h3>
                             <p className="text-sm text-slate-500">Marketing and product information</p>
@@ -672,7 +672,7 @@ export default function ProductDetail() {
 
                 {resourcesLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-[#00a8b5]" />
+                    <Loader2 className="h-6 w-6 animate-spin text-[#01B8D1]" />
                   </div>
                 ) : hasMarketingAssets ? (
                   <div className="grid gap-4">
@@ -684,7 +684,7 @@ export default function ProductDetail() {
                       return (
                         <div key={asset.id} className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                           <div className="flex items-center gap-3">
-                            <Icon className="h-10 w-10 text-[#00a8b5]" />
+                            <Icon className="h-10 w-10 text-[#01B8D1]" />
                             <div>
                               <h3 className="font-medium text-slate-900">{asset.name}</h3>
                               <div className="flex items-center gap-2 text-sm text-slate-500">
@@ -743,7 +743,7 @@ export default function ProductDetail() {
                     {marketingAssets.length === 0 && product.presentation_url && (
                       <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                         <div className="flex items-center gap-3">
-                          <ImageIcon className="h-10 w-10 text-[#00a8b5]" />
+                          <ImageIcon className="h-10 w-10 text-[#01B8D1]" />
                           <div>
                             <h3 className="font-medium text-slate-900">Sales Presentation</h3>
                             <p className="text-sm text-slate-500">PowerPoint deck for customer presentations</p>
@@ -763,7 +763,7 @@ export default function ProductDetail() {
                     {marketingAssets.length === 0 && product.case_study_url && (
                       <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                         <div className="flex items-center gap-3">
-                          <FileText className="h-10 w-10 text-[#00a8b5]" />
+                          <FileText className="h-10 w-10 text-[#01B8D1]" />
                           <div>
                             <h3 className="font-medium text-slate-900">Case Study</h3>
                             <p className="text-sm text-slate-500">Real-world implementation examples</p>
@@ -783,7 +783,7 @@ export default function ProductDetail() {
                     {marketingAssets.length === 0 && product.demo_video_url && (
                       <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                         <div className="flex items-center gap-3">
-                          <Video className="h-10 w-10 text-[#00a8b5]" />
+                          <Video className="h-10 w-10 text-[#01B8D1]" />
                           <div>
                             <h3 className="font-medium text-slate-900">Product Demo Video</h3>
                             <p className="text-sm text-slate-500">See the product in action</p>
@@ -815,7 +815,7 @@ export default function ProductDetail() {
               <h2 className="text-xl font-semibold text-slate-900 mb-4">Training Materials</h2>
               {resourcesLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-[#00a8b5]" />
+                  <Loader2 className="h-6 w-6 animate-spin text-[#01B8D1]" />
                 </div>
               ) : (
                 <div className="grid gap-4">
@@ -823,7 +823,7 @@ export default function ProductDetail() {
                   {product.video_url && (
                     <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                       <div className="flex items-center gap-3">
-                        <Video className="h-10 w-10 text-[#00a8b5]" />
+                        <Video className="h-10 w-10 text-[#01B8D1]" />
                         <div>
                           <h3 className="font-medium text-slate-900">Training Video</h3>
                           <p className="text-sm text-slate-500">Learn how to use this product</p>

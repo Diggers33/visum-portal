@@ -133,7 +133,7 @@ export default function TranslateButton({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'translating':
-        return <Loader2 className="h-4 w-4 animate-spin text-[#00a8b5]" />;
+        return <Loader2 className="h-4 w-4 animate-spin text-[#01B8D1]" />;
       case 'success':
         return <CheckCircle2 className="h-4 w-4 text-green-600" />;
       case 'error':
@@ -238,7 +238,7 @@ export default function TranslateButton({
             <Button
               onClick={handleAutoTranslate}
               disabled={translating || selectedLanguages.length === 0}
-              className="bg-[#00a8b5] hover:bg-[#00a8b5]/90"
+              className="bg-[#01B8D1] hover:bg-[#01B8D1]/90"
             >
               {translating ? (
                 <>

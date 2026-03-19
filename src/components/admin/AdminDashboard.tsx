@@ -307,21 +307,21 @@ export default function AdminDashboard() {
       icon: Plus,
       href: '/admin/distributors',
       state: { openAddDialog: true },
-      color: 'bg-[#00a8b5] hover:bg-[#008a95]',
+      color: 'bg-[#01B8D1] hover:bg-[#00a0bb]',
     },
     {
       label: 'Upload Content',
       icon: Upload,
       href: '/admin/documentation',
       state: { openUploadDialog: true },
-      color: 'bg-[#00a8b5] hover:bg-[#008a95]',
+      color: 'bg-[#01B8D1] hover:bg-[#00a0bb]',
     },
     {
       label: 'Post Announcement',
       icon: Megaphone,
       href: '/admin/announcements',
       state: { openCreateDialog: true },
-      color: 'bg-[#00a8b5] hover:bg-[#008a95]',
+      color: 'bg-[#01B8D1] hover:bg-[#00a0bb]',
     },
   ];
 
@@ -341,55 +341,55 @@ export default function AdminDashboard() {
       value: stats.totalCompanies.toString(),
       subtitle: `${stats.activeCompanies} active | ${stats.pendingCompanies} pending | ${stats.inactiveCompanies} inactive`,
       icon: Building2,
-      color: 'text-[#00a8b5]',
-      bgColor: 'bg-[#00a8b5]/10',
+      color: 'text-[#01B8D1]',
+      bgColor: 'bg-[#01B8D1]/10',
     },
     {
       title: 'Total Users',
       value: stats.totalUsers.toString(),
       subtitle: `${stats.activeUsers} active | ${stats.pendingUsers} pending`,
       icon: Users,
-      color: 'text-[#00a8b5]',
-      bgColor: 'bg-[#00a8b5]/10',
+      color: 'text-[#01B8D1]',
+      bgColor: 'bg-[#01B8D1]/10',
     },
     {
       title: 'Account Types',
       value: `${stats.exclusiveCompanies} / ${stats.nonExclusiveCompanies}`,
       subtitle: 'Exclusive / Non-exclusive',
       icon: Globe,
-      color: 'text-[#00a8b5]',
-      bgColor: 'bg-[#00a8b5]/10',
+      color: 'text-[#01B8D1]',
+      bgColor: 'bg-[#01B8D1]/10',
     },
     {
       title: 'Total Resources',
       value: (stats.totalDocs + stats.totalMarketing + stats.totalTraining).toString(),
       subtitle: `${stats.totalDocs} docs | ${stats.totalMarketing} marketing | ${stats.totalTraining} training`,
       icon: FolderOpen,
-      color: 'text-[#00a8b5]',
-      bgColor: 'bg-[#00a8b5]/10',
+      color: 'text-[#01B8D1]',
+      bgColor: 'bg-[#01B8D1]/10',
     },
     {
       title: 'Recent Activity',
       value: stats.recentDownloads.toString(),
       subtitle: 'downloads in last 30 days',
       icon: Download,
-      color: 'text-[#00a8b5]',
-      bgColor: 'bg-[#00a8b5]/10',
+      color: 'text-[#01B8D1]',
+      bgColor: 'bg-[#01B8D1]/10',
     },
     {
       title: 'Announcements',
       value: stats.totalAnnouncements.toString(),
       subtitle: `${stats.draftAnnouncements} draft${stats.draftAnnouncements !== 1 ? 's' : ''} pending`,
       icon: Megaphone,
-      color: 'text-[#00a8b5]',
-      bgColor: 'bg-[#00a8b5]/10',
+      color: 'text-[#01B8D1]',
+      bgColor: 'bg-[#01B8D1]/10',
     },
   ];
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="h-8 w-8 animate-spin text-[#00a8b5]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#01B8D1]" />
       </div>
     );
   }
@@ -436,10 +436,10 @@ export default function AdminDashboard() {
               {stats.topTerritories.map((territory) => (
                 <div key={territory.territory} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-[#00a8b5]" />
+                    <Globe className="h-4 w-4 text-[#01B8D1]" />
                     <span className="text-[14px] text-slate-900">{territory.territory}</span>
                   </div>
-                  <Badge variant="secondary" className="bg-[#00a8b5]/10 text-[#00a8b5]">
+                  <Badge variant="secondary" className="bg-[#01B8D1]/10 text-[#01B8D1]">
                     {territory.count} {territory.count === 1 ? 'company' : 'companies'}
                   </Badge>
                 </div>
@@ -496,7 +496,7 @@ export default function AdminDashboard() {
                     <span className="text-[14px] text-slate-900">{task.task}</span>
                   </div>
                   <Link to={task.link}>
-                    <Button variant="ghost" size="sm" className="text-[#00a8b5] hover:text-[#008a95]">
+                    <Button variant="ghost" size="sm" className="text-[#01B8D1] hover:text-[#00a0bb]">
                       Review
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
@@ -519,7 +519,7 @@ export default function AdminDashboard() {
               <div className="space-y-4">
                 {recentActivity.map((activity) => (
                   <div key={activity.id} className="flex items-start gap-4 pb-4 border-b border-slate-100 last:border-0">
-                    <div className="w-2 h-2 mt-2 bg-[#00a8b5] rounded-full flex-shrink-0" />
+                    <div className="w-2 h-2 mt-2 bg-[#01B8D1] rounded-full flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-[14px] text-slate-900">{activity.action}</p>
                       <p className="text-[12px] text-[#9ca3af] mt-1">{activity.time}</p>
