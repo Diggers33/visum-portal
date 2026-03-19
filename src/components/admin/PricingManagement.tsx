@@ -68,7 +68,7 @@ import {
   type PriceList,
 } from '../../lib/api/price-lists';
 import { saveContentSharing, getContentDistributors } from '../../lib/api/sharing';
-import DistributorSelector, { filterDistributorIds } from './DistributorSelector';
+import { DistributorSelector, filterDistributorIds } from './DistributorSelector';
 
 const EMPTY_FORM = {
   name: '',
