@@ -799,7 +799,7 @@ export default function MarketingManagement() {
               <div className="space-y-3">
                 <Label>Files *</Label>
                 <div
-                  className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-[#00a8b5] transition-colors cursor-pointer"
+                  className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-[#01B8D1] transition-colors cursor-pointer"
                   onClick={() => document.getElementById('batch-file-input')?.click()}
                 >
                   <Upload className="h-10 w-10 mx-auto text-slate-400 mb-3" />
@@ -939,7 +939,7 @@ export default function MarketingManagement() {
                   ))}
                 </div>
                 {selectedProducts.length > 0 && (
-                  <p className="text-xs text-[#00a8b5]">
+                  <p className="text-xs text-[#01B8D1]">
                     Selected: {selectedProducts.join(', ')}
                   </p>
                 )}
@@ -1001,7 +1001,7 @@ export default function MarketingManagement() {
                   </div>
                   <div className="w-full bg-slate-200 rounded-full h-2">
                     <div
-                      className="bg-[#00a8b5] h-2 rounded-full transition-all"
+                      className="bg-[#01B8D1] h-2 rounded-full transition-all"
                       style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
                     />
                   </div>
@@ -1018,7 +1018,11 @@ export default function MarketingManagement() {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={uploading} className="bg-[#01B8D1] hover:bg-[#00a0bb]">
+              <Button
+                type="submit"
+                disabled={uploading || (pendingFiles.length === 0 && !selectedFile)}
+                className="bg-[#01B8D1] hover:bg-[#00a0bb]"
+              >
                 {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {pendingFiles.length > 1
                   ? `Upload ${pendingFiles.length} Assets`
@@ -1119,7 +1123,7 @@ export default function MarketingManagement() {
                   ))}
                 </div>
                 {selectedProducts.length > 0 && (
-                  <p className="text-xs text-[#00a8b5]">
+                  <p className="text-xs text-[#01B8D1]">
                     Selected: {selectedProducts.join(', ')}
                   </p>
                 )}
@@ -1167,7 +1171,7 @@ export default function MarketingManagement() {
               <div className="space-y-3">
                 <Label>Replace File</Label>
                 <div
-                  className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-[#00a8b5] transition-colors cursor-pointer"
+                  className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-[#01B8D1] transition-colors cursor-pointer"
                   onClick={() => document.getElementById('edit-asset-input')?.click()}
                   onDragOver={(e) => {
                     e.preventDefault();

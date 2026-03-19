@@ -561,7 +561,7 @@ export default function ProductsManagement() {
                   <div className="space-y-2">
                     <Label>Product Image (optional)</Label>
                     <div
-                      className="border-2 border-dashed border-slate-200 rounded-lg p-6 hover:border-[#00a8b5] transition-colors cursor-pointer"
+                      className="border-2 border-dashed border-slate-200 rounded-lg p-6 hover:border-[#01B8D1] transition-colors cursor-pointer"
                       onDragOver={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -601,97 +601,30 @@ export default function ProductsManagement() {
                   {/* Pending files queue */}
                   {pendingFiles.length > 0 && (
                     <div className="space-y-3">
-                      <Button 
-                        variant="outline" 
-                        className="w-full justify-start"
-                        onClick={() => setShowTechnicalDocs(!showTechnicalDocs)}
-                      >
-                        <FileText className="mr-2 h-4 w-4" />
-                        Technical Documents
-                      </Button>
-                      
-                      {showTechnicalDocs && (
-                        <div className="pl-4 space-y-3 border-l-2 border-[#01B8D1]">
-                          <div className="space-y-2">
-                            <Label htmlFor="datasheet-url" className="text-sm">Datasheet URL</Label>
-                            <Input
-                              id="datasheet-url"
-                              type="url"
-                              placeholder="https://example.com/datasheet.pdf"
-                              value={newProduct.datasheet_url}
-                              onChange={(e) => setNewProduct({ ...newProduct, datasheet_url: e.target.value })}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="manual-url" className="text-sm">User Manual URL</Label>
-                            <Input
-                              id="manual-url"
-                              type="url"
-                              placeholder="https://example.com/manual.pdf"
-                              value={newProduct.manual_url}
-                              onChange={(e) => setNewProduct({ ...newProduct, manual_url: e.target.value })}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="whitepaper-url" className="text-sm">White Paper URL</Label>
-                            <Input
-                              id="whitepaper-url"
-                              type="url"
-                              placeholder="https://example.com/whitepaper.pdf"
-                              value={newProduct.whitepaper_url}
-                              onChange={(e) => setNewProduct({ ...newProduct, whitepaper_url: e.target.value })}
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Marketing Materials - EXPANDED */}
-                    <div className="space-y-3">
-                      <Button 
-                        variant="outline" 
-                        className="w-full justify-start"
-                        onClick={() => setShowMarketingMaterials(!showMarketingMaterials)}
-                      >
-                        <ImageIcon className="mr-2 h-4 w-4" />
-                        Marketing Materials
-                      </Button>
-                      
-                      {showMarketingMaterials && (
-                        <div className="pl-4 space-y-4 border-l-2 border-[#01B8D1]">
-                          <div className="space-y-2">
-                            <Label htmlFor="brochure-url" className="text-sm">Product Brochure URL</Label>
-                            <Input
-                              id="brochure-url"
-                              type="url"
-                              placeholder="https://example.com/brochure.pdf"
-                              value={newProduct.brochure_url}
-                              onChange={(e) => setNewProduct({ ...newProduct, brochure_url: e.target.value })}
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm">Product Images (Gallery)</Label>
-                            {newProduct.product_images.map((img, idx) => (
-                              <div key={idx} className="flex gap-2">
-                                <Input
-                                  type="url"
-                                  placeholder="https://example.com/product-image.jpg"
-                                  value={img}
-                                  onChange={(e) => updateProductImageUrl(idx, e.target.value)}
-                                />
-                                {newProduct.product_images.length > 1 && (
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => removeProductImageUrl(idx)}
-                                  >
-                                    <ExternalLink className="h-4 w-4" />
-                                  </Button>
-                                )}
-                              </div>
-                            ))}
+                      <div className="flex items-center justify-between">
+                        <Label>{pendingFiles.length} image{pendingFiles.length !== 1 ? 's' : ''} ready to upload</Label>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            pendingFiles.forEach(f => f.preview && URL.revokeObjectURL(f.preview));
+                            setPendingFiles([]);
+                          }}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          Clear All
+                        </Button>
+                      </div>
+                      <div className="max-h-48 overflow-y-auto space-y-2 border rounded-lg p-3">
+                        {pendingFiles.map((pf, idx) => (
+                          <div key={idx} className="flex items-center gap-3 p-2 bg-slate-50 rounded">
+                            {pf.preview && (
+                              <img src={pf.preview} alt="Preview" className="w-12 h-12 object-cover rounded" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm truncate">{pf.file.name}</p>
+                            </div>
                             <Button
                               type="button"
                               variant="ghost"
@@ -707,41 +640,19 @@ export default function ProductsManagement() {
                     </div>
                   )}
 
-                    {/* Training Videos */}
-                    <div className="space-y-3">
-                      <Button 
-                        variant="outline" 
-                        className="w-full justify-start"
-                        onClick={() => setShowTrainingVideos(!showTrainingVideos)}
-                      >
-                        <Video className="mr-2 h-4 w-4" />
-                        Training & Demo Videos
-                      </Button>
-                      
-                      {showTrainingVideos && (
-                        <div className="pl-4 space-y-3 border-l-2 border-[#01B8D1]">
-                          <div className="space-y-2">
-                            <Label htmlFor="video-url" className="text-sm">Product Video URL</Label>
-                            <Input
-                              id="video-url"
-                              type="url"
-                              placeholder="https://youtube.com/watch?v=..."
-                              value={newProduct.video_url}
-                              onChange={(e) => setNewProduct({ ...newProduct, video_url: e.target.value })}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="demo-video-url" className="text-sm">Demo Video URL</Label>
-                            <Input
-                              id="demo-video-url"
-                              type="url"
-                              placeholder="https://youtube.com/watch?v=..."
-                              value={newProduct.demo_video_url}
-                              onChange={(e) => setNewProduct({ ...newProduct, demo_video_url: e.target.value })}
-                            />
-                          </div>
-                        </div>
-                      )}
+                  {/* Upload progress bar */}
+                  {uploadProgress && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Uploading...</span>
+                        <span>{uploadProgress.current} of {uploadProgress.total}</span>
+                      </div>
+                      <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[#01B8D1] transition-all duration-300"
+                          style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
+                        />
+                      </div>
                     </div>
                   )}
 
@@ -764,7 +675,7 @@ export default function ProductsManagement() {
                     Previous
                   </Button>
                 )}
-                {currentStep < 4 ? (
+                {currentStep < 2 ? (
                   <Button onClick={() => setCurrentStep(currentStep + 1)} className="bg-[#01B8D1] hover:bg-[#00a0bb]">
                     Next
                   </Button>

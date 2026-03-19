@@ -706,7 +706,7 @@ export default function DocumentationManagement() {
               <div className="space-y-3">
                 <Label>Document Files *</Label>
                 <div
-                  className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-[#00a8b5] transition-colors cursor-pointer"
+                  className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-[#01B8D1] transition-colors cursor-pointer"
                   onClick={() => document.getElementById('batch-doc-input')?.click()}
                 >
                   <Upload className="h-10 w-10 mx-auto text-slate-400 mb-3" />
@@ -893,7 +893,7 @@ export default function DocumentationManagement() {
                   </div>
                   <div className="w-full bg-slate-200 rounded-full h-2">
                     <div
-                      className="bg-[#00a8b5] h-2 rounded-full transition-all"
+                      className="bg-[#01B8D1] h-2 rounded-full transition-all"
                       style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
                     />
                   </div>
@@ -910,7 +910,11 @@ export default function DocumentationManagement() {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={uploading} className="bg-[#01B8D1] hover:bg-[#00a0bb]">
+              <Button
+                type="submit"
+                disabled={uploading || pendingFiles.length === 0}
+                className="bg-[#01B8D1] hover:bg-[#00a0bb]"
+              >
                 {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {pendingFiles.length > 1
                   ? `Upload ${pendingFiles.length} Documents`
@@ -1045,7 +1049,7 @@ export default function DocumentationManagement() {
               <div className="space-y-3">
                 <Label>Replace Document File</Label>
                 <div
-                  className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-[#00a8b5] transition-colors cursor-pointer"
+                  className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-[#01B8D1] transition-colors cursor-pointer"
                   onClick={() => document.getElementById('edit-doc-input')?.click()}
                   onDragOver={(e) => {
                     e.preventDefault();
