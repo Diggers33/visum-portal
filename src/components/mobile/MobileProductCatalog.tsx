@@ -257,9 +257,6 @@ export default function MobileProductCatalog() {
                 </p>
 
                 <div className="flex items-center justify-between">
-                  {product.price && (
-                    <div className="text-[#01B8D1] font-medium">{product.price}</div>
-                  )}
                   <ChevronRight className="h-5 w-5 text-slate-400" />
                 </div>
               </div>

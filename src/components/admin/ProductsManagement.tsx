@@ -101,8 +101,6 @@ export default function ProductsManagement() {
   const [selectedTechnologies, setSelectedTechnologies] = useState<string[]>([
     'NIR / FT-NIR Spectroscopy',
     'Raman Spectroscopy',
-    'Hyperspectral Imaging',
-    'UV-Vis Spectroscopy',
     'Spare Parts',
     'Accessories'
   ]);
@@ -439,12 +437,6 @@ export default function ProductsManagement() {
     (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const formatPrice = (price: number, currency: string) => {
-    return new Intl.NumberFormat('en-EU', {
-      style: 'currency',
-      currency: currency,
-    }).format(price);
-  };
 
   return (
     <div className="space-y-6">
@@ -521,8 +513,6 @@ export default function ProductsManagement() {
                       <SelectContent>
                         <SelectItem value="NIR / FT-NIR Spectroscopy">NIR / FT-NIR Spectroscopy</SelectItem>
                         <SelectItem value="Raman Spectroscopy">Raman Spectroscopy</SelectItem>
-                        <SelectItem value="Hyperspectral Imaging">Hyperspectral Imaging</SelectItem>
-                        <SelectItem value="UV-Vis Spectroscopy">UV-Vis Spectroscopy</SelectItem>
                         <SelectItem value="Spare Parts">Spare Parts</SelectItem>
                         <SelectItem value="Accessories">Accessories</SelectItem>
                       </SelectContent>
@@ -745,7 +735,7 @@ export default function ProductsManagement() {
             <div>
               <h3 className="text-[14px] font-semibold text-slate-900 mb-3">Technology</h3>
               <div className="space-y-2">
-                {['NIR / FT-NIR Spectroscopy', 'Raman Spectroscopy', 'Hyperspectral Imaging', 'UV-Vis Spectroscopy', 'Spare Parts', 'Accessories'].map((tech) => (
+                {['NIR / FT-NIR Spectroscopy', 'Raman Spectroscopy', 'Spare Parts', 'Accessories'].map((tech) => (
                   <div key={tech} className="flex items-center space-x-2">
                     <Checkbox
                       id={`tech-${tech}`}
@@ -829,10 +819,6 @@ export default function ProductsManagement() {
                   </div>
                   <CardContent className="p-4">
                     <h3 className="font-semibold text-slate-900 mb-1">{product.name}</h3>
-                    <p className="text-[13px] text-[#6b7280] mb-3">
-                      {formatPrice(product.price, product.currency)}
-                    </p>
-                    
                     <div className="flex items-center gap-4 text-[12px] text-[#6b7280] mb-4">
                       <div className="flex items-center gap-1">
                         <Eye className="h-3.5 w-3.5" />

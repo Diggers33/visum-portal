@@ -34,8 +34,6 @@ export interface CreateProductInput {
   hs_code?: string;
   product_line: string;
   description?: string;
-  price?: number;
-  currency?: string;
   status?: 'draft' | 'published';
   image?: File;
   specifications?: Record<string, any>;
@@ -48,8 +46,6 @@ export interface UpdateProductInput {
   hs_code?: string;
   product_line?: string;
   description?: string;
-  price?: number;
-  currency?: string;
   status?: 'draft' | 'published' | 'archived';
   image?: File;
   specifications?: Record<string, any>;
@@ -146,10 +142,11 @@ export async function createProduct(input: CreateProductInput): Promise<{ data: 
       .from('products')
       .insert({
         name: input.name,
+        sku: input.sku || null,
+        hs_code: input.hs_code || null,
         product_line: input.product_line,
+        category: input.product_line,
         description: input.description,
-        price: input.price,
-        currency: input.currency || 'EUR',
         status: input.status || 'draft',
         image_url: imageUrl,
         image_path: imagePath,

@@ -324,18 +324,6 @@ export default function ProductDetail() {
   };
 
 
-  const formatPrice = (price: number, currency: string) => {
-    if (!price) return 'Contact for pricing';
-    
-    const formatter = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency || 'EUR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    });
-    
-    return `Starting at ${formatter.format(price)}`;
-  };
 
   if (isLoading) {
     return (
@@ -454,9 +442,6 @@ export default function ProductDetail() {
                 </span>
               </div>
               <h1 className="text-3xl font-bold text-slate-900 mb-4">{product.name}</h1>
-              <p className="text-2xl font-semibold text-slate-900 mb-4">
-                {formatPrice(product.price, product.currency)}
-              </p>
               <p className="text-slate-600 text-base leading-relaxed">
                 {product.description || 'No description available'}
               </p>

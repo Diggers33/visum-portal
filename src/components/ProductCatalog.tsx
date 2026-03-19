@@ -55,8 +55,6 @@ interface Product {
   updated_at: string;
   created_by: string | null;
   product_line: string | null;
-  price: number;
-  currency: string;
   industries: string[];
 }
 
@@ -234,10 +232,6 @@ export default function ProductCatalog() {
         return a.name.localeCompare(b.name);
       case 'name-desc':
         return b.name.localeCompare(a.name);
-      case 'price-low':
-        return (a.price || 0) - (b.price || 0);
-      case 'price-high':
-        return (b.price || 0) - (a.price || 0);
       default:
         return 0;
     }
@@ -250,15 +244,6 @@ export default function ProductCatalog() {
     sortedProducts: sortedProducts.length,
     firstProduct: sortedProducts[0]
   });
-
-  const formatPrice = (price: number | null, currency: string = 'EUR') => {
-    if (!price) return 'Contact for price';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 0
-    }).format(price);
-  };
 
   const parseFeatures = (features: string | string[] | null) => {
     if (!features) return [];
@@ -369,8 +354,6 @@ export default function ProductCatalog() {
                   <SelectItem value="oldest">{t('products.oldest')}</SelectItem>
                   <SelectItem value="name-asc">{t('products.nameAsc')}</SelectItem>
                   <SelectItem value="name-desc">{t('products.nameDesc')}</SelectItem>
-                  <SelectItem value="price-low">{t('products.priceLow')}</SelectItem>
-                  <SelectItem value="price-high">{t('products.priceHigh')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -409,11 +392,6 @@ export default function ProductCatalog() {
                       {product.category}
                     </Badge>
                     
-                    {/* Pricing */}
-                    <p className="text-[20px] font-semibold text-[#1a1a1a] mt-3 mb-2">
-                      Starting at {formatPrice(product.price, product.currency)}
-                    </p>
-
                     {/* Short description */}
                     <CardDescription className="text-[14px] line-clamp-1">
                       {product.description || 'No description available'}

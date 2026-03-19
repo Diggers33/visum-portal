@@ -125,8 +125,6 @@ export default function EditProduct() {
     product_line: '',
     category: '',
     description: '',
-    price: '',
-    currency: 'EUR',
     status: 'draft',
     features: '',
     applications: '',
@@ -176,8 +174,6 @@ export default function EditProduct() {
           product_line: data.product_line || '',
           category: data.category || data.product_line || '',
           description: data.description || '',
-          price: data.price?.toString() || '',
-          currency: data.currency || 'EUR',
           status: data.status || 'draft',
           features: featuresText,
           applications: applicationsText,
@@ -327,8 +323,6 @@ export default function EditProduct() {
         product_line: productData.product_line || null,
         category: productData.category || null,
         description: productData.description || null,
-        price: productData.price ? parseFloat(productData.price) : null,
-        currency: productData.currency,
         status: productData.status,
         features: featuresArray,
         applications: applicationsArray,
@@ -489,16 +483,6 @@ export default function EditProduct() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="productLine">Product Line</Label>
-                <Input
-                  id="productLine"
-                  value={productData.product_line}
-                  onChange={(e) => handleFieldChange('product_line', e.target.value)}
-                  placeholder="e.g., Visum Series"
-                />
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="category">
                   Technology Category <span className="text-red-500">*</span>
                 </Label>
@@ -512,8 +496,6 @@ export default function EditProduct() {
                   <SelectContent>
                     <SelectItem value="NIR / FT-NIR Spectroscopy">NIR / FT-NIR Spectroscopy</SelectItem>
                     <SelectItem value="Raman Spectroscopy">Raman Spectroscopy</SelectItem>
-                    <SelectItem value="Hyperspectral Imaging">Hyperspectral Imaging</SelectItem>
-                    <SelectItem value="UV-Vis Spectroscopy">UV-Vis Spectroscopy</SelectItem>
                     <SelectItem value="Spare Parts">Spare Parts</SelectItem>
                     <SelectItem value="Accessories">Accessories</SelectItem>
                   </SelectContent>

@@ -228,7 +228,6 @@ export default function MobileProductDetail() {
         </Badge>
         <h1 className="mb-2 text-slate-900">{product.name}</h1>
         <p className="text-slate-600 mb-4">{product.tagline || product.description}</p>
-        <div className="text-2xl text-[#01B8D1]">{product.price || 'Contact for pricing'}</div>
       </div>
 
       {/* Tabs */}
