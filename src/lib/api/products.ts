@@ -7,16 +7,23 @@ export interface Product {
   sku?: string;
   hs_code?: string;
   product_line: string;
+  category?: string;
   description?: string;
   price: number;
   currency: string;
   status: 'draft' | 'published' | 'archived';
   image_url?: string;
   image_path?: string;
+  thumbnail_url?: string;
   views: number;
   downloads: number;
   specifications?: Record<string, any>;
   features?: string[];
+  applications?: string[];
+  datasheet_url?: string;
+  manual_url?: string;
+  brochure_url?: string;
+  whitepaper_url?: string;
   created_at: string;
   updated_at: string;
 }
