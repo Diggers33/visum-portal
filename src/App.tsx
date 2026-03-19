@@ -19,6 +19,7 @@ import AdminDashboard from './components/admin/AdminDashboard';
 import DocumentationManagement from './components/admin/DocumentationManagement';
 import TrainingManagement from './components/admin/TrainingManagement';
 import MarketingManagement from './components/admin/MarketingManagement';
+import PricingManagement from './components/admin/PricingManagement';
 import AnnouncementsManagement from './components/admin/AnnouncementsManagement';
 import DistributorsManagement from './components/admin/DistributorsManagement';
 import ProductsManagement from './components/admin/ProductsManagement';
@@ -36,6 +37,7 @@ import WhatsNew from './components/WhatsNew';
 import ProductCatalog from './components/ProductCatalog';
 import ProductDetail from './components/ProductDetail';
 import MarketingAssets from './components/MarketingAssets';
+import Pricing from './components/Pricing';
 import TechnicalDocs from './components/TechnicalDocs';
 import TrainingCenter from './components/TrainingCenter';
 import MyAccount from './components/MyAccount';
@@ -53,6 +55,7 @@ import MobileWhatsNew from './components/mobile/MobileWhatsNew';
 import MobileProductCatalog from './components/mobile/MobileProductCatalog';
 import MobileProductDetail from './components/mobile/MobileProductDetail';
 import MobileMarketingAssets from './components/mobile/MobileMarketingAssets';
+import MobilePricing from './components/mobile/MobilePricing';
 import MobileTechnicalDocs from './components/mobile/MobileTechnicalDocs';
 import MobileTrainingCenter from './components/mobile/MobileTrainingCenter';
 import MobileMyAccount from './components/mobile/MobileMyAccount';
@@ -766,6 +769,7 @@ function App() {
         <Route path="/admin/documentation" element={<ProtectedRoute routeName="admin-docs" requireRole="admin" element={<AdminLayout onLogout={handleLogout}><DocumentationManagement /></AdminLayout>} />} />
         <Route path="/admin/training" element={<ProtectedRoute routeName="admin-training" requireRole="admin" element={<AdminLayout onLogout={handleLogout}><TrainingManagement /></AdminLayout>} />} />
         <Route path="/admin/marketing" element={<ProtectedRoute routeName="admin-marketing" requireRole="admin" element={<AdminLayout onLogout={handleLogout}><MarketingManagement /></AdminLayout>} />} />
+        <Route path="/admin/pricing" element={<ProtectedRoute routeName="admin-pricing" requireRole="admin" element={<AdminLayout onLogout={handleLogout}><PricingManagement /></AdminLayout>} />} />
         <Route path="/admin/announcements" element={<ProtectedRoute routeName="admin-announcements" requireRole="admin" element={<AdminLayout onLogout={handleLogout}><AnnouncementsManagement /></AdminLayout>} />} />
         <Route path="/admin/distributors" element={<ProtectedRoute routeName="admin-distributors" requireRole="admin" element={<AdminLayout onLogout={handleLogout}><DistributorsManagement /></AdminLayout>} />} />
         <Route path="/admin/products" element={<ProtectedRoute routeName="admin-products" requireRole="admin" element={<AdminLayout onLogout={handleLogout}><ProductsManagement /></AdminLayout>} />} />
@@ -812,22 +816,39 @@ function App() {
             />
           } 
         />
-        <Route 
-          path="/portal/marketing" 
+        <Route
+          path="/portal/marketing"
           element={
-            <ProtectedRoute 
+            <ProtectedRoute
               routeName="marketing"
               requireRole="distributor"
               element={
                 <DistributorPortalLayout onLogout={handleLogout}>
-                  <SmartComponent 
+                  <SmartComponent
                     desktopComponent={MarketingAssets}
                     mobileComponent={MobileMarketingAssets}
                   />
                 </DistributorPortalLayout>
               }
             />
-          } 
+          }
+        />
+        <Route
+          path="/portal/pricing"
+          element={
+            <ProtectedRoute
+              routeName="pricing"
+              requireRole="distributor"
+              element={
+                <DistributorPortalLayout onLogout={handleLogout}>
+                  <SmartComponent
+                    desktopComponent={Pricing}
+                    mobileComponent={MobilePricing}
+                  />
+                </DistributorPortalLayout>
+              }
+            />
+          }
         />
         <Route 
           path="/portal/docs" 

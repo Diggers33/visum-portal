@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 
-export type ContentType = 'documentation' | 'marketing_assets' | 'training_materials' | 'announcements';
+export type ContentType = 'documentation' | 'marketing_assets' | 'training_materials' | 'announcements' | 'price_lists';
 
 // Map content types to their junction tables and ID columns
 const CONTENT_CONFIG = {
@@ -19,6 +19,10 @@ const CONTENT_CONFIG = {
   announcements: {
     table: 'announcements_distributors',
     idColumn: 'announcement_id',
+  },
+  price_lists: {
+    table: 'price_lists_distributors',
+    idColumn: 'price_list_id',
   },
 };
 

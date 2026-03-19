@@ -39,6 +39,7 @@ const navigation = [
   { name: 'Software Releases', href: '/admin/software-releases', icon: Download },
   { name: 'Documentation', href: '/admin/documentation', icon: FileText },
   { name: 'Marketing Assets', href: '/admin/marketing', icon: FolderOpen },
+  { name: 'Pricing', href: '/admin/pricing', icon: FileText },
   { name: 'Training', href: '/admin/training', icon: GraduationCap },
   { name: 'Announcements', href: '/admin/announcements', icon: Megaphone },
   { name: 'Activity Reports', href: '/admin/activity-reports', icon: Activity },

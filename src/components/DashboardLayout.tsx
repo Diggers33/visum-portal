@@ -60,6 +60,7 @@ export default function DashboardLayout({ children, onLogout }: DashboardLayoutP
     { name: t('navigation.whatsNew'), href: '/portal', icon: Bell },
     { name: t('navigation.products'), href: '/portal/products', icon: Package },
     { name: t('navigation.marketingAssets'), href: '/portal/marketing', icon: FolderOpen },
+    { name: t('navigation.pricing', 'Pricing'), href: '/portal/pricing', icon: Download },
     { name: t('navigation.documentation'), href: '/portal/docs', icon: FileText },
     { name: t('navigation.trainingCenter'), href: '/portal/training', icon: GraduationCap },
     { name: t('navigation.softwareUpdates', 'Software Updates'), href: '/portal/software-updates', icon: Download },

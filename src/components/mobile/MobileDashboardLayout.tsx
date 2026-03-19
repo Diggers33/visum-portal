@@ -32,6 +32,7 @@ const navigation = [
   { name: 'What\'s New', href: '/portal', icon: Bell, showInBottomNav: true },
   { name: 'Products', href: '/portal/products', icon: Package, showInBottomNav: true },
   { name: 'Marketing', href: '/portal/marketing', icon: FolderOpen, showInBottomNav: false },
+  { name: 'Pricing', href: '/portal/pricing', icon: FileText, showInBottomNav: false },
   { name: 'Docs', href: '/portal/docs', icon: FileText, showInBottomNav: true },
   { name: 'Training', href: '/portal/training', icon: GraduationCap, showInBottomNav: false },
   { name: 'Account', href: '/portal/account', icon: User, showInBottomNav: true },

@@ -1,12 +1,13 @@
 import { supabase } from '@/lib/supabase';
 
-type ContentType = 'documentation' | 'marketing_assets' | 'training_materials' | 'announcements';
+type ContentType = 'documentation' | 'marketing_assets' | 'training_materials' | 'announcements' | 'price_lists';
 
 const JUNCTION_TABLES = {
   documentation: 'documentation_distributors',
   marketing_assets: 'marketing_assets_distributors',
   training_materials: 'training_materials_distributors',
-  announcements: 'announcements_distributors'
+  announcements: 'announcements_distributors',
+  price_lists: 'price_lists_distributors',
 };
 
 /**
@@ -119,4 +120,8 @@ export async function fetchAccessibleTraining() {
 
 export async function fetchAccessibleAnnouncements() {
   return fetchAccessibleContent('announcements', 'announcements', { status: 'published' });
+}
+
+export async function fetchAccessiblePriceLists() {
+  return fetchAccessibleContent('price_lists', 'price_lists', { status: 'published' });
 }
