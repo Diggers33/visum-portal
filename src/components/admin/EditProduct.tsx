@@ -174,7 +174,7 @@ export default function EditProduct() {
           sku: data.sku || '',
           hs_code: data.hs_code || '',
           product_line: data.product_line || '',
-          category: data.category || '',
+          category: data.product_line || '',
           description: data.description || '',
           price: data.price?.toString() || '',
           currency: data.currency || 'EUR',
@@ -324,18 +324,14 @@ export default function EditProduct() {
         name: productData.name,
         sku: productData.sku || null,
         hs_code: productData.hs_code || null,
-        product_line: productData.product_line || null,
-        category: productData.category,
+        // category select drives product_line in DB (no separate category column)
+        product_line: productData.category || productData.product_line || null,
         description: productData.description || null,
         price: productData.price ? parseFloat(productData.price) : null,
         currency: productData.currency,
         status: productData.status,
         features: featuresArray,
-        applications: applicationsArray,
         specifications: Object.keys(specificationsObject).length > 0 ? specificationsObject : null,
-        datasheet_url: productData.datasheet_url || null,
-        manual_url: productData.manual_url || null,
-        brochure_url: productData.brochure_url || null,
         image_url: newImageUrl || null,
         updated_at: new Date().toISOString(),
       };
@@ -555,7 +551,7 @@ export default function EditProduct() {
                 <div className="space-y-3">
                   <Label>Upload New Images</Label>
                   <div
-                    className="border-2 border-dashed border-slate-200 rounded-lg p-6 hover:border-[#00a8b5] transition-colors cursor-pointer"
+                    className="border-2 border-dashed border-slate-200 rounded-lg p-6 hover:border-[#01B8D1] transition-colors cursor-pointer"
                     onDragOver={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
